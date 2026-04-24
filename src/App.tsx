@@ -55,6 +55,9 @@ function App() {
             <button type="button" onClick={handleSaveCubeAsGlb}>
                 Save cube as .glb
             </button>
+            <button type="button" onClick={controls.saveCubeAsGltf}>
+                Save cube as .gltf
+            </button>
             <div id="app" ref={cubeMountRef} aria-label="Rotating 3D cube" />
         </main>
     )

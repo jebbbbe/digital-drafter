@@ -1,5 +1,5 @@
 import * as THREE from "three"
-import { saveAsGlb } from "./Utils/loader"
+import { saveAsGlb, saveAsGltf } from "./Utils/loader"
 import { cube } from "./main"
 
 export function randomizeCubeColor(): void {
@@ -16,4 +16,8 @@ export function toggleCube(): void {
 
 export function saveCubeAsGlb(): void {
     void saveAsGlb(cube, "cube.glb")
+}
+
+export function saveCubeAsGltf(): void {
+    void saveAsGltf(cube, "cube.gltf")
 }
