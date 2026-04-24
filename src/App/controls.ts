@@ -1,5 +1,5 @@
 import * as THREE from "three"
-import { updateCubeColor, cube } from "./main"
+import { cube } from "./main"
 
 export function randomizeCubeColor(): void {
     const color = new THREE.Color().setHSL(
@@ -7,8 +7,7 @@ export function randomizeCubeColor(): void {
         Math.random(),
         Math.random()
     )
-
-    updateCubeColor(color)
+    cube.material.color = color
 }
 export function toggleCube(): void {
     cube.visible = !cube.visible

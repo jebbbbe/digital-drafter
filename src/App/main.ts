@@ -1,7 +1,6 @@
 import * as THREE from "three"
 import { makeCustomShape } from "./Geometry/geometry"
 
-const CAMERA_DISTANCE = 2.7
 export const cube = new THREE.Mesh(
     makeCustomShape(),
     new THREE.MeshStandardMaterial({
@@ -11,9 +10,60 @@ export const cube = new THREE.Mesh(
     })
 )
 
+let containerElement!: HTMLElement
+let renderer!: THREE.WebGLRenderer
+let scene!: THREE.Scene
+let camera!: THREE.PerspectiveCamera
+let resizeObserver: ResizeObserver | null = null
+let frameId = 0
+
+function resize(): void {
+    if (!resizeObserver) {
+        return
+    }
+
+    const width = containerElement.clientWidth
+    const height = containerElement.clientHeight
+
+    if (!width || !height) {
+        return
+    }
+
+    camera.aspect = width / height
+    camera.updateProjectionMatrix()
+    renderer.setSize(width, height, false)
+}
+
+function render(): void {
+    cube.rotation.x += 0.009
+    cube.rotation.y += 0.012
+    renderer.render(scene, camera)
+}
+
+function animate(): void {
+    render()
+    frameId = window.requestAnimationFrame(animate)
+}
+
+function dispose(): void {
+    if (!resizeObserver) {
+        return
+    }
+
+    window.cancelAnimationFrame(frameId)
+    resizeObserver.disconnect()
+    resizeObserver = null
+    renderer.dispose()
+    renderer.domElement.remove()
+}
+
 export function init(container: HTMLElement): () => void {
-    //renderer
-    const renderer = new THREE.WebGLRenderer({
+    dispose()
+
+    containerElement = container
+
+    // renderer
+    renderer = new THREE.WebGLRenderer({
         antialias: false,
         powerPreference: "high-performance",
     })
@@ -21,66 +71,28 @@ export function init(container: HTMLElement): () => void {
     container.appendChild(renderer.domElement)
 
     // scene
-    const scene = new THREE.Scene()
-    scene.background = 0xeef4ff
+    scene = new THREE.Scene()
+    scene.background = new THREE.Color(0xeef4ff)
 
     //camera
-    const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 100)
-    camera.position.set(
-        CAMERA_DISTANCE,
-        CAMERA_DISTANCE * 0.65,
-        CAMERA_DISTANCE
-    )
+    camera = new THREE.PerspectiveCamera(60, 1, 0.1, 100)
+    camera.position.set(3.7, 3.7 * 0.65, 3.7)
     camera.lookAt(0, 0, 0)
 
-    //content
-
+    // content
     scene.add(cube)
     const ambient = new THREE.AmbientLight(0xffffff, 0.7)
     const sun = new THREE.DirectionalLight(0xffffff, 0.9)
     sun.position.set(2, 3, 4)
     scene.add(ambient, sun)
 
-    // events
-    const resize = () => {
-        const width = container.clientWidth
-        const height = container.clientHeight
-
-        if (!width || !height) {
-            return
-        }
-
-        camera.aspect = width / height
-        camera.updateProjectionMatrix()
-        renderer.setSize(width, height, false)
-    }
+    resizeObserver = new ResizeObserver(resize)
 
     resize()
 
-    const resizeObserver = new ResizeObserver(resize)
     resizeObserver.observe(container)
-
-    let frameId = 0
-
-    const animate = () => {
-        cube.rotation.x += 0.009
-        cube.rotation.y += 0.012
-        renderer.render(scene, camera)
-        frameId = window.requestAnimationFrame(animate)
-    }
 
     frameId = window.requestAnimationFrame(animate)
 
-    return () => {
-        window.cancelAnimationFrame(frameId)
-        resizeObserver.disconnect()
-        cube.geometry.dispose()
-        cube.material.dispose()
-        renderer.dispose()
-        renderer.domElement.remove()
-    }
-}
-
-export function updateCubeColor(color: THREE.Color): void {
-    cube.material.color = color
+    return dispose
 }
