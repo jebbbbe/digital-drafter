@@ -1,12 +1,15 @@
 import { useEffect, useRef } from "react"
 import { init } from "./App/main"
-import { randomizeCubeColor } from "./App/controls"
+import * as controls from "./App/controls"
 
 function App() {
     const cubeMountRef = useRef<HTMLDivElement | null>(null)
 
     const handleChangeCubeColor = () => {
-        randomizeCubeColor()
+        controls.randomizeCubeColor()
+    }
+    const handleChangeCubeToggle = () => {
+        controls.toggleCube()
     }
 
     useEffect(() => {
@@ -42,6 +45,9 @@ function App() {
             </p>
             <button type="button" onClick={handleChangeCubeColor}>
                 Randomize cube color
+            </button>
+            <button type="button" onClick={handleChangeCubeToggle}>
+                Toggle cube
             </button>
             <div id="app" ref={cubeMountRef} aria-label="Rotating 3D cube" />
         </main>

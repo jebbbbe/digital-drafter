@@ -2,7 +2,7 @@ import * as THREE from "three"
 import { makeCustomShape } from "./Geometry/geometry"
 
 const CAMERA_DISTANCE = 2.7
-const cube = new THREE.Mesh(
+export const cube = new THREE.Mesh(
     makeCustomShape(),
     new THREE.MeshStandardMaterial({
         color: "#1d8bff",
