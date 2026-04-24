@@ -12,9 +12,19 @@ export const cube = new THREE.Mesh(
 )
 
 export function init(container: HTMLElement): () => void {
-    const scene = new THREE.Scene()
-    scene.background = new THREE.Color("#eef4ff")
+    //renderer
+    const renderer = new THREE.WebGLRenderer({
+        antialias: false,
+        powerPreference: "high-performance",
+    })
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))
+    container.appendChild(renderer.domElement)
 
+    // scene
+    const scene = new THREE.Scene()
+    scene.background = 0xeef4ff
+
+    //camera
     const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 100)
     camera.position.set(
         CAMERA_DISTANCE,
@@ -23,21 +33,15 @@ export function init(container: HTMLElement): () => void {
     )
     camera.lookAt(0, 0, 0)
 
-    const renderer = new THREE.WebGLRenderer({
-        antialias: false,
-        powerPreference: "high-performance",
-    })
-
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))
-    container.appendChild(renderer.domElement)
+    //content
 
     scene.add(cube)
-
     const ambient = new THREE.AmbientLight(0xffffff, 0.7)
     const sun = new THREE.DirectionalLight(0xffffff, 0.9)
     sun.position.set(2, 3, 4)
     scene.add(ambient, sun)
 
+    // events
     const resize = () => {
         const width = container.clientWidth
         const height = container.clientHeight
