@@ -19,29 +19,6 @@ let controls!: OrbitControls
 let layout!: AspectLayout
 let frameId = 0
 
-function render(): void {
-    cube.rotation.x += 0.009
-    cube.rotation.y += 0.012
-    controls.update()
-    renderer.render(scene, camera)
-}
-
-function animate(): void {
-    render()
-    frameId = globalThis.requestAnimationFrame(animate)
-}
-
-function dispose(): void {
-    if (!renderer) {
-        return
-    }
-
-    globalThis.cancelAnimationFrame(frameId)
-    layout.removeResizeListener()
-    renderer.dispose()
-    renderer.domElement.remove()
-}
-
 export function init(container: HTMLElement): () => void {
     dispose()
 
@@ -54,7 +31,7 @@ export function init(container: HTMLElement): () => void {
         powerPreference: "high-performance",
     })
     renderer.setSize(layout.x, layout.y)
-    renderer.setPixelRatio(Math.min(globalThis.devicePixelRatio, 1.5))
+    renderer.setPixelRatio(Math.min(globalThis.devicePixelRatio, 1))
     container.appendChild(renderer.domElement)
 
     // scene
@@ -88,7 +65,27 @@ export function init(container: HTMLElement): () => void {
     return dispose
 }
 
-export { renderer, scene, camera, controls, cube }
+function render(): void {
+    cube.rotation.x += 0.009
+    cube.rotation.y += 0.012
+    controls.update()
+    renderer.render(scene, camera)
+}
+
+function animate(): void {
+    render()
+    frameId = globalThis.requestAnimationFrame(animate)
+}
+
+function dispose(): void {
+    if (!renderer) {
+        return
+    }
+    globalThis.cancelAnimationFrame(frameId)
+    layout.removeResizeListener()
+    renderer.dispose()
+    renderer.domElement.remove()
+}
 
 function initOrbit(
     camera: THREE.OrthographicCamera,
@@ -101,11 +98,11 @@ function initOrbit(
     controls.enablePan = false
     controls.minDistance = 1 //zoom min scaling
     controls.maxDistance = 2000 //zoom max scaling
-    // camera.position.set(90, 90, 90)
-    // camera.zoom = 0.06
     controls.update()
     // controls.addEventListener("change", () => { // for no aniumation loop()
     // renderer.render(scene, camera);
     // });
     return controls
 }
+
+export { renderer, scene, camera, controls, cube }
