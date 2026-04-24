@@ -11,6 +11,9 @@ function App() {
     const handleChangeCubeToggle = () => {
         controls.toggleCube()
     }
+    const handleSaveCubeAsGlb = () => {
+        controls.saveCubeAsGlb()
+    }
 
     useEffect(() => {
         if (!cubeMountRef.current) {
@@ -48,6 +51,9 @@ function App() {
             </button>
             <button type="button" onClick={handleChangeCubeToggle}>
                 Toggle cube
+            </button>
+            <button type="button" onClick={handleSaveCubeAsGlb}>
+                Save cube as .glb
             </button>
             <div id="app" ref={cubeMountRef} aria-label="Rotating 3D cube" />
         </main>
