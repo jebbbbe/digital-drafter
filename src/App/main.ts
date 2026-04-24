@@ -1,6 +1,7 @@
 import * as THREE from "three"
 import { makeCustomShape } from "./Geometry/geometry"
 import { OrbitControls } from "three/examples/jsm/Addons.js"
+import { AspectLayout } from "./Utils/AspectLayout"
 
 const cube = new THREE.Mesh(
     makeCustomShape(),
@@ -11,30 +12,12 @@ const cube = new THREE.Mesh(
     })
 )
 
-let containerElement!: HTMLElement
 let renderer!: THREE.WebGLRenderer
 let scene!: THREE.Scene
-let camera!: THREE.PerspectiveCamera
+let camera!: THREE.OrthographicCamera
 let controls!: OrbitControls
-let resizeObserver: ResizeObserver | null = null
+let layout!: AspectLayout
 let frameId = 0
-
-function resize(): void {
-    if (!resizeObserver) {
-        return
-    }
-
-    const width = containerElement.clientWidth
-    const height = containerElement.clientHeight
-
-    if (!width || !height) {
-        return
-    }
-
-    camera.aspect = width / height
-    camera.updateProjectionMatrix()
-    renderer.setSize(width, height, false)
-}
 
 function render(): void {
     cube.rotation.x += 0.009
@@ -49,13 +32,12 @@ function animate(): void {
 }
 
 function dispose(): void {
-    if (!resizeObserver) {
+    if (!renderer) {
         return
     }
 
     globalThis.cancelAnimationFrame(frameId)
-    resizeObserver.disconnect()
-    resizeObserver = null
+    layout.removeResizeListener()
     renderer.dispose()
     renderer.domElement.remove()
 }
@@ -63,13 +45,15 @@ function dispose(): void {
 export function init(container: HTMLElement): () => void {
     dispose()
 
-    containerElement = container
+    //layout
+    layout = new AspectLayout("dynamic", container)
 
     // renderer
     renderer = new THREE.WebGLRenderer({
         antialias: true,
         powerPreference: "high-performance",
     })
+    renderer.setSize(layout.x, layout.y)
     renderer.setPixelRatio(Math.min(globalThis.devicePixelRatio, 1.5))
     container.appendChild(renderer.domElement)
 
@@ -78,9 +62,9 @@ export function init(container: HTMLElement): () => void {
     scene.background = new THREE.Color(0xeef4ff)
 
     //camera
-    camera = new THREE.PerspectiveCamera(60, 1, 0.1, 100)
-    // camera = new THREE.OrthographicCamera(60, 1, 0.1, 100)
-    camera.position.set(3.7, 3.7 * 0.65, 3.7)
+    camera = new THREE.OrthographicCamera(...layout.getThreeOrthographicArgs())
+    camera.zoom = 0.1
+    camera.position.set(0, 100, 0)
     camera.lookAt(0, 0, 0)
 
     //controls
@@ -97,11 +81,7 @@ export function init(container: HTMLElement): () => void {
 
     scene.add(cube, ambient, sun, gridHelper, axesHelper)
 
-    resizeObserver = new ResizeObserver(resize)
-
-    resize()
-
-    resizeObserver.observe(container)
+    layout.addResizeListener(renderer, camera, render)
 
     frameId = globalThis.requestAnimationFrame(animate)
 
@@ -110,13 +90,15 @@ export function init(container: HTMLElement): () => void {
 
 export { renderer, scene, camera, controls, cube }
 
-function initOrbit(camera, renderer) {
+function initOrbit(
+    camera: THREE.OrthographicCamera,
+    renderer: THREE.WebGLRenderer
+) {
     controls = new OrbitControls(camera, renderer.domElement)
     controls.enableDamping = true // an animation loop is required when either damping or auto-rotation are enabled
     controls.dampingFactor = 0.15 //0.05
     controls.screenSpacePanning = false
     controls.enablePan = false
-    controls.panning = false
     controls.minDistance = 1 //zoom min scaling
     controls.maxDistance = 2000 //zoom max scaling
     // camera.position.set(90, 90, 90)
