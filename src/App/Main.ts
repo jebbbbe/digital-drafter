@@ -1,8 +1,17 @@
 import * as THREE from "three"
+import { makeCustomShape } from "./Geometry/geometry"
 
 const CAMERA_DISTANCE = 2.7
+const cube = new THREE.Mesh(
+    makeCustomShape(),
+    new THREE.MeshStandardMaterial({
+        color: "#1d8bff",
+        roughness: 0.35,
+        metalness: 0.08,
+    })
+)
 
-export function mountRotatingCube(container: HTMLElement): () => void {
+export function init(container: HTMLElement): () => void {
     const scene = new THREE.Scene()
     scene.background = new THREE.Color("#eef4ff")
 
@@ -21,15 +30,6 @@ export function mountRotatingCube(container: HTMLElement): () => void {
 
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))
     container.appendChild(renderer.domElement)
-
-    const cube = new THREE.Mesh(
-        new THREE.BoxGeometry(1, 1, 1),
-        new THREE.MeshStandardMaterial({
-            color: "#1d8bff",
-            roughness: 0.35,
-            metalness: 0.08,
-        })
-    )
 
     scene.add(cube)
 
@@ -75,4 +75,8 @@ export function mountRotatingCube(container: HTMLElement): () => void {
         renderer.dispose()
         renderer.domElement.remove()
     }
+}
+
+export function updateCubeColor(color: THREE.Color): void {
+    cube.material.color = color
 }
