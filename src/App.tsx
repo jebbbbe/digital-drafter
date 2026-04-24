@@ -1,8 +1,13 @@
 import { useEffect, useRef } from "react"
-import { init } from "./App/Main"
+import { init } from "./App/main"
+import { randomizeCubeColor } from "./App/controls"
 
 function App() {
     const cubeMountRef = useRef<HTMLDivElement | null>(null)
+
+    const handleChangeCubeColor = () => {
+        randomizeCubeColor()
+    }
 
     useEffect(() => {
         if (!cubeMountRef.current) {
@@ -13,15 +18,13 @@ function App() {
         let isMounted = true
 
         if (import.meta.hot) {
-            import.meta.hot.accept("./App/Main", (updatedModule) => {
+            import.meta.hot.accept("./App/main", (updatedModule) => {
                 if (!updatedModule || !isMounted || !cubeMountRef.current) {
                     return
                 }
 
                 disposeScene()
-                disposeScene = updatedModule.mountRotatingCube(
-                    cubeMountRef.current
-                )
+                disposeScene = updatedModule.init(cubeMountRef.current)
             })
         }
 
@@ -37,6 +40,9 @@ function App() {
             <p>
                 WebGL renderer imported from the default three package export.
             </p>
+            <button type="button" onClick={handleChangeCubeColor}>
+                Randomize cube color
+            </button>
             <div id="app" ref={cubeMountRef} aria-label="Rotating 3D cube" />
         </main>
     )

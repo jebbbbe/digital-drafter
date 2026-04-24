@@ -12,7 +12,7 @@ function manualChunks(id: string) {
         return "three"
     }
 
-    if (normalizedId.includes("src/App/Main.ts")) {
+    if (normalizedId.includes("src/App/main.ts")) {
         return "app"
     }
 }
