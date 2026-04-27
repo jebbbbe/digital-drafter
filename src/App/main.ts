@@ -3,6 +3,7 @@ import * as shape from "./geometry/geometry"
 import { OrbitControls } from "three/examples/jsm/Addons.js"
 import { AspectLayout } from "./utils/AspectLayout"
 import { loadGlb } from "./utils/loader"
+import { RaycastHelper } from "./interaction/RaycastHelper"
 
 const cube = new THREE.Mesh(
     // shape.makeCustomMergeShape(),
@@ -20,6 +21,8 @@ let camera!: THREE.OrthographicCamera
 let controls!: OrbitControls
 let layout!: AspectLayout
 let frameId = 0
+
+let raycastHelper!: RaycastHelper
 
 export function init(container: HTMLElement): () => void {
     // const assetsLoader = loadAssets()
@@ -68,9 +71,25 @@ export function init(container: HTMLElement): () => void {
     // }
     // scene.add(loadedCubeModel)
 
+    raycastHelper = new RaycastHelper(camera, scene, renderer.domElement)
+
     layout.addResizeListener(renderer, camera, render)
 
     frameId = globalThis.requestAnimationFrame(animate)
+
+    globalThis.addEventListener("pointerdown", (e) => {
+        let intersects = raycastHelper.castFromEvent(e)
+        if (intersects.length === 0) {
+            // no intersects
+            return
+        }
+        const int = intersects[0]
+        if (!int.face) {
+            // not a mesh
+            return
+        }
+        console.log(int)
+    })
 
     return dispose
 }
