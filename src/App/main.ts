@@ -1,8 +1,8 @@
 import * as THREE from "three"
-import * as shape from "./Geometry/geometry"
+import * as shape from "./geometry/geometry"
 import { OrbitControls } from "three/examples/jsm/Addons.js"
-import { AspectLayout } from "./Utils/AspectLayout"
-import { loadGlb } from "./Utils/loader"
+import { AspectLayout } from "./utils/AspectLayout"
+import { loadGlb } from "./utils/loader"
 
 const cube = new THREE.Mesh(
     // shape.makeCustomMergeShape(),
