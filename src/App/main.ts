@@ -1,18 +1,19 @@
 import * as THREE from "three"
-import { makeCustomShape } from "./Geometry/geometry"
+import * as shape from "./Geometry/geometry"
 import { OrbitControls } from "three/examples/jsm/Addons.js"
 import { AspectLayout } from "./Utils/AspectLayout"
 import { loadGlb } from "./Utils/loader"
 
 const cube = new THREE.Mesh(
-    makeCustomShape(),
+    // shape.makeCustomMergeShape(),
+    // shape.makeCustomBVHShape(),
+    shape.makeCustomBVHHierarchyShape(),
     new THREE.MeshStandardMaterial({
         color: "#1d8bff",
         roughness: 0.35,
         metalness: 0.08,
     })
 )
-
 let renderer!: THREE.WebGLRenderer
 let scene!: THREE.Scene
 let camera!: THREE.OrthographicCamera

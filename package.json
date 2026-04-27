@@ -13,7 +13,8 @@
         "leva": "^0.10.1",
         "react": "^19.2.5",
         "react-dom": "^19.2.5",
-        "three": "0.183.0"
+        "three": "0.183.0",
+        "three-bvh-csg": "^0.0.18"
     },
     "devDependencies": {
         "@eslint/js": "^10.0.1",
