@@ -34,7 +34,7 @@ export function init(container: HTMLElement): () => void {
         powerPreference: "high-performance",
     })
     renderer.setSize(layout.x, layout.y)
-    renderer.setPixelRatio(Math.min(globalThis.devicePixelRatio, 1))
+    renderer.setPixelRatio(globalThis.devicePixelRatio)
     container.appendChild(renderer.domElement)
 
     // scene
@@ -66,7 +66,6 @@ export function init(container: HTMLElement): () => void {
     //     throw new Error('Failed to resolve asset "/cube.glb"')
     // }
     // scene.add(loadedCubeModel)
-
 
     layout.addResizeListener(renderer, camera, render)
 
