@@ -1,36 +1,29 @@
 import { useEffect, useRef } from "react"
 import { init } from "./App/main"
-import * as controls from "./App/controls"
 
 function App() {
-    const cubeMountRef = useRef<HTMLDivElement | null>(null)
-
-    const handleChangeCubeColor = () => {
-        controls.randomizeCubeColor()
-    }
-    const handleChangeCubeToggle = () => {
-        controls.toggleCube()
-    }
-    const handleSaveCubeAsGlb = () => {
-        controls.saveCubeAsGlb()
-    }
+    const threeSceneMountRef = useRef<HTMLDivElement | null>(null)
 
     useEffect(() => {
-        if (!cubeMountRef.current) {
+        if (!threeSceneMountRef.current) {
             return
         }
 
-        let disposeScene = init(cubeMountRef.current)
+        let disposeScene = init(threeSceneMountRef.current)
         let isMounted = true
 
         if (import.meta.hot) {
             import.meta.hot.accept("./App/main", (updatedModule) => {
-                if (!updatedModule || !isMounted || !cubeMountRef.current) {
+                if (
+                    !updatedModule ||
+                    !isMounted ||
+                    !threeSceneMountRef.current
+                ) {
                     return
                 }
 
                 disposeScene()
-                disposeScene = updatedModule.init(cubeMountRef.current)
+                disposeScene = updatedModule.init(threeSceneMountRef.current)
             })
         }
 
@@ -40,27 +33,7 @@ function App() {
         }
     }, [])
 
-    return (
-        <main>
-            <h1>Three.js r183 Cube</h1>
-            <p>
-                WebGL renderer imported from the default three package export.
-            </p>
-            <button type="button" onClick={handleChangeCubeColor}>
-                Randomize cube color
-            </button>
-            <button type="button" onClick={handleChangeCubeToggle}>
-                Toggle cube
-            </button>
-            <button type="button" onClick={handleSaveCubeAsGlb}>
-                Save cube as .glb
-            </button>
-            <button type="button" onClick={controls.saveCubeAsGltf}>
-                Save cube as .gltf
-            </button>
-            <div id="app" ref={cubeMountRef} aria-label="Rotating 3D cube" />
-        </main>
-    )
+    return <div id="app" ref={threeSceneMountRef} />
 }
 
 export default App

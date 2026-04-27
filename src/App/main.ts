@@ -2,6 +2,7 @@ import * as THREE from "three"
 import { makeCustomShape } from "./Geometry/geometry"
 import { OrbitControls } from "three/examples/jsm/Addons.js"
 import { AspectLayout } from "./Utils/AspectLayout"
+import { loadGlb } from "./Utils/loader"
 
 const cube = new THREE.Mesh(
     makeCustomShape(),
@@ -20,6 +21,8 @@ let layout!: AspectLayout
 let frameId = 0
 
 export function init(container: HTMLElement): () => void {
+    // const assetsLoader = loadAssets()
+
     dispose()
 
     //layout
@@ -56,7 +59,14 @@ export function init(container: HTMLElement): () => void {
     const axesHelper = new THREE.AxesHelper(10)
     axesHelper.renderOrder = 1
 
-    scene.add(cube, ambient, sun, gridHelper, axesHelper)
+    scene.add(ambient, sun, gridHelper, axesHelper, cube)
+
+    // const [loadedCubeModel] = await assetsLoader
+    // if (!loadedCubeModel) {
+    //     throw new Error('Failed to resolve asset "/cube.glb"')
+    // }
+    // scene.add(loadedCubeModel)
+
 
     layout.addResizeListener(renderer, camera, render)
 
@@ -66,8 +76,6 @@ export function init(container: HTMLElement): () => void {
 }
 
 function render(): void {
-    cube.rotation.x += 0.009
-    cube.rotation.y += 0.012
     controls.update()
     renderer.render(scene, camera)
 }
@@ -106,3 +114,7 @@ function initOrbit(
 }
 
 export { renderer, scene, camera, controls, cube }
+
+function loadAssets(): Promise<[THREE.Object3D]> {
+    return Promise.all([loadGlb("/cube.glb")])
+}

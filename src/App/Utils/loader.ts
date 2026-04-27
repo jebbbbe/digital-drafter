@@ -57,3 +57,29 @@ function downloadBlob(blob: Blob, filename: string): void {
 
     URL.revokeObjectURL(url)
 }
+
+export async function loadGlb(path: string): Promise<THREE.Object3D> {
+    const loader = new GLTFLoader()
+
+    return await new Promise((resolve, reject) => {
+        loader.load(
+            path,
+            (gltf) => {
+                resolve(gltf.scene)
+            },
+            (event) => {
+                if (!event.total) {
+                    return
+                }
+
+                const percentLoaded = (event.loaded / event.total) * 100
+                console.log(`Loading ${path}: ${percentLoaded.toFixed(1)}%`)
+            },
+            (error) => {
+                reject(error)
+            }
+        )
+    })
+}
+
+export const loadGltf = loadGlb

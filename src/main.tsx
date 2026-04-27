@@ -2,6 +2,8 @@ import { StrictMode } from "react"
 import { createRoot, hydrateRoot } from "react-dom/client"
 import "./index.css"
 import App from "./App"
+import Header from "./components/Header"
+import Controls from "./components/Controls"
 
 const rootElement = document.getElementById("root")
 
@@ -10,9 +12,13 @@ if (!rootElement) {
 }
 
 const app = (
-    <StrictMode>
-        <App />
-    </StrictMode>
+    <main>
+         <App />
+         <StrictMode>
+            <Header/>
+            <Controls/>
+         </StrictMode>
+    </main>
 )
 // createRoot(rootElement).render(app)
 
