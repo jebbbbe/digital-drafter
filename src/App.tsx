@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react"
-import { init } from "./App/main"
+import { init } from "./App/index"
 
 function App() {
     const threeSceneMountRef = useRef<HTMLDivElement | null>(null)
@@ -13,7 +13,7 @@ function App() {
         let isMounted = true
 
         if (import.meta.hot) {
-            import.meta.hot.accept("./App/main", (updatedModule) => {
+            import.meta.hot.accept("./App/index", (updatedModule) => {
                 if (
                     !updatedModule ||
                     !isMounted ||
