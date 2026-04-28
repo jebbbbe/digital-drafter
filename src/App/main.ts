@@ -47,7 +47,7 @@ export function init(container: HTMLElement): () => void {
 
     //camera
     camera = new THREE.OrthographicCamera(...layout.getThreeOrthographicArgs())
-    camera.zoom = 0.1
+    camera.zoom = 0.075
     camera.position.set(0, 100, 0)
     camera.lookAt(0, 0, 0)
 
