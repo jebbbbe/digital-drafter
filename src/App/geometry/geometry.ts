@@ -1,5 +1,6 @@
 import * as THREE from "three"
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js"
+import { BufferGeometryUtils } from "three/addons"
 import {
     ADDITION,
     SUBTRACTION,
@@ -57,9 +58,14 @@ export function makeCustomBVHShape(): THREE.BufferGeometry {
 
     const result = evaluator.evaluate(brush1, brush2, ADDITION)
     // const result = evaluator.evaluate(brush1, brush2, SUBTRACTION)
+
     if (result) {
-        // console.log(result)
-        return result.geometry
+        let geometry = result.geometry
+        geometry.deleteAttribute("uv")
+        geometry.deleteAttribute("normal")
+        geometry = BufferGeometryUtils.mergeVertices(geometry, 1e-2)
+        geometry.computeVertexNormals()
+        return geometry
     } else {
         return geo1
     }
@@ -79,7 +85,7 @@ export function makeCustomBVHHierarchyShape(): THREE.BufferGeometry {
     const sphere = new Operation(new THREE.SphereGeometry(0.75, 24, 16))
     sphere.position.set(0.6, 0.4, 0)
     sphere.operation = SUBTRACTION
-    
+
     const cone = new Operation(new THREE.ConeGeometry(0.5, 1.5, 24))
     cone.position.set(-0.5, 0.8, 0)
     cone.rotation.z = Math.PI / 3

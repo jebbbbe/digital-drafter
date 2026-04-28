@@ -4,11 +4,12 @@ import { OrbitControls } from "three/examples/jsm/Addons.js"
 import { AspectLayout } from "./utils/AspectLayout"
 import { loadGlb } from "./utils/loader"
 import { RaycastHelper } from "./interaction/RaycastHelper"
+import { Drafter } from "./draft/Drafter"
 
 const cube = new THREE.Mesh(
     // shape.makeCustomMergeShape(),
-    // shape.makeCustomBVHShape(),
-    shape.makeCustomBVHHierarchyShape(),
+    shape.makeCustomBVHShape(),
+    // shape.makeCustomBVHHierarchyShape(),
     new THREE.MeshStandardMaterial({
         color: "#1d8bff",
         roughness: 0.35,
@@ -23,6 +24,7 @@ let layout!: AspectLayout
 let frameId = 0
 
 let raycastHelper!: RaycastHelper
+let drafter!: Drafter
 
 export function init(container: HTMLElement): () => void {
     // const assetsLoader = loadAssets()
@@ -63,7 +65,11 @@ export function init(container: HTMLElement): () => void {
     const axesHelper = new THREE.AxesHelper(10)
     axesHelper.renderOrder = 1
 
-    scene.add(ambient, sun, gridHelper, axesHelper, cube)
+    // scene.add(ambient, sun, gridHelper, axesHelper)
+    scene.add(ambient, sun)
+
+    // Drafter
+    drafter = new Drafter(scene, cube.geometry)
 
     // const [loadedCubeModel] = await assetsLoader
     // if (!loadedCubeModel) {
@@ -88,7 +94,10 @@ export function init(container: HTMLElement): () => void {
             // not a mesh
             return
         }
-        console.log(int)
+        const id = int.object.userData.id
+        const index = int.instanceId
+
+        console.log(id, index, int)
     })
 
     return dispose
