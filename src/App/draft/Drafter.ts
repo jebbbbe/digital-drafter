@@ -2,8 +2,9 @@ import * as THREE from "three"
 import { TransformTree, createTransformNode } from "./TransformTree"
 import { InstanceCount } from "./capacity"
 import { InstanceLineSegments } from "./Mesh/InstanceLineSegments"
-import { calculateProjectionMatrix } from "./matrix"
+import { calculateProjectionMatrix, applyTransformAroundOrigin } from "./matrix"
 import { Line2 } from "three/examples/jsm/Addons.js"
+import * as rand from "../utils/random"
 
 type instanceItem = {
     // brush:any for CSG later...
@@ -94,7 +95,10 @@ export class Drafter {
     }
     newInstance(geometry: THREE.BufferGeometry): instanceItem {
         // localTransform set from geo or pass in...
+        const scale = rand.random(0.5, 1.25)
         const localTransform = new THREE.Matrix4()
+            .scale(new THREE.Vector3(scale, scale, scale))
+            .makeRotationX(rand.randomItem([0, Math.PI / 2, Math.PI, 3*Math.PI/2]))
 
         const mesh = new THREE.InstancedMesh(
             geometry,
@@ -153,9 +157,9 @@ export class Drafter {
         parentIndex: number | undefined,
         point: THREE.Vector3 = new THREE.Vector3()
     ) {
-        const insanceItem = this.instanceItems[id]
+        const instanceItem = this.instanceItems[id]
 
-        if (insanceItem.count === insanceItem.maxCount) {
+        if (instanceItem.count === instanceItem.maxCount) {
             console.error("not implemented resize instance item")
             return
         }
@@ -176,17 +180,28 @@ export class Drafter {
             node.baseMatrix
         )
 
+        let mat
         if (parent) {
             node.compoundMatrix
                 .copy(node.baseMatrix)
                 .multiply(parent.compoundMatrix)
         }
-        // i think we can do this through insanceItem.geometry instead?...
-        const { mesh } = insanceItem
-        mesh.setMatrixAt(mesh.count, node.compoundMatrix)
+        mat = node.compoundMatrix
+
+        applyTransformAroundOrigin(
+            node.position,
+            instanceItem.localTransform,
+            node.compoundMatrix,
+            node.localMatrix
+        )
+        mat = node.localMatrix
+
+        // i think we can do this through instanceItem.geometry instead?...
+        const { mesh } = instanceItem
+        mesh.setMatrixAt(mesh.count, mat)
 
         // inc count to draw visible.
-        incrementInstanceCount(insanceItem)
+        incrementInstanceCount(instanceItem)
     }
     pruneNode() {}
     removeNode() {}
@@ -220,7 +235,7 @@ create pos
 create matrix
 find parent
 mathupdate -> propegate -> setMatrixAt
-inc insance count
+inc instance count
 
 removeInstance
 removes a node, and all its children. 

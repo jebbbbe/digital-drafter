@@ -11,6 +11,7 @@ type TransformNode = {
     position: THREE.Vector3
     baseMatrix: THREE.Matrix4
     compoundMatrix: THREE.Matrix4
+    localMatrix: THREE.Matrix4
     instanceLookup: InstanceLookup
     parent?: TransformNode
     children: TransformNode[]
@@ -278,6 +279,7 @@ export function createTransformNode({
         position: pos ?? new THREE.Vector3(),
         baseMatrix: mat ?? new THREE.Matrix4(),
         compoundMatrix: new THREE.Matrix4(),
+        localMatrix: new THREE.Matrix4(),
         instanceLookup: {
             id: id ?? -1,
             index: -1,
