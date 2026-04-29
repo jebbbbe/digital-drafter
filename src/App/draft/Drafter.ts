@@ -56,6 +56,19 @@ export class Drafter {
             polygonOffsetFactor: 1,
             polygonOffsetUnits: 1,
         }),
+        debugLine: new THREE.LineBasicMaterial({
+            color: 0xffff00,
+        }),
+        debugPoint: new THREE.PointsMaterial({
+            color: 0xffff00,
+        }),
+    }
+    debug = {
+        objects: {
+            line: new THREE.Line(),
+            point: new THREE.Points(),
+        },
+        enable: true,
     }
     constructor(
         scene: THREE.Scene,
@@ -71,6 +84,10 @@ export class Drafter {
         for (let i = 0; i < initalPoints.length; i++) {
             this.addNode(0, Math.max(0, i - 1), initalPoints[i])
         }
+
+        //debug set up
+        this.debug.objects.line.material = this.materials.debugLine
+        this.debug.objects.point.material = this.materials.debugPoint
     }
     newInstance(geometry: THREE.BufferGeometry): instanceItem {
         // localTransform set from geo or pass in...
