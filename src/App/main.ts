@@ -70,14 +70,14 @@ export function init(container: HTMLElement): () => void {
 
     // Drafter
     drafter = new Drafter(scene, cube.geometry, [
-        new THREE.Vector3(0, 0, 0),
-        new THREE.Vector3(5, 0, 0),
-        new THREE.Vector3(5, 0, 5),
-        new THREE.Vector3(5, 0, -5),
-        new THREE.Vector3(-5, 0, -5),
-        new THREE.Vector3(-5, 0, 5),
-        new THREE.Vector3(10, 0, 0),
-        new THREE.Vector3(-10, 0, 0),
+        { pos: new THREE.Vector3(0, 0, 0) },
+        { pos: new THREE.Vector3(5, 0, 0), parent: 0 },
+        { pos: new THREE.Vector3(5, 0, 5), parent: 1 },
+        { pos: new THREE.Vector3(5, 0, -5), parent: 2 },
+        { pos: new THREE.Vector3(-5, 0, -5), parent: 0 },
+        { pos: new THREE.Vector3(-5, 0, 5), parent: 0 },
+        { pos: new THREE.Vector3(10, 0, 0), parent: 0 },
+        { pos: new THREE.Vector3(-10, 0, 0), parent: 0 },
     ])
     ;(globalThis as any).drafter = drafter
     console.log(drafter)

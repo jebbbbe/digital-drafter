@@ -73,7 +73,9 @@ export class Drafter {
     constructor(
         scene: THREE.Scene,
         initalGeo: THREE.BufferGeometry,
-        initalPoints: THREE.Vector3[] = [new THREE.Vector3()]
+        initalPoints: { pos: THREE.Vector3; parent?: number }[] = [
+            { pos: new THREE.Vector3() },
+        ]
     ) {
         this.tree = new TransformTree()
         this.scene = scene
@@ -82,7 +84,8 @@ export class Drafter {
         // weak setup
         this.newInstance(initalGeo)
         for (let i = 0; i < initalPoints.length; i++) {
-            this.addNode(0, Math.max(0, i - 1), initalPoints[i])
+            const wip = initalPoints[i]
+            this.addNode(0, wip?.parent, wip.pos)
         }
 
         //debug set up
@@ -147,12 +150,21 @@ export class Drafter {
     removeInstance() {}
     addNode(
         id: number,
-        parentIndex: number,
+        parentIndex: number | undefined,
         point: THREE.Vector3 = new THREE.Vector3()
     ) {
-        const { mesh, line } = this.instanceItems[id]
+        const insanceItem = this.instanceItems[id]
 
-        const parent = this.tree.findNode({ id, index: parentIndex })
+        if (insanceItem.count === insanceItem.maxCount) {
+            console.error("not implemented resize instance item")
+            return
+        }
+
+        const parent =
+            typeof parentIndex === "number"
+                ? this.tree.findNode({ id, index: parentIndex })
+                : undefined
+
         const node = createTransformNode({ id, pos: point })
         this.tree.addNode(node, parent)
 
@@ -169,6 +181,8 @@ export class Drafter {
                 .copy(node.baseMatrix)
                 .multiply(parent.compoundMatrix)
         }
+        // i think we can do this through insanceItem.geometry instead?...
+        const { mesh } = insanceItem
         mesh.setMatrixAt(mesh.count, node.compoundMatrix)
 
         // inc count to draw visible.
