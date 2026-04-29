@@ -1,5 +1,4 @@
 import { useEffect, useRef } from "react"
-import { init } from "./App/index"
 
 function App() {
     const threeSceneMountRef = useRef<HTMLDivElement | null>(null)
@@ -9,23 +8,31 @@ function App() {
             return
         }
 
-        let disposeScene = init(threeSceneMountRef.current)
         let isMounted = true
+        let disposeScene = () => {}
 
-        if (import.meta.hot) {
-            import.meta.hot.accept("./App/index", (updatedModule) => {
-                if (
-                    !updatedModule ||
-                    !isMounted ||
-                    !threeSceneMountRef.current
-                ) {
-                    return
-                }
+        void import("./App/index").then((module) => {
+            if (!isMounted || !threeSceneMountRef.current) {
+                return
+            }
 
-                disposeScene()
-                disposeScene = updatedModule.init(threeSceneMountRef.current)
-            })
-        }
+            disposeScene = module.init(threeSceneMountRef.current)
+
+            if (import.meta.hot) {
+                import.meta.hot.accept("./App/index", (updatedModule) => {
+                    if (
+                        !updatedModule ||
+                        !isMounted ||
+                        !threeSceneMountRef.current
+                    ) {
+                        return
+                    }
+
+                    disposeScene()
+                    disposeScene = updatedModule.init(threeSceneMountRef.current)
+                })
+            }
+        })
 
         return () => {
             isMounted = false
