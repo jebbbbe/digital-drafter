@@ -16,6 +16,25 @@ type instanceItem = {
     // maybe we should have a collection of instances, and som funcitons to update them all...?
     mesh: THREE.InstancedMesh
     line: THREE.InstancedMesh | InstanceLineSegments
+    count: number
+    maxCount: number
+}
+
+// instance updates
+function incrementInstanceCount(instance: instanceItem): void {
+    instance.count++
+    instance.mesh.count = instance.count
+    instance.line.count = instance.count
+}
+function decrementInstanceCount(instance: instanceItem): void {
+    instance.count--
+    instance.mesh.count = instance.count
+    instance.line.count = instance.count
+}
+function setInstanceCount(instance: instanceItem, count: number = 0): void {
+    instance.count = count
+    instance.mesh.count = instance.count
+    instance.line.count = instance.count
 }
 
 export class Drafter {
@@ -64,31 +83,9 @@ export class Drafter {
         )
 
         // const line = new THREE.InstancedMesh(
-        //     new THREE.EdgesGeometry(geometry),
-        //     this.materials.line,
-        //     1
-        // )
-
-        // const line = new THREE.InstancedMesh(
         //     geometry,
         //     this.materials.wireframe,
         //     1
-        // )
-
-        // const line = new InstanceLineSegments(
-        //     new THREE.EdgesGeometry(geometry),
-        //     this.materials.line,
-        //     1
-        // )
-
-        // const line = new THREE.Line(
-        //     new THREE.EdgesGeometry(geometry),
-        //     this.materials.line
-        // )
-
-        // const line = new THREE.LineSegments(
-        //     new THREE.EdgesGeometry(geometry, 30),
-        //     this.materials.line
         // )
 
         const line = new InstanceLineSegments(
@@ -105,9 +102,7 @@ export class Drafter {
         // copy all info to isntancces.
         const id = this.instanceItems.length
         mesh.userData.id = id
-        mesh.count = 0
         line.userData = mesh.userData
-        line.count = 0
 
         const group = new THREE.Group()
         group.add(mesh)
@@ -122,7 +117,10 @@ export class Drafter {
             group,
             mesh: mesh,
             line: line,
+            count: 0,
+            maxCount: InstanceCount,
         }
+        setInstanceCount(newInstanceItem, 0)
 
         this.scene.add(group)
         this.instanceItems.push(newInstanceItem)
@@ -156,9 +154,8 @@ export class Drafter {
         }
         mesh.setMatrixAt(mesh.count, node.compoundMatrix)
 
-        // inc count
-        mesh.count++
-        line.count = mesh.count
+        // inc count to draw visible.
+        incrementInstanceCount(insanceItem)
     }
     pruneNode() {}
     removeNode() {}
