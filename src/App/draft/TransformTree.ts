@@ -255,12 +255,17 @@ export class TransformTree {
     }
 }
 
-export function createTransformNode(
-    pos?: THREE.Vector3,
-    mat?: THREE.Matrix4,
-    id?: number,
+export function createTransformNode({
+    pos,
+    mat,
+    id,
+    parent,
+}: {
+    pos?: THREE.Vector3
+    mat?: THREE.Matrix4
+    id?: number
     parent?: TransformNode
-): TransformNode {
+} = {}): TransformNode {
     const node: TransformNode = {
         pos: pos ?? new THREE.Vector3(),
         mat: mat ?? new THREE.Matrix4(),

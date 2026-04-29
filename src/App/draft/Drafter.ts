@@ -1,22 +1,25 @@
 import * as THREE from "three"
-import { TransformTree } from "./TransformTree"
+import { TransformTree, createTransformNode } from "./TransformTree"
 import { InstanceCount } from "./capacity"
 import { InstanceLineSegments } from "./Mesh/InstanceLineSegments"
 import { Line2 } from "three/examples/jsm/Addons.js"
 
 type instanceItem = {
+    // brush:any
+    geometry: THREE.BufferGeometry
+    localTransform: THREE.Matrix4
+    sharedBuffers: {
+        matrix: THREE.InstancedBufferAttribute
+    }
+    group: THREE.Group
     mesh: THREE.InstancedMesh
     line: THREE.InstancedMesh | InstanceLineSegments
-    // brush:any
-    // matrixArray:
 }
-const temp = new THREE.Line()
 
 export class Drafter {
     tree!: TransformTree
     scene!: THREE.Scene
     instanceItems!: instanceItem[]
-    group = new THREE.Group()
     materials = {
         line: new THREE.LineBasicMaterial({
             color: 0x000000,
@@ -33,7 +36,11 @@ export class Drafter {
             polygonOffsetUnits: 1,
         }),
     }
-    constructor(scene: THREE.Scene, initalGeo: THREE.BufferGeometry) {
+    constructor(
+        scene: THREE.Scene,
+        initalGeo: THREE.BufferGeometry,
+        initalPoints: THREE.Vector3[] = [new THREE.Vector3()]
+    ) {
         this.tree = new TransformTree()
         this.scene = scene
         // all material refrences, change color, lw , etc
@@ -41,9 +48,14 @@ export class Drafter {
         // instance refs
         this.instanceItems = []
         this.newInstance(initalGeo)
+        for (let i = 0; i < initalPoints.length; i++) {
+            this.addNode(0, Math.max(0, i - 1), initalPoints[i])
+        }
     }
-    newInstance(geometry: THREE.BufferGeometry) {
-        const id = this.instanceItems.length
+    newInstance(geometry: THREE.BufferGeometry): instanceItem {
+        // localTransform set from geo or pass in...
+        const localTransform = new THREE.Matrix4()
+
         const mesh = new THREE.InstancedMesh(
             geometry,
             this.materials.mesh,
@@ -84,42 +96,56 @@ export class Drafter {
             InstanceCount
         )
 
+        //match shared instanceMatrix
+        const instanceMatrix = mesh.instanceMatrix
+        line.instanceMatrix = instanceMatrix
+
+        // userdata for raycast lookups
+        const id = this.instanceItems.length
         mesh.userData.id = id
-        line.userData.id = id
-        // this.instanceItems.push({ mesh, line })
+        mesh.count = 0
+        line.userData = mesh.userData
+        line.count = 0
 
-        const x = 10
-        const y = 10
-        mesh.count = x * y
-        // line.count = 1
-        for (let i = 0; i < x; i++) {
-            for (let j = 0; j < y; j++) {
-                mesh.setMatrixAt(
-                    i * x + j,
-                    new THREE.Matrix4().makeTranslation(
-                        new THREE.Vector3(i * 5, 0, j * 5)
-                    )
-                )
-                line.setMatrixAt(
-                    i * x + j,
-                    new THREE.Matrix4().makeTranslation(
-                        new THREE.Vector3(i * 5, 0, j * 5)
-                    )
-                )
-            }
+        const group = new THREE.Group()
+        group.add(mesh)
+        group.add(line)
+
+        const newInstanceItem = {
+            geometry: geometry,
+            localTransform,
+            sharedBuffers: {
+                matrix: instanceMatrix,
+            },
+            group,
+            mesh: mesh,
+            line: line,
         }
-        // mesh.visible = false
 
-        this.scene.add(mesh)
-        this.scene.add(line)
+        this.scene.add(group)
+        this.instanceItems.push(newInstanceItem)
+
+        return newInstanceItem
     }
-    /*
-    moveInstance() {}
-    addInstance() {}
     removeInstance() {}
-    pruneInstance() {}
-    removeInstance() {}
-    */
+    addNode(
+        id: number,
+        parentIndex: number,
+        point: THREE.Vector3 = new THREE.Vector3()
+    ) {
+        const { mesh, line } = this.instanceItems[id]
+
+        const parent = this.tree.findNode({ id, index: parentIndex })
+        const node = createTransformNode({ id, pos: point })
+        this.tree.addNode(node, parent)
+
+        mesh.setMatrixAt(mesh.count, new THREE.Matrix4().makeTranslation(point))
+        mesh.count++
+        line.count = mesh.count
+    }
+    pruneNode() {}
+    removeNode() {}
+    patchInstance() {}
 }
 
 /*

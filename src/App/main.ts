@@ -69,7 +69,13 @@ export function init(container: HTMLElement): () => void {
     scene.add(ambient, sun)
 
     // Drafter
-    drafter = new Drafter(scene, cube.geometry)
+    drafter = new Drafter(scene, cube.geometry, [
+        new THREE.Vector3(0, 0, 0),
+        new THREE.Vector3(5, 0, 0),
+        new THREE.Vector3(5, 0, 5),
+    ])
+    ;(globalThis as any).drafter = drafter
+    console.log(drafter)
 
     // const [loadedCubeModel] = await assetsLoader
     // if (!loadedCubeModel) {
