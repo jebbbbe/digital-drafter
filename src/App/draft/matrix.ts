@@ -8,17 +8,19 @@ const translateToOrigin = new THREE.Matrix4()
 const rotation = new THREE.Matrix4()
 const translateBack = new THREE.Matrix4()
 
-/*
-jsdoc moc
-this caculates the projected transform of a discriptive geometry rotation, 
-this can be simulated as a 90 degree rotation about an axis perpendicular to the start end end points, halfay between them and halfway up.
-see https://en.wikipedia.org/wiki/Descriptive_geometry
-*/
-
 /**
- * @param {THREE.Vector3} A - The Previous Point
- * @param {THREE.Vector3} B - The Next Point
- * @param {THREE.Matrix4} matrix -Oprional matrix to copy result into
+ * Computes the projection transform between two points for the drafter preview.
+ *
+ * The returned matrix rotates a descriptive-geometry shape by 90 degrees around
+ * an axis perpendicular to the segment from `A` to `B`, using a pivot halfway
+ * between the points and halfway up the span.
+ *
+ * Reference: https://en.wikipedia.org/wiki/Descriptive_geometry
+ *
+ * @param A - Previous point in the chain.
+ * @param B - Next point in the chain.
+ * @param matrix - Optional target matrix to write into.
+ * @returns The written matrix together with the derived midpoint and rotation axis.
  */
 export function calculateProjectionMatrix(
     A: THREE.Vector3,
@@ -64,11 +66,48 @@ export function calculateProjectionMatrix(
 }
 
 /**
- * Sets the given local transformation matrix to the defined instance. Make sure you set the `needsUpdate` flag of
- * {@link THREE.InstancedMesh#setMatrixAt} to `true` after updating all the matrices.
- * @param {THREE.InstancedBufferAttribut} instanceMatrix - The InstancedBufferAttribute
- * @param {number} index - The instance index.
- * @param {THREE.Matrix4} matrix - The local transformation.
+ * Applies an additional transform around an existing world-space origin.
+ *
+ * This uses the standard pivot sandwich:
+ * `T(origin) * extra * T(-origin) * existing`.
+ *
+ * @param origin - Pivot point to transform around.
+ * @param extra - Additional transform to apply at the pivot.
+ * @param existing - Matrix that already represents the current transform.
+ * @param target - Optional target matrix to write into.
+ */
+export function applyTransformAroundOrigin(
+    origin: THREE.Vector3,
+    extra: THREE.Matrix4,
+    existing: THREE.Matrix4,
+    target: THREE.Matrix4 = new THREE.Matrix4()
+): THREE.Matrix4 {
+    translateToOrigin.identity()
+    translateBack.identity()
+
+    translateToOrigin.makeTranslation(-origin.x, -origin.y, -origin.z)
+    translateBack.makeTranslation(origin)
+
+    return target
+        .identity()
+        .multiply(translateBack)
+        .multiply(extra)
+        .multiply(translateToOrigin)
+        .multiply(existing)
+}
+
+/**
+ * Writes a matrix into an instanced matrix buffer at the given slot.
+ *
+ * Set `instanceMatrix.needsUpdate = true` after batching matrix writes so the
+ * GPU upload stays in sync.
+ *
+ * Mirrors the behavior of `THREE.InstancedMesh#setMatrixAt`:
+ * https://threejs.org/docs/#api/en/objects/InstancedMesh.setMatrixAt
+ *
+ * @param instanceMatrix - Backing `InstancedBufferAttribute` for instance matrices.
+ * @param index - Instance slot to write.
+ * @param matrix - Matrix to serialize into the buffer.
  */
 export function setMatrixAt(
     instanceMatrix: THREE.InstancedBufferAttribute,

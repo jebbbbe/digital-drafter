@@ -6,8 +6,7 @@ type InstanceLookup = {
     index: number
 }
 
-// i think parent and children should be indexlookups, not refrences.
-// if we do thatm it will need to be  children: InstanceLookup[] as we dont know id
+//  todo: consider making parent, and children an InstanceLookup
 type TransformNode = {
     position: THREE.Vector3
     baseMatrix: THREE.Matrix4
@@ -17,30 +16,30 @@ type TransformNode = {
     children: TransformNode[]
 }
 
-// packed nodes, keep
+// packed array of nodes
 type Bucket = {
     array: Array<TransformNode | undefined>
     count: number
     capacity: number
 }
 
-// getnode tree[id][transform]
-// update matrix  instancces[instancelookup.id].updateMatrixat(mat, instancelookup.index)
-
-// tree is held as node refences,
-// for fast lookup with raycast, we will use a bucket per instance of nodes to match instance matrix lookup
-
-/*
-DESCIP
-class for managing a transformation tree for an intancematerial.
-nodes are organised  with the same acess pattern as the insacedMatrixBuffer of the instance material.
-supports multiple instance Meshes that can have eahcotehr as children. 
-1 bucket per instance mesh. 
-
-*/
+/**
+ * Packed transform tree keyed by instanced-mesh id and instance slot.
+ *
+ * Each bucket mirrors the active range of an instance matrix buffer so nodes can
+ * be found with the same `{ id, index }` pair returned by raycasts or instance
+ * bookkeeping. Parent and child links are stored as object references while the
+ * packed buckets keep lookup and removal fast.
+ */
 export class TransformTree {
     buckets: Array<Bucket | undefined>
 
+    /**
+     * Creates a tree with one empty bucket for instance id `0`.
+     *
+     * Additional instance ids are added with `addBucket()` as new instanced
+     * meshes are introduced.
+     */
     constructor() {
         this.buckets = []
         this.addBucket()
