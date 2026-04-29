@@ -2,17 +2,18 @@ import * as THREE from "three"
 import { TransformTree, createTransformNode } from "./TransformTree"
 import { InstanceCount } from "./capacity"
 import { InstanceLineSegments } from "./Mesh/InstanceLineSegments"
-import { calculateMatrix } from "./matrix"
+import { calculateProjectionMatrix } from "./matrix"
 import { Line2 } from "three/examples/jsm/Addons.js"
 
 type instanceItem = {
-    // brush:any
+    // brush:any for CSG later...
     geometry: THREE.BufferGeometry
     localTransform: THREE.Matrix4
     sharedBuffers: {
         matrix: THREE.InstancedBufferAttribute
     }
     group: THREE.Group
+    // maybe we should have a collection of instances, and som funcitons to update them all...?
     mesh: THREE.InstancedMesh
     line: THREE.InstancedMesh | InstanceLineSegments
 }
@@ -31,7 +32,7 @@ export class Drafter {
             wireframe: true,
         }),
         mesh: new THREE.MeshBasicMaterial({
-            color: 0xff00ff,
+            color: 0x5f05f5,
             polygonOffset: true,
             polygonOffsetFactor: 1,
             polygonOffsetUnits: 1,
@@ -44,10 +45,9 @@ export class Drafter {
     ) {
         this.tree = new TransformTree()
         this.scene = scene
-        // all material refrences, change color, lw , etc
-
-        // instance refs
         this.instanceItems = []
+
+        // weak setup
         this.newInstance(initalGeo)
         for (let i = 0; i < initalPoints.length; i++) {
             this.addNode(0, Math.max(0, i - 1), initalPoints[i])
@@ -102,6 +102,7 @@ export class Drafter {
         line.instanceMatrix = instanceMatrix
 
         // userdata for raycast lookups
+        // copy all info to isntancces.
         const id = this.instanceItems.length
         mesh.userData.id = id
         mesh.count = 0
@@ -140,34 +141,22 @@ export class Drafter {
         const node = createTransformNode({ id, pos: point })
         this.tree.addNode(node, parent)
 
-        // const mat = new THREE.Matrix4().makeTranslation(point)
+        const previousPosition = parent ? parent.position : new THREE.Vector3()
 
-        // const mat = node.baseMatrix
-        // if (parent) {
-        //     mat.copy(calculateMatrix(parent.position, node.position).matrix)
-        // }
-
-        let prevP
-        if (parent) {
-            prevP = parent.position
-        } else {
-            prevP = new THREE.Vector3()
-        }
-        const trt = calculateMatrix(
-            prevP,
-            node.position
-            // this.rotateDirection
+        calculateProjectionMatrix(
+            previousPosition,
+            node.position,
+            node.baseMatrix
         )
-        node.baseMatrix.copy(trt.matrix) // copy to keep ref for mesh
-        if (parent) {
-            // this.compoundMatrix = this.baseMatrix.clone().multiply( this.parent.compoundMatrix)
-            node.compoundMatrix.copy(
-                node.baseMatrix.clone().multiply(parent.compoundMatrix)
-            )
-        }
-        const mat = node.compoundMatrix
 
-        mesh.setMatrixAt(mesh.count, mat)
+        if (parent) {
+            node.compoundMatrix
+                .copy(node.baseMatrix)
+                .multiply(parent.compoundMatrix)
+        }
+        mesh.setMatrixAt(mesh.count, node.compoundMatrix)
+
+        // inc count
         mesh.count++
         line.count = mesh.count
     }
