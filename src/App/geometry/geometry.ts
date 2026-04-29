@@ -56,8 +56,8 @@ export function makeCustomBVHShape(): THREE.BufferGeometry {
 
     // console.log({ geo1, brush1, geo2, brush2 })
 
-    const result = evaluator.evaluate(brush1, brush2, ADDITION)
-    // const result = evaluator.evaluate(brush1, brush2, SUBTRACTION)
+    // const result = evaluator.evaluate(brush1, brush2, ADDITION)
+    const result = evaluator.evaluate(brush1, brush2, SUBTRACTION)
 
     if (result) {
         let geometry = result.geometry

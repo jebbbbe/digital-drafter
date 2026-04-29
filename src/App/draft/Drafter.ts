@@ -2,6 +2,7 @@ import * as THREE from "three"
 import { TransformTree, createTransformNode } from "./TransformTree"
 import { InstanceCount } from "./capacity"
 import { InstanceLineSegments } from "./Mesh/InstanceLineSegments"
+import { calculateMatrix } from "./matrix"
 import { Line2 } from "three/examples/jsm/Addons.js"
 
 type instanceItem = {
@@ -139,7 +140,34 @@ export class Drafter {
         const node = createTransformNode({ id, pos: point })
         this.tree.addNode(node, parent)
 
-        mesh.setMatrixAt(mesh.count, new THREE.Matrix4().makeTranslation(point))
+        // const mat = new THREE.Matrix4().makeTranslation(point)
+
+        // const mat = node.baseMatrix
+        // if (parent) {
+        //     mat.copy(calculateMatrix(parent.position, node.position).matrix)
+        // }
+
+        let prevP
+        if (parent) {
+            prevP = parent.position
+        } else {
+            prevP = new THREE.Vector3()
+        }
+        const trt = calculateMatrix(
+            prevP,
+            node.position
+            // this.rotateDirection
+        )
+        node.baseMatrix.copy(trt.matrix) // copy to keep ref for mesh
+        if (parent) {
+            // this.compoundMatrix = this.baseMatrix.clone().multiply( this.parent.compoundMatrix)
+            node.compoundMatrix.copy(
+                node.baseMatrix.clone().multiply(parent.compoundMatrix)
+            )
+        }
+        const mat = node.compoundMatrix
+
+        mesh.setMatrixAt(mesh.count, mat)
         mesh.count++
         line.count = mesh.count
     }

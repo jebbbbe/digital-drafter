@@ -73,6 +73,11 @@ export function init(container: HTMLElement): () => void {
         new THREE.Vector3(0, 0, 0),
         new THREE.Vector3(5, 0, 0),
         new THREE.Vector3(5, 0, 5),
+        new THREE.Vector3(5, 0, -5),
+        new THREE.Vector3(-5, 0, -5),
+        new THREE.Vector3(-5, 0, 5),
+        new THREE.Vector3(10, 0, 0),
+        new THREE.Vector3(-10, 0, 0),
     ])
     ;(globalThis as any).drafter = drafter
     console.log(drafter)
