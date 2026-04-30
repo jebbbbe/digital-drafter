@@ -1,5 +1,15 @@
 import * as THREE from "three"
 
+/*
+when porting the projection material to an instance this seemed like the best solution, 
+make the instanceMatrix buffer all indentiy matrixes.
+pass the real instanceMatrix in as a dat atexture, this will let us do random reads to get the parent.
+it was possible to use a sliding window approach to get attibuteID and attibuteID+1, but that doesnt work for out tree setup.
+the datatexture array format can match the other instanceMatrix we are using/ updating and it will match all out updates to it. 
+
+
+*/
+
 type InstancedProjectionMaterialParameters =
     THREE.LineBasicMaterialParameters & {
         instanceMatrixTexture?: THREE.DataTexture | null
@@ -11,8 +21,10 @@ type InstancedProjectionMaterialParameters =
  * The material extends `THREE.LineBasicMaterial` and adds one custom uniform,
  * `instanceMatrixTexture`, which should contain one matrix per row packed into
  * four RGBA float texels. The shader uses `gl_InstanceID` to fetch the current
- * instance matrix and a `lookupIndex` instanced attribute to fetch a second,
- * arbitrary instance matrix.
+ * instance matrix and a `lookupIndex` instanced attribute to fetch a second
+ * matrix for the paired line endpoint. The input line geometry is expected to
+ * have a doubled position buffer so alternating vertices can become the start
+ * and end points of each projected segment.
  *
  * Geometry requirements:
  * - `lookupIndex`: `THREE.InstancedBufferAttribute` with one float per instance.
@@ -21,11 +33,6 @@ type InstancedProjectionMaterialParameters =
  * - WebGL2 / GLSL3 features, since the shader uses `texelFetch` and
  *   `gl_InstanceID`.
  *
- * Example:
- * ```ts
- * const material = new InstancedProjectionMaterial()
- * material.instanceMatrixTexture = matrixTexture
- * ```
  */
 export class InstancedProjectionMaterial extends THREE.LineBasicMaterial {
     shader?: THREE.WebGLProgramParametersWithUniforms
@@ -67,8 +74,6 @@ export class InstancedProjectionMaterial extends THREE.LineBasicMaterial {
                 attribute float lookupIndex;
                 uniform sampler2D instanceMatrixTexture;
 
-                varying float vLookupIndex;
-
                 mat4 loadInstanceMatrix(sampler2D tex, int matrixIndex) {
                     vec4 c0 = texelFetch(tex, ivec2(0, matrixIndex), 0);
                     vec4 c1 = texelFetch(tex, ivec2(1, matrixIndex), 0);
@@ -83,39 +88,18 @@ export class InstancedProjectionMaterial extends THREE.LineBasicMaterial {
                 "#include <begin_vertex>",
                 /* glsl */ `
                 #include <begin_vertex>
-
-                vLookupIndex = lookupIndex;
-
-                int currentIndex = gl_InstanceID;
                 int parentIndex = int(lookupIndex);
-
-                mat4 currentMatrix = loadInstanceMatrix(instanceMatrixTexture, currentIndex);
-                mat4 otherMatrix = loadInstanceMatrix(instanceMatrixTexture, parentIndex);
-
-                vec3 currentPosition = (currentMatrix * vec4(transformed, 1.0)).xyz;
-                vec3 otherOffset = (otherMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
-
-                transformed = currentPosition;
-                transformed.y += otherOffset.x * 0.1;
+                if ( gl_VertexID % 2 == 0) {
+                    // mat4 startMatrix = instanceMatrix;
+                    // instanceMatrix must be set to identity, otherwise we will be double transforming all our verts. 
+                    mat4 startMatrix = loadInstanceMatrix(instanceMatrixTexture, gl_InstanceID);
+                    transformed = (startMatrix * vec4(transformed, 1.0)).xyz;
+                } else {
+                    mat4 endMatrix = loadInstanceMatrix(instanceMatrixTexture, parentIndex);
+                    transformed = (endMatrix * vec4(transformed, 1.0)).xyz;
+                }
                 `
             )
-
-            shader.fragmentShader = shader.fragmentShader.replace(
-                "#include <common>",
-                /* glsl */ `
-                #include <common>
-                varying float vLookupIndex;
-                `
-            )
-
-            shader.fragmentShader = shader.fragmentShader.replace(
-                "vec4 diffuseColor = vec4( diffuse, opacity );",
-                /* glsl */ `
-                vec4 diffuseColor = vec4(diffuse, opacity);
-                diffuseColor.rgb *= vec3(0.5 + vLookupIndex / 4.0, 0.8, 0.7);
-                `
-            )
-
             this.shader = shader
         }
     }

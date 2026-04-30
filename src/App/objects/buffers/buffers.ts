@@ -1,5 +1,4 @@
 import * as THREE from "three"
-import { array } from "three/tsl"
 
 export const maxUpdateRanges = 256 // could use a % of total buffer count, this hsould be fine
 
@@ -54,6 +53,7 @@ export function setInstanceMatrixAt(
     instanceMatrix.needsUpdate = true
 }
 
+// this updates the buffer twice, we just need the update ranges to be seperate...
 /**
  * Writes a matrix into an DataTexture at the given slot.
  *
@@ -84,4 +84,39 @@ export function setDataTextureMatrixAt(
     }
 
     attribute.needsUpdate = true
+}
+
+/**
+ * Duplicates each position in a line geometry so the vertex shader can emit a
+ * start and end point for every source vertex.
+ *
+ * Example input positions `[a, b, c]` become `[a, a, b, b, c, c]`.
+ */
+export function doublePositionBuffer(geometry: THREE.BufferGeometry) {
+    const position = geometry.getAttribute("position")
+
+    if (!position || position.itemSize !== 3) {
+        throw new Error(
+            "doublePositionBuffer requires a vec3 position attribute"
+        )
+    }
+
+    const source = position.array as ArrayLike<number>
+    const doubled = new Float32Array(source.length * 2)
+
+    let dst = 0
+    for (let i = 0; i < source.length; i += 3) {
+        doubled[dst + 0] = source[i + 0]
+        doubled[dst + 1] = source[i + 1]
+        doubled[dst + 2] = source[i + 2]
+        doubled[dst + 3] = source[i + 0]
+        doubled[dst + 4] = source[i + 1]
+        doubled[dst + 5] = source[i + 2]
+        dst += 6
+    }
+
+    geometry.setAttribute("position", new THREE.BufferAttribute(doubled, 3))
+    geometry.setIndex(null)
+
+    return geometry
 }

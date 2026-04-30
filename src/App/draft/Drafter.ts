@@ -5,6 +5,8 @@ import { InstanceLineSegments } from "../objects/meshes/InstanceLineSegments"
 import {
     setInstanceMatrixAt,
     createLinkedInstanceMatrixTexture,
+    doublePositionBuffer,
+    setDataTextureMatrixAt,
 } from "../objects/buffers/buffers"
 import { calculateProjectionMatrix, applyTransformAroundOrigin } from "./matrix"
 import { InstancedProjectionMaterial } from "../objects/materials/InstancedProjectionMaterial"
@@ -17,6 +19,7 @@ type instanceItem = {
     localTransform: THREE.Matrix4
     sharedBuffers: {
         matrix: THREE.InstancedBufferAttribute
+        dataTexture: THREE.DataTexture
     }
     group: THREE.Group
     // maybe we should have a collection of instances, and som funcitons to update them all...?
@@ -101,18 +104,19 @@ export class Drafter {
             this.addNode(0, wip?.parent, wip.pos)
         }
 
-        //debug set up  
+        //debug set up
         this.debug.objects.line.material = this.materials.debugLine
         this.debug.objects.point.material = this.materials.debugPoint
     }
     newInstance(geometry: THREE.BufferGeometry): instanceItem {
         // localTransform set from geo or pass in...
-        const scale = 1.0//rand.random(0.5, 1.25)
-        const localTransform = new THREE.Matrix4()
-            .scale(new THREE.Vector3(scale, scale, scale))
-            // .makeRotationX(
-            //     rand.randomItem([0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2])
-            // )
+        const scale = 1.0 //rand.random(0.5, 1.25)
+        const localTransform = new THREE.Matrix4().scale(
+            new THREE.Vector3(scale, scale, scale)
+        )
+        // .makeRotationX(
+        //     rand.randomItem([0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2])
+        // )
 
         // create instances
         const mesh = new THREE.InstancedMesh(
@@ -121,7 +125,6 @@ export class Drafter {
             InstanceCount
         )
 
-
         const edges = new THREE.EdgesGeometry(geometry, 30)
         const line = new InstanceLineSegments(
             edges,
@@ -129,7 +132,7 @@ export class Drafter {
             InstanceCount
         )
 
-        const extrude = edges.clone()
+        const extrude = doublePositionBuffer(edges.clone())
         const projMaterial = this.materials.projection.clone()
         const proj = new InstanceLineSegments(
             extrude,
@@ -140,9 +143,19 @@ export class Drafter {
         //match shared instanceMatrix
         const instanceMatrix = mesh.instanceMatrix
         line.instanceMatrix = instanceMatrix
-        proj.instanceMatrix = instanceMatrix
+        // proj instance matrix must be identiy or we have to do more maths in the shader...
+        // proj.instanceMatrix = instanceMatrix
 
-        const lookupIndex = new Int8Array([0, 0, 1, 2, 0, 0, 0, 0])
+        const lookupIndex = new Int8Array(InstanceCount).fill(0)
+        let i = 0
+        lookupIndex[i++] = 0
+        lookupIndex[i++] = 0
+        lookupIndex[i++] = 1
+        lookupIndex[i++] = 2
+        lookupIndex[i++] = 0
+        lookupIndex[i++] = 0
+        lookupIndex[i++] = 2
+
         extrude.setAttribute(
             "lookupIndex",
             new THREE.InstancedBufferAttribute(lookupIndex, 1)
@@ -166,6 +179,7 @@ export class Drafter {
             localTransform,
             sharedBuffers: {
                 matrix: instanceMatrix,
+                dataTexture,
             },
             group,
             mesh: mesh,
@@ -232,6 +246,13 @@ export class Drafter {
             instanceItem.count,
             mat
         )
+
+        setDataTextureMatrixAt(
+            instanceItem.sharedBuffers.dataTexture,
+            instanceItem.count,
+            mat
+        )
+
         // inc count to draw visible.
         incrementInstanceCount(instanceItem)
     }
