@@ -1,5 +1,5 @@
 import * as THREE from "three"
-import * as shape from "./geometry/geometry"
+import * as shape from "./objects/geometries/geometry"
 import { OrbitControls } from "three/examples/jsm/Addons.js"
 import { AspectLayout } from "./utils/AspectLayout"
 import { loadGlb } from "./utils/loader"

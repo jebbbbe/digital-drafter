@@ -1,7 +1,7 @@
 import * as THREE from "three"
 import { TransformTree, createTransformNode } from "./TransformTree"
 import { InstanceCount } from "./capacity"
-import { InstanceLineSegments } from "./Mesh/InstanceLineSegments"
+import { InstanceLineSegments } from "../objects/meshes/InstanceLineSegments"
 import { calculateProjectionMatrix, applyTransformAroundOrigin } from "./matrix"
 import { Line2 } from "three/examples/jsm/Addons.js"
 import * as rand from "../utils/random"
@@ -57,6 +57,7 @@ export class Drafter {
             polygonOffsetFactor: 1,
             polygonOffsetUnits: 1,
         }),
+        ProjectionMaterial:{},
         debugLine: new THREE.LineBasicMaterial({
             color: 0xffff00,
         }),
@@ -92,6 +93,7 @@ export class Drafter {
         //debug set up
         this.debug.objects.line.material = this.materials.debugLine
         this.debug.objects.point.material = this.materials.debugPoint
+
     }
     newInstance(geometry: THREE.BufferGeometry): instanceItem {
         // localTransform set from geo or pass in...
