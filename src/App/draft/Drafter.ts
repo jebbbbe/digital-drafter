@@ -111,8 +111,9 @@ export class Drafter {
         this.debug.objects.point.material = this.materials.debugPoint
     }
     newInstance(geometry: THREE.BufferGeometry): instanceItem {
-        // localTransform set from geo or pass in...
+        const newID = this.instanceItems.length
 
+        // localTransform set from geo or pass in...
         // i think the roots base needs to be this..?
         const scale = 1.0 //rand.random(0.5, 1.25)
         const localTransform = new THREE.Matrix4().scale(
@@ -122,73 +123,15 @@ export class Drafter {
         //     rand.randomItem([0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2])
         // )
 
-        // create instances
-        const mesh = new THREE.InstancedMesh(
+        const newInstanceItem = createInstanceItem(
             geometry,
-            this.materials.mesh,
-            InstanceCount
-        )
-
-        const edges = new THREE.EdgesGeometry(geometry, 30)
-        const line = new InstancedLineSegments<THREE.LineBasicMaterial>(
-            edges,
-            this.materials.line,
-            InstanceCount
-        )
-
-        const extrude = doublePositionBuffer(edges.clone())
-        const projMaterial = this.materials.projection.clone()
-        const proj = new InstancedLineSegments<InstancedProjectionMaterial>(
-            extrude,
-            projMaterial,
-            InstanceCount
-        )
-
-        //match shared instanceMatrix
-        const instanceMatrix = mesh.instanceMatrix
-        line.instanceMatrix = instanceMatrix
-        // proj instance matrix must be identiy or we have to do more maths in the shader...
-        // proj.instanceMatrix = instanceMatrix
-        const parentIDs = new THREE.InstancedBufferAttribute(
-            new Int8Array(InstanceCount),
-            1
-        )
-        extrude.setAttribute("lookupIndex", parentIDs)
-        const dataTexture = createLinkedInstanceMatrixTexture(instanceMatrix)
-        projMaterial.instanceMatrixTexture = dataTexture
-
-        // userdata for raycast lookups
-        // copy all info to isntancces.
-        const id = this.instanceItems.length
-        mesh.userData.id = id
-        line.userData = mesh.userData
-        proj.userData = mesh.userData
-
-        const group = new THREE.Group()
-        group.add(mesh)
-        group.add(line)
-        group.add(proj)
-
-        const newInstanceItem: instanceItem = {
-            geometry: geometry,
             localTransform,
-            buffers: {
-                matrix: instanceMatrix,
-                dataTexture,
-                parentIDs,
-            },
-            group,
-            instances: {
-                mesh,
-                line,
-                proj,
-            },
-            count: 0,
-            maxCount: InstanceCount,
-        }
+            this.materials,
+            newID
+        )
         setInstanceCount(newInstanceItem, 0)
 
-        this.scene.add(group)
+        this.scene.add(newInstanceItem.group)
         this.instanceItems.push(newInstanceItem)
 
         return newInstanceItem
@@ -257,6 +200,76 @@ export class Drafter {
     patchInstance() {}
 }
 
+function createInstanceItem(
+    geometry: THREE.BufferGeometry,
+    localTransform: THREE.Matrix4,
+    materials: any,
+    id: number
+): instanceItem {
+    // create instances
+    const mesh = new THREE.InstancedMesh(
+        geometry,
+        materials.mesh,
+        InstanceCount
+    )
+
+    const edges = new THREE.EdgesGeometry(geometry, 30)
+    const line = new InstancedLineSegments<THREE.LineBasicMaterial>(
+        edges,
+        materials.line,
+        InstanceCount
+    )
+
+    const extrude = doublePositionBuffer(edges.clone())
+    const projMaterial = materials.projection.clone()
+    const proj = new InstancedLineSegments<InstancedProjectionMaterial>(
+        extrude,
+        projMaterial,
+        InstanceCount
+    )
+
+    //match shared instanceMatrix
+    const instanceMatrix = mesh.instanceMatrix
+    line.instanceMatrix = instanceMatrix
+    // proj instance matrix must be identiy or we have to do more maths in the shader...
+    // proj.instanceMatrix = instanceMatrix
+    const parentIDs = new THREE.InstancedBufferAttribute(
+        new Int8Array(InstanceCount),
+        1
+    )
+    extrude.setAttribute("lookupIndex", parentIDs)
+    const dataTexture = createLinkedInstanceMatrixTexture(instanceMatrix)
+    projMaterial.instanceMatrixTexture = dataTexture
+
+    // userdata for raycast lookups
+    // copy all info to isntancces.
+    mesh.userData.id = id
+    line.userData = mesh.userData
+    proj.userData = mesh.userData
+
+    const group = new THREE.Group()
+    group.add(mesh)
+    group.add(line)
+    group.add(proj)
+
+    return {
+        geometry: geometry,
+        localTransform,
+        buffers: {
+            matrix: instanceMatrix,
+            dataTexture,
+            parentIDs,
+        },
+        group,
+        instances: {
+            mesh,
+            line,
+            proj,
+        },
+        count: 0,
+        maxCount: InstanceCount,
+    }
+}
 /*
 to use instance material, 
 no position prop
