@@ -2,8 +2,12 @@ import * as THREE from "three"
 import { TransformTree, createTransformNode } from "./TransformTree"
 import { InstanceCount } from "./capacity"
 import { InstanceLineSegments } from "../objects/meshes/InstanceLineSegments"
-import { setInstanceMatrixAt } from "../objects/buffers/buffers"
+import {
+    setInstanceMatrixAt,
+    createLinkedInstanceMatrixTexture,
+} from "../objects/buffers/buffers"
 import { calculateProjectionMatrix, applyTransformAroundOrigin } from "./matrix"
+import { InstancedProjectionMaterial } from "../objects/materials/InstancedProjectionMaterial"
 import { Line2 } from "three/examples/jsm/Addons.js"
 import * as rand from "../utils/random"
 
@@ -58,7 +62,13 @@ export class Drafter {
             polygonOffsetFactor: 1,
             polygonOffsetUnits: 1,
         }),
-        ProjectionMaterial: {},
+        // this one needs to be cloned everytime
+        // projection: new THREE.LineBasicMaterial({
+        //     color: 0x00ff00,
+        // }),
+        projection: new InstancedProjectionMaterial({
+            color: 0x00ff00,
+        }),
         debugLine: new THREE.LineBasicMaterial({
             color: 0xffff00,
         }),
@@ -91,40 +101,54 @@ export class Drafter {
             this.addNode(0, wip?.parent, wip.pos)
         }
 
-        //debug set up
+        //debug set up  
         this.debug.objects.line.material = this.materials.debugLine
         this.debug.objects.point.material = this.materials.debugPoint
     }
     newInstance(geometry: THREE.BufferGeometry): instanceItem {
         // localTransform set from geo or pass in...
-        const scale = rand.random(0.5, 1.25)
+        const scale = 1.0//rand.random(0.5, 1.25)
         const localTransform = new THREE.Matrix4()
             .scale(new THREE.Vector3(scale, scale, scale))
-            .makeRotationX(
-                rand.randomItem([0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2])
-            )
+            // .makeRotationX(
+            //     rand.randomItem([0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2])
+            // )
 
+        // create instances
         const mesh = new THREE.InstancedMesh(
             geometry,
             this.materials.mesh,
             InstanceCount
         )
 
-        // const line = new THREE.InstancedMesh(
-        //     geometry,
-        //     this.materials.wireframe,
-        //     1
-        // )
 
+        const edges = new THREE.EdgesGeometry(geometry, 30)
         const line = new InstanceLineSegments(
-            new THREE.EdgesGeometry(geometry, 30),
+            edges,
             this.materials.line,
+            InstanceCount
+        )
+
+        const extrude = edges.clone()
+        const projMaterial = this.materials.projection.clone()
+        const proj = new InstanceLineSegments(
+            extrude,
+            projMaterial,
             InstanceCount
         )
 
         //match shared instanceMatrix
         const instanceMatrix = mesh.instanceMatrix
         line.instanceMatrix = instanceMatrix
+        proj.instanceMatrix = instanceMatrix
+
+        const lookupIndex = new Int8Array([0, 0, 1, 2, 0, 0, 0, 0])
+        extrude.setAttribute(
+            "lookupIndex",
+            new THREE.InstancedBufferAttribute(lookupIndex, 1)
+        )
+        const dataTexture = createLinkedInstanceMatrixTexture(instanceMatrix)
+        projMaterial.instanceMatrixTexture = dataTexture
 
         // userdata for raycast lookups
         // copy all info to isntancces.
@@ -135,6 +159,7 @@ export class Drafter {
         const group = new THREE.Group()
         group.add(mesh)
         group.add(line)
+        group.add(proj)
 
         const newInstanceItem = {
             geometry: geometry,
