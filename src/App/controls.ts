@@ -93,7 +93,7 @@ export function setProjectionColor(value: string): void {
     for (let i = 0; i < len; i++) {
         const instanceItem = drafter.instanceItems[i]
         if (!instanceItem) continue
-        instanceItem.projection.material.color.set(value)
+        instanceItem.instances.proj.material.color.set(value)
     }
 }
 
@@ -103,7 +103,7 @@ export function setProjectionVisible(value: boolean): void {
     for (let i = 0; i < len; i++) {
         const instanceItem = drafter.instanceItems[i]
         if (!instanceItem) continue
-        instanceItem.projection.material.visible = value
+        instanceItem.instances.proj.material.visible = value
     }
 }
 

@@ -16,16 +16,18 @@ import * as rand from "../utils/random"
 type instanceItem = {
     // brush:any for CSG later...
     geometry: THREE.BufferGeometry
-    localTransform: THREE.Matrix4
-    sharedBuffers: {
+    localTransform: THREE.Matrix4 // matches head of tree baseTransform..?
+    buffers: {
         matrix: THREE.InstancedBufferAttribute
         dataTexture: THREE.DataTexture
+        parentIDs: THREE.InstancedBufferAttribute
     }
     group: THREE.Group
-    // maybe we should have a collection of instances, and som funcitons to update them all...?
-    mesh: THREE.InstancedMesh
-    line: InstancedLineSegments<THREE.LineBasicMaterial>
-    projection: InstancedLineSegments<InstancedProjectionMaterial>
+    instances: {
+        mesh: THREE.InstancedMesh
+        line: InstancedLineSegments<THREE.LineBasicMaterial>
+        proj: InstancedLineSegments<InstancedProjectionMaterial>
+    }
     count: number
     maxCount: number
 }
@@ -33,18 +35,17 @@ type instanceItem = {
 // instance updates
 function incrementInstanceCount(instance: instanceItem): void {
     instance.count++
-    instance.mesh.count = instance.count
-    instance.line.count = instance.count
+    setInstanceCount(instance)
 }
 function decrementInstanceCount(instance: instanceItem): void {
     instance.count--
-    instance.mesh.count = instance.count
-    instance.line.count = instance.count
+    setInstanceCount(instance)
 }
-function setInstanceCount(instance: instanceItem, count: number = 0): void {
-    instance.count = count
-    instance.mesh.count = instance.count
-    instance.line.count = instance.count
+function setInstanceCount(instance: instanceItem, count?: number): void {
+    if (count) instance.count = count
+    instance.instances.mesh.count = instance.count
+    instance.instances.line.count = instance.count
+    instance.instances.proj.count = instance.count
 }
 
 export class Drafter {
@@ -111,6 +112,8 @@ export class Drafter {
     }
     newInstance(geometry: THREE.BufferGeometry): instanceItem {
         // localTransform set from geo or pass in...
+
+        // i think the roots base needs to be this..?
         const scale = 1.0 //rand.random(0.5, 1.25)
         const localTransform = new THREE.Matrix4().scale(
             new THREE.Vector3(scale, scale, scale)
@@ -146,21 +149,11 @@ export class Drafter {
         line.instanceMatrix = instanceMatrix
         // proj instance matrix must be identiy or we have to do more maths in the shader...
         // proj.instanceMatrix = instanceMatrix
-
-        const lookupIndex = new Int8Array(InstanceCount).fill(0)
-        let i = 0
-        lookupIndex[i++] = 0
-        lookupIndex[i++] = 0
-        lookupIndex[i++] = 1
-        lookupIndex[i++] = 2
-        lookupIndex[i++] = 0
-        lookupIndex[i++] = 0
-        lookupIndex[i++] = 2
-
-        extrude.setAttribute(
-            "lookupIndex",
-            new THREE.InstancedBufferAttribute(lookupIndex, 1)
+        const parentIDs = new THREE.InstancedBufferAttribute(
+            new Int8Array(InstanceCount),
+            1
         )
+        extrude.setAttribute("lookupIndex", parentIDs)
         const dataTexture = createLinkedInstanceMatrixTexture(instanceMatrix)
         projMaterial.instanceMatrixTexture = dataTexture
 
@@ -169,23 +162,27 @@ export class Drafter {
         const id = this.instanceItems.length
         mesh.userData.id = id
         line.userData = mesh.userData
+        proj.userData = mesh.userData
 
         const group = new THREE.Group()
         group.add(mesh)
         group.add(line)
         group.add(proj)
 
-        const newInstanceItem = {
+        const newInstanceItem: instanceItem = {
             geometry: geometry,
             localTransform,
-            sharedBuffers: {
+            buffers: {
                 matrix: instanceMatrix,
                 dataTexture,
+                parentIDs,
             },
             group,
-            mesh,
-            line,
-            projection: proj,
+            instances: {
+                mesh,
+                line,
+                proj,
+            },
             count: 0,
             maxCount: InstanceCount,
         }
@@ -242,18 +239,15 @@ export class Drafter {
         )
         mat = node.localMatrix
 
-        // i think we can do this through instanceItem.geometry instead?...
-        setInstanceMatrixAt(
-            instanceItem.sharedBuffers.matrix,
-            instanceItem.count,
-            mat
-        )
+        // update buffers
+        const index = instanceItem.count
+        setInstanceMatrixAt(instanceItem.buffers.matrix, index, mat)
+        setDataTextureMatrixAt(instanceItem.buffers.dataTexture, index, mat)
 
-        setDataTextureMatrixAt(
-            instanceItem.sharedBuffers.dataTexture,
-            instanceItem.count,
-            mat
-        )
+        if (parent && typeof parentIndex === "number") {
+            ;(instanceItem.buffers.parentIDs.array as Int8Array)[index] =
+                parentIndex
+        }
 
         // inc count to draw visible.
         incrementInstanceCount(instanceItem)

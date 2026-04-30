@@ -98,7 +98,8 @@ export class InstancedProjectionMaterial extends THREE.LineBasicMaterial {
                     mat4 endMatrix = loadInstanceMatrix(instanceMatrixTexture, parentIndex);
                     transformed = (endMatrix * vec4(transformed, 1.0)).xyz;
                 }
-                transformed.y = -10.0;
+                // we can probably do some normal checking or raycasting here...
+                transformed.y = -5.0;
                 `
             )
             this.shader = shader
