@@ -25,8 +25,11 @@ function cloneInstancedAttribute(
  * Instanced line segments that mirror `THREE.InstancedMesh` behavior while
  * keeping the line render and raycast pipeline from `THREE.LineSegments`.
  */
-export class InstanceLineSegments extends THREE.LineSegments {
+export class InstanceLineSegments<
+    TMaterial extends THREE.Material = THREE.LineBasicMaterial,
+> extends THREE.LineSegments {
     isInstancedMesh: true
+    declare material: TMaterial
     instanceMatrix: THREE.InstancedBufferAttribute
     previousInstanceMatrix: THREE.InstancedBufferAttribute | null
     instanceColor: THREE.InstancedBufferAttribute | null
@@ -37,9 +40,7 @@ export class InstanceLineSegments extends THREE.LineSegments {
 
     constructor(
         geometry: THREE.BufferGeometry = new THREE.BufferGeometry(),
-        material:
-            | THREE.Material
-            | THREE.Material[] = new THREE.LineBasicMaterial(),
+        material: TMaterial = new THREE.LineBasicMaterial() as unknown as TMaterial,
         count: number
     ) {
         super(geometry, material)

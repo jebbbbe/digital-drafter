@@ -1,20 +1,75 @@
 import { controls } from "../App/index"
-import { button, Leva, useControls } from "leva"
+import { button, folder, Leva, useControls } from "leva"
 
 function Controls() {
-    useControls("Cube", {
-        addNodeTest: button(controls.addNodeTest),
-        addManyNodeTest: button(() => {
-            for (let i = 0; i < 20; i++) {
-                controls.addNodeTest()
-            }
+    useControls({
+        Actions: folder({
+            "Add Test Node": button(controls.addTestNode),
+            "Add Many Test Nodes": button(() => {
+                for (let i = 0; i < 20; i++) {
+                    controls.addTestNode()
+                }
+            }),
         }),
-        resetCamera: button(controls.resetCamera),
-        randomizeMeshColor: button(controls.randomizeMeshColor),
-        toggleMesh: button(controls.toggleMesh),
-        toggleLine: button(controls.toggleLine),
-        saveCubeAsGlb: button(controls.saveCubeAsGlb),
-        saveCubeAsGltf: button(controls.saveCubeAsGltf),
+        Display: folder({
+            Background: {
+                label: "color",
+                value: controls.defaultValues.display.background,
+                onChange: controls.setSceneColor,
+            },
+            Mesh: folder({
+                meshColor: {
+                    label: "color",
+                    value: controls.defaultValues.display.mesh.color,
+                    onChange: controls.setMeshColor,
+                },
+                meshVisible: {
+                    label: "visible",
+                    value: controls.defaultValues.display.mesh.visible,
+                    onChange: controls.setMeshVisible,
+                },
+            }),
+            Line: folder({
+                lineColor: {
+                    label: "color",
+                    value: controls.defaultValues.display.line.color,
+                    onChange: controls.setLineColor,
+                },
+                lineVisible: {
+                    label: "visible",
+                    value: controls.defaultValues.display.line.visible,
+                    onChange: controls.setLineVisible,
+                },
+            }),
+            Projection: folder({
+                projectionColor: {
+                    label: "color",
+                    value: controls.defaultValues.display.projection.color,
+                    onChange: controls.setProjectionColor,
+                },
+                projectionVisible: {
+                    label: "visible",
+                    value: controls.defaultValues.display.projection.visible,
+                    onChange: controls.setProjectionVisible,
+                },
+            }),
+        }),
+        Camera: folder(
+            {
+                resetCamera: button(controls.resetCamera),
+                toggleCameraRotation: button(controls.toggleCameraRotation),
+            },
+            { collapsed: false }
+        ),
+        Export: folder(
+            {
+                saveCubeAsGlb: button(controls.saveCubeAsGlb),
+                saveCubeAsGltf: button(controls.saveCubeAsGltf),
+            },
+            { collapsed: true }
+        ),
+        Debug: folder({}, { collapsed: true }),
+        "Download Image": button(() => controls.downloadImage()),
     })
 
     return (

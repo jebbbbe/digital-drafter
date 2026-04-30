@@ -24,7 +24,8 @@ type instanceItem = {
     group: THREE.Group
     // maybe we should have a collection of instances, and som funcitons to update them all...?
     mesh: THREE.InstancedMesh
-    line: THREE.InstancedMesh | InstanceLineSegments
+    line: InstanceLineSegments<THREE.LineBasicMaterial>
+    projection: InstanceLineSegments<InstancedProjectionMaterial>
     count: number
     maxCount: number
 }
@@ -126,7 +127,7 @@ export class Drafter {
         )
 
         const edges = new THREE.EdgesGeometry(geometry, 30)
-        const line = new InstanceLineSegments(
+        const line = new InstanceLineSegments<THREE.LineBasicMaterial>(
             edges,
             this.materials.line,
             InstanceCount
@@ -134,7 +135,7 @@ export class Drafter {
 
         const extrude = doublePositionBuffer(edges.clone())
         const projMaterial = this.materials.projection.clone()
-        const proj = new InstanceLineSegments(
+        const proj = new InstanceLineSegments<InstancedProjectionMaterial>(
             extrude,
             projMaterial,
             InstanceCount
@@ -182,8 +183,9 @@ export class Drafter {
                 dataTexture,
             },
             group,
-            mesh: mesh,
-            line: line,
+            mesh,
+            line,
+            projection: proj,
             count: 0,
             maxCount: InstanceCount,
         }

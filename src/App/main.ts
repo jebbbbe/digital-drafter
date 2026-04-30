@@ -6,6 +6,7 @@ import { loadGlb } from "./utils/loader"
 import { RaycastHelper } from "./interaction/RaycastHelper"
 import { Drafter } from "./draft/Drafter"
 
+let isAppReady = false
 const cube = new THREE.Mesh(
     // shape.makeCustomMergeShape(),
     shape.makeCustomBVHShape(),
@@ -19,7 +20,7 @@ const cube = new THREE.Mesh(
 let renderer!: THREE.WebGLRenderer
 let scene!: THREE.Scene
 let camera!: THREE.OrthographicCamera
-let controls!: OrbitControls
+let orbitControls!: OrbitControls
 let layout!: AspectLayout
 let frameId = 0
 
@@ -53,9 +54,9 @@ export function init(container: HTMLElement): () => void {
     camera.position.set(0, 100, 0)
     camera.lookAt(0, 0, 0)
 
-    //controls
-    controls = initOrbit(camera, renderer)
-    console.log({ controls })
+    //orbitControls
+    orbitControls = initOrbit(camera, renderer)
+    console.log({ orbitControls })
 
     // content
     const ambient = new THREE.AmbientLight(0xffffff, 0.7)
@@ -111,11 +112,12 @@ export function init(container: HTMLElement): () => void {
         console.log(id, index, int)
     })
 
+    isAppReady = true
     return dispose
 }
 
 function render(): void {
-    controls.update()
+    orbitControls.update()
     renderer.render(scene, camera)
 }
 
@@ -125,6 +127,8 @@ function animate(): void {
 }
 
 function dispose(): void {
+    isAppReady = false
+
     if (!renderer) {
         return
     }
@@ -138,21 +142,26 @@ function initOrbit(
     camera: THREE.OrthographicCamera,
     renderer: THREE.WebGLRenderer
 ) {
-    controls = new OrbitControls(camera, renderer.domElement)
-    controls.enableDamping = true // an animation loop is required when either damping or auto-rotation are enabled
-    controls.dampingFactor = 0.15 //0.05
-    controls.screenSpacePanning = false
-    controls.enablePan = false
-    controls.minDistance = 1 //zoom min scaling
-    controls.maxDistance = 2000 //zoom max scaling
-    controls.update()
-    // controls.addEventListener("change", () => { // for no aniumation loop()
+    orbitControls = new OrbitControls(camera, renderer.domElement)
+    orbitControls.enableDamping = true // an animation loop is required when either damping or auto-rotation are enabled
+    orbitControls.dampingFactor = 0.15 //0.05
+    orbitControls.screenSpacePanning = false
+    orbitControls.enablePan = true
+    orbitControls.enableRotate = false
+    orbitControls.mouseButtons.LEFT = THREE.MOUSE.PAN
+    orbitControls.mouseButtons.RIGHT = THREE.MOUSE.PAN
+    orbitControls.touches.ONE = THREE.TOUCH.PAN
+    orbitControls.touches.TWO = THREE.TOUCH.DOLLY_PAN
+    orbitControls.minDistance = 1 //zoom min scaling
+    orbitControls.maxDistance = 2000 //zoom max scaling
+    orbitControls.update()
+    // orbitControls.addEventListener("change", () => { // for no aniumation loop()
     // renderer.render(scene, camera);
     // });
-    return controls
+    return orbitControls
 }
 
-export { renderer, scene, camera, controls, cube, drafter }
+export { isAppReady, renderer, scene, camera, orbitControls, cube, drafter }
 
 function loadAssets(): Promise<[THREE.Object3D]> {
     return Promise.all([loadGlb("/cube.glb")])
