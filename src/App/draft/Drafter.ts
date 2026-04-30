@@ -1,7 +1,7 @@
 import * as THREE from "three"
 import { TransformTree, createTransformNode } from "./TransformTree"
 import { InstanceCount } from "./capacity"
-import { InstanceLineSegments } from "../objects/meshes/InstanceLineSegments"
+import { InstancedLineSegments } from "../objects/meshes/InstancedLineSegments"
 import {
     setInstanceMatrixAt,
     createLinkedInstanceMatrixTexture,
@@ -24,8 +24,8 @@ type instanceItem = {
     group: THREE.Group
     // maybe we should have a collection of instances, and som funcitons to update them all...?
     mesh: THREE.InstancedMesh
-    line: InstanceLineSegments<THREE.LineBasicMaterial>
-    projection: InstanceLineSegments<InstancedProjectionMaterial>
+    line: InstancedLineSegments<THREE.LineBasicMaterial>
+    projection: InstancedLineSegments<InstancedProjectionMaterial>
     count: number
     maxCount: number
 }
@@ -127,7 +127,7 @@ export class Drafter {
         )
 
         const edges = new THREE.EdgesGeometry(geometry, 30)
-        const line = new InstanceLineSegments<THREE.LineBasicMaterial>(
+        const line = new InstancedLineSegments<THREE.LineBasicMaterial>(
             edges,
             this.materials.line,
             InstanceCount
@@ -135,7 +135,7 @@ export class Drafter {
 
         const extrude = doublePositionBuffer(edges.clone())
         const projMaterial = this.materials.projection.clone()
-        const proj = new InstanceLineSegments<InstancedProjectionMaterial>(
+        const proj = new InstancedLineSegments<InstancedProjectionMaterial>(
             extrude,
             projMaterial,
             InstanceCount

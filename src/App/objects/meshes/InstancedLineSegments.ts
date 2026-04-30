@@ -27,7 +27,7 @@ function cloneInstancedAttribute(
  * Instanced line segments that mirror `THREE.InstancedMesh` behavior while
  * keeping the line render and raycast pipeline from `THREE.LineSegments`.
  */
-export class InstanceLineSegments<
+export class InstancedLineSegments<
     TMaterial extends THREE.Material = THREE.LineBasicMaterial,
 >
     extends THREE.LineSegments
