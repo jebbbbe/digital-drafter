@@ -95,24 +95,3 @@ export function applyTransformAroundOrigin(
         .multiply(translateToOrigin)
         .multiply(existing)
 }
-
-/**
- * Writes a matrix into an instanced matrix buffer at the given slot.
- *
- * Set `instanceMatrix.needsUpdate = true` after batching matrix writes so the
- * GPU upload stays in sync.
- *
- * Mirrors the behavior of `THREE.InstancedMesh#setMatrixAt`:
- * https://threejs.org/docs/#api/en/objects/InstancedMesh.setMatrixAt
- *
- * @param instanceMatrix - Backing `InstancedBufferAttribute` for instance matrices.
- * @param index - Instance slot to write.
- * @param matrix - Matrix to serialize into the buffer.
- */
-export function setMatrixAt(
-    instanceMatrix: THREE.InstancedBufferAttribute,
-    index: number,
-    matrix: THREE.Matrix4
-) {
-    matrix.toArray(instanceMatrix.array, index * 16)
-}

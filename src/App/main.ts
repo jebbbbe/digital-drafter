@@ -152,7 +152,7 @@ function initOrbit(
     return controls
 }
 
-export { renderer, scene, camera, controls, cube }
+export { renderer, scene, camera, controls, cube, drafter }
 
 function loadAssets(): Promise<[THREE.Object3D]> {
     return Promise.all([loadGlb("/cube.glb")])

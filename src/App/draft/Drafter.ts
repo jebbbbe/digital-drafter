@@ -2,6 +2,7 @@ import * as THREE from "three"
 import { TransformTree, createTransformNode } from "./TransformTree"
 import { InstanceCount } from "./capacity"
 import { InstanceLineSegments } from "../objects/meshes/InstanceLineSegments"
+import { setInstanceMatrixAt } from "../objects/buffers/buffers"
 import { calculateProjectionMatrix, applyTransformAroundOrigin } from "./matrix"
 import { Line2 } from "three/examples/jsm/Addons.js"
 import * as rand from "../utils/random"
@@ -57,7 +58,7 @@ export class Drafter {
             polygonOffsetFactor: 1,
             polygonOffsetUnits: 1,
         }),
-        ProjectionMaterial:{},
+        ProjectionMaterial: {},
         debugLine: new THREE.LineBasicMaterial({
             color: 0xffff00,
         }),
@@ -93,14 +94,15 @@ export class Drafter {
         //debug set up
         this.debug.objects.line.material = this.materials.debugLine
         this.debug.objects.point.material = this.materials.debugPoint
-
     }
     newInstance(geometry: THREE.BufferGeometry): instanceItem {
         // localTransform set from geo or pass in...
         const scale = rand.random(0.5, 1.25)
         const localTransform = new THREE.Matrix4()
             .scale(new THREE.Vector3(scale, scale, scale))
-            .makeRotationX(rand.randomItem([0, Math.PI / 2, Math.PI, 3*Math.PI/2]))
+            .makeRotationX(
+                rand.randomItem([0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2])
+            )
 
         const mesh = new THREE.InstancedMesh(
             geometry,
@@ -190,6 +192,7 @@ export class Drafter {
         }
         mat = node.compoundMatrix
 
+        // unsure about the implementation of localMatrix...
         applyTransformAroundOrigin(
             node.position,
             instanceItem.localTransform,
@@ -199,9 +202,11 @@ export class Drafter {
         mat = node.localMatrix
 
         // i think we can do this through instanceItem.geometry instead?...
-        const { mesh } = instanceItem
-        mesh.setMatrixAt(mesh.count, mat)
-
+        setInstanceMatrixAt(
+            instanceItem.sharedBuffers.matrix,
+            instanceItem.count,
+            mat
+        )
         // inc count to draw visible.
         incrementInstanceCount(instanceItem)
     }
