@@ -11,27 +11,6 @@ import {
 } from "./main"
 import * as rand from "./utils/random"
 
-export const defaultValues = {
-    camera: {
-        rotationEnabled: false,
-    },
-    display: {
-        background: "#eef4ff",
-        mesh: {
-            color: "#5f05f5",
-            visible: true,
-        },
-        line: {
-            color: "#000000",
-            visible: true,
-        },
-        projection: {
-            color: "#00ff00",
-            visible: true,
-        },
-    },
-}
-
 function syncCameraRotationBindings(enableRotate: boolean): void {
     if (!isAppReady) {
         return

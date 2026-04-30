@@ -11,6 +11,7 @@ import {
 import { calculateProjectionMatrix, applyTransformAroundOrigin } from "./matrix"
 import { InstancedProjectionMaterial } from "../objects/materials/InstancedProjectionMaterial"
 import { Line2 } from "three/examples/jsm/Addons.js"
+import { settings } from "../settings"
 import * as rand from "../utils/random"
 
 type instanceItem = {
@@ -54,25 +55,28 @@ export class Drafter {
     instanceItems!: instanceItem[]
     materials = {
         line: new THREE.LineBasicMaterial({
-            color: 0x000000,
+            color: settings.display.line.color,
             depthTest: true,
+            visible: settings.display.line.visible,
         }),
         wireframe: new THREE.MeshBasicMaterial({
             color: 0x000000,
             wireframe: true,
         }),
         mesh: new THREE.MeshBasicMaterial({
-            color: 0x5f05f5,
+            color: settings.display.mesh.color,
             polygonOffset: true,
             polygonOffsetFactor: 1,
             polygonOffsetUnits: 1,
+            visible: settings.display.mesh.visible,
         }),
         // this one needs to be cloned everytime
         // projection: new THREE.LineBasicMaterial({
         //     color: 0x00ff00,
         // }),
         projection: new InstancedProjectionMaterial({
-            color: 0x00ff00,
+            color: settings.display.projection.color,
+            visible: settings.display.projection.visible,
         }),
         debugLine: new THREE.LineBasicMaterial({
             color: 0xffff00,

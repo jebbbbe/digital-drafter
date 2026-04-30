@@ -1,6 +1,6 @@
 import { controls } from "../App/index"
 import { button, folder, Leva, useControls } from "leva"
-
+import { settings } from "../App/settings"
 function Controls() {
     useControls({
         Actions: folder({
@@ -14,42 +14,42 @@ function Controls() {
         Display: folder({
             Background: {
                 label: "color",
-                value: controls.defaultValues.display.background,
+                value: settings.display.background,
                 onChange: controls.setSceneColor,
             },
             Mesh: folder({
                 meshColor: {
                     label: "color",
-                    value: controls.defaultValues.display.mesh.color,
+                    value: settings.display.mesh.color,
                     onChange: controls.setMeshColor,
                 },
                 meshVisible: {
                     label: "visible",
-                    value: controls.defaultValues.display.mesh.visible,
+                    value: settings.display.mesh.visible,
                     onChange: controls.setMeshVisible,
                 },
             }),
             Line: folder({
                 lineColor: {
                     label: "color",
-                    value: controls.defaultValues.display.line.color,
+                    value: settings.display.line.color,
                     onChange: controls.setLineColor,
                 },
                 lineVisible: {
                     label: "visible",
-                    value: controls.defaultValues.display.line.visible,
+                    value: settings.display.line.visible,
                     onChange: controls.setLineVisible,
                 },
             }),
             Projection: folder({
                 projectionColor: {
                     label: "color",
-                    value: controls.defaultValues.display.projection.color,
+                    value: settings.display.projection.color,
                     onChange: controls.setProjectionColor,
                 },
                 projectionVisible: {
                     label: "visible",
-                    value: controls.defaultValues.display.projection.visible,
+                    value: settings.display.projection.visible,
                     onChange: controls.setProjectionVisible,
                 },
             }),
