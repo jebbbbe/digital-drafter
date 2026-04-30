@@ -1,12 +1,14 @@
 import * as THREE from "three"
 
-const _identity = new THREE.Matrix4()
 const _instanceLocalMatrix = new THREE.Matrix4()
 const _instanceWorldMatrix = new THREE.Matrix4()
-const _box3 = new THREE.Box3()
-const _sphere = new THREE.Sphere()
-const _line = new THREE.LineSegments()
+
 const _instanceIntersects: THREE.Intersection[] = []
+
+const _box3 = new THREE.Box3()
+const _identity = new THREE.Matrix4()
+const _line = new THREE.LineSegments()
+const _sphere = new THREE.Sphere()
 
 function cloneInstancedAttribute(
     attribute: THREE.InstancedBufferAttribute | null
@@ -27,7 +29,9 @@ function cloneInstancedAttribute(
  */
 export class InstanceLineSegments<
     TMaterial extends THREE.Material = THREE.LineBasicMaterial,
-> extends THREE.LineSegments {
+>
+    extends THREE.LineSegments
+{
     isInstancedMesh: true
     declare material: TMaterial
     instanceMatrix: THREE.InstancedBufferAttribute
@@ -60,20 +64,6 @@ export class InstanceLineSegments<
         for (let i = 0; i < count; i++) {
             this.setMatrixAt(i, _identity)
         }
-    }
-
-    /**
-     * Copies this instance's local matrix into `matrix`.
-     */
-    getMatrixAt(index: number, matrix: THREE.Matrix4) {
-        matrix.fromArray(this.instanceMatrix.array, index * 16)
-    }
-
-    /**
-     * Writes `matrix` into the instanced matrix buffer at `index`.
-     */
-    setMatrixAt(index: number, matrix: THREE.Matrix4) {
-        matrix.toArray(this.instanceMatrix.array, index * 16)
     }
 
     /**
@@ -148,6 +138,46 @@ export class InstanceLineSegments<
     }
 
     /**
+     * Copies the color of the defined instance into `color`.
+     */
+    getColorAt(index: number, color: THREE.Color) {
+        if (this.instanceColor === null) {
+            throw new Error(
+                "InstanceLineSegments has no instanceColor attribute"
+            )
+        }
+
+        color.fromArray(this.instanceColor.array, index * 3)
+    }
+
+    /**
+     * Copies this instance's local matrix into `matrix`.
+     */
+    getMatrixAt(index: number, matrix: THREE.Matrix4) {
+        matrix.fromArray(this.instanceMatrix.array, index * 16)
+    }
+
+    /**
+     * Copies the morph target weights of the defined instance into `object`.
+     */
+    getMorphAt(index: number, object: THREE.Mesh) {
+        const objectInfluences = object.morphTargetInfluences
+
+        if (!objectInfluences || this.morphTexture === null) {
+            throw new Error("InstanceLineSegments has no morph target data")
+        }
+
+        const array = this.morphTexture.source.data
+            .data as NonNullable<THREE.TypedArray>
+        const len = objectInfluences.length + 1
+        const dataIndex = index * len + 1
+
+        for (let i = 0; i < objectInfluences.length; i++) {
+            objectInfluences[i] = array[dataIndex + i]
+        }
+    }
+
+    /**
      * Raycasts each active instance and annotates hits with `instanceId`.
      */
     raycast(raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
@@ -190,9 +220,76 @@ export class InstanceLineSegments<
     }
 
     /**
+     * Writes `color` into the instanced color buffer at `index`.
+     */
+    setColorAt(index: number, color: THREE.Color) {
+        if (this.instanceColor === null) {
+            this.instanceColor = new THREE.InstancedBufferAttribute(
+                new Float32Array(this.instanceMatrix.count * 3).fill(1),
+                3
+            )
+        }
+
+        color.toArray(this.instanceColor.array, index * 3)
+    }
+
+    /**
+     * Writes `matrix` into the instanced matrix buffer at `index`.
+     */
+    setMatrixAt(index: number, matrix: THREE.Matrix4) {
+        matrix.toArray(this.instanceMatrix.array, index * 16)
+    }
+
+    /**
+     * Writes the morph target weights from `object` into this instance slot.
+     */
+    setMorphAt(index: number, object: THREE.Mesh) {
+        const objectInfluences = object.morphTargetInfluences
+
+        if (!objectInfluences) {
+            throw new Error("Mesh has no morphTargetInfluences")
+        }
+
+        const len = objectInfluences.length + 1
+
+        if (this.morphTexture === null) {
+            this.morphTexture = new THREE.DataTexture(
+                new Float32Array(len * this.count),
+                len,
+                this.count,
+                THREE.RedFormat,
+                THREE.FloatType
+            )
+        }
+
+        const array = this.morphTexture.source.data
+            .data as NonNullable<THREE.TypedArray>
+        let morphInfluencesSum = 0
+
+        for (let i = 0; i < objectInfluences.length; i++) {
+            morphInfluencesSum += objectInfluences[i]
+        }
+
+        const morphBaseInfluence = this.geometry.morphTargetsRelative
+            ? 1
+            : 1 - morphInfluencesSum
+
+        const dataIndex = len * index
+
+        array[dataIndex] = morphBaseInfluence
+        array.set(objectInfluences, dataIndex + 1)
+    }
+
+    updateMorphTargets() {}
+
+    /**
      * Dispatches a dispose event to match Three's disposable object pattern.
      */
     dispose() {
         this.dispatchEvent({ type: "dispose" } as any)
+        if (this.morphTexture !== null) {
+            this.morphTexture.dispose()
+            this.morphTexture = null
+        }
     }
 }
