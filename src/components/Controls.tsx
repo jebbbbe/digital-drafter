@@ -3,29 +3,18 @@ import { button, Leva, useControls } from "leva"
 
 function Controls() {
     useControls("Cube", {
-        addNodeTest: button(() => {
-            controls.addNodeTest()
-        }),
+        addNodeTest: button(controls.addNodeTest),
         addManyNodeTest: button(() => {
             for (let i = 0; i < 20; i++) {
                 controls.addNodeTest()
             }
         }),
-        randomizeMeshColor: button(() => {
-            controls.randomizeMeshColor()
-        }),
-        toggleMesh: button(() => {
-            controls.toggleMesh()
-        }),
-        toggleLine: button(() => {
-            controls.toggleLine()
-        }),
-        saveCubeAsGlb: button(() => {
-            controls.saveCubeAsGlb()
-        }),
-        saveCubeAsGltf: button(() => {
-            controls.saveCubeAsGltf()
-        }),
+        resetCamera: button(controls.resetCamera),
+        randomizeMeshColor: button(controls.randomizeMeshColor),
+        toggleMesh: button(controls.toggleMesh),
+        toggleLine: button(controls.toggleLine),
+        saveCubeAsGlb: button(controls.saveCubeAsGlb),
+        saveCubeAsGltf: button(controls.saveCubeAsGltf),
     })
 
     return (
