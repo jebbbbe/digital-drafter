@@ -1,13 +1,13 @@
 import * as THREE from "three"
 import { InstanceCount, increaseCapacity, nearestCapacity } from "./capacity"
 
-export type InstanceLookup = {
+export type NodeLocation = {
     id: number
     index: number
 }
 
 export type Node<T = {}> = T & {
-    instanceLookup: InstanceLookup
+    locaiton: NodeLocation
     parent: Node<T>
     children: Node<T>[]
 }
@@ -53,7 +53,7 @@ export class TransformTree {
      *   // use node
      * }
      */
-    findNode(lookup: InstanceLookup): Node | undefined {
+    findNode(lookup: NodeLocation): Node | undefined {
         const bucket = this.buckets[lookup.id]
         if (!bucket) return
         if (lookup.index < 0 || lookup.index >= bucket.count) return
@@ -77,7 +77,7 @@ export class TransformTree {
             parent.children.push(node)
         }
 
-        const { id } = node.instanceLookup
+        const { id } = node.locaiton
         if (id === -1) {
             console.error("node has no id, cant find bucket", node)
             return
@@ -95,7 +95,7 @@ export class TransformTree {
 
         const index = bucket.count
         bucket.array[index] = node
-        node.instanceLookup.index = index
+        node.locaiton.index = index
         bucket.count++
 
         return node
@@ -134,7 +134,7 @@ export class TransformTree {
      * @returns The node's previous parent and children for caller-side handling.
      */
     removeNode(node: Node): { children: Node[]; parent: Node } | undefined {
-        const { id, index } = node.instanceLookup
+        const { id, index } = node.locaiton
         const bucket = this.buckets[id]
         if (!bucket) {
             console.error("bucket not found for node", node)
@@ -152,7 +152,7 @@ export class TransformTree {
         const { parent, children } = node
 
         ;[array[lastIndex], array[index]] = [array[index], array[lastIndex]]
-        array[index]!.instanceLookup.index = index
+        array[index]!.locaiton.index = index
 
         array[lastIndex] = undefined
         bucket.count--
@@ -186,8 +186,8 @@ export class TransformTree {
                 capacity: InstanceCount,
             }
         } else {
-            rootNode.instanceLookup.id = id
-            rootNode.instanceLookup.index = 0
+            rootNode.locaiton.id = id
+            rootNode.locaiton.index = 0
             bucket = {
                 array: new Array(InstanceCount),
                 count: 1,
@@ -220,8 +220,8 @@ export class TransformTree {
 
         for (let i = 0; i < nodes.length; i++) {
             const node = nodes[i]
-            node.instanceLookup.id = id
-            node.instanceLookup.index = i
+            node.locaiton.id = id
+            node.locaiton.index = i
             bucket.array[i] = node
         }
 

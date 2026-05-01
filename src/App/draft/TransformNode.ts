@@ -20,10 +20,10 @@ export function createTransformNode(
         baseMatrix: node.baseMatrix ?? new THREE.Matrix4(),
         compoundMatrix: node.compoundMatrix ?? new THREE.Matrix4(),
         localMatrix: node.localMatrix ?? new THREE.Matrix4(),
-        instanceLookup: {
+        locaiton: {
             id: -1,
             index: -1,
-            ...node.instanceLookup,
+            ...node.locaiton,
         },
         parent: node.parent ?? newNode,
         children: node.children ?? [],

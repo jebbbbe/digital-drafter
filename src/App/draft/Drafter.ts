@@ -17,7 +17,7 @@ import {
     incrementInstanceCount,
     decrementInstanceCount,
 } from "./InstanceItem"
-import type { InstanceLookup } from "./TransformTree"
+import type { NodeLocation } from "./TransformTree"
 import * as rand from "../utils/random"
 
 export class Drafter {
@@ -85,7 +85,7 @@ export class Drafter {
     }
     removeInstance() {}
     addNode(
-        parentLocation: InstanceLookup = { id: -1, index: -1 },
+        parentLocation: NodeLocation = { id: -1, index: -1 },
         partialNode: Partial<TransformNode>
     ) {
         const id = parentLocation.id
@@ -101,10 +101,10 @@ export class Drafter {
         }
         // copy parents location to partialNode, unless we defined it already
         // this is so we can add Nodes that use a different bucket id
-        if (partialNode.instanceLookup?.id === undefined) {
-            partialNode.instanceLookup = {
+        if (partialNode.locaiton?.id === undefined) {
+            partialNode.locaiton = {
                 id: parentLocation.id,
-                index: partialNode.instanceLookup?.index ?? -1,
+                index: partialNode.locaiton?.index ?? -1,
             }
         }
 
@@ -118,7 +118,7 @@ export class Drafter {
         //
         function iter(node: TransformNode, instanceItems: InstanceItem[]) {
             const isRoot = node.parent === node
-            const instanceItem = instanceItems[node.instanceLookup.id]
+            const instanceItem = instanceItems[node.locaiton.id]
 
             if (isRoot) {
                 node.baseMatrix.identity()
@@ -144,7 +144,7 @@ export class Drafter {
             setUintAttributeAt(
                 instanceItem.buffers.parentIDs,
                 index,
-                node.parent.instanceLookup.index
+                node.parent.locaiton.index
             )
             updateBufferRanges(index, instanceItem.buffers)
             // inc count to draw visible.
