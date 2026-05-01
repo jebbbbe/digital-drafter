@@ -1,5 +1,5 @@
 // default Instance Count
-export const InstanceCount = 1000
+export const InstanceCount = 512
 
 // patern for geting larger capcity, must match between Instance and tree nodes
 export function increaseCapacity(cap: number = InstanceCount): number {

@@ -6,14 +6,13 @@ type InstanceLookup = {
     index: number
 }
 
-//  todo: consider making parent, and children an InstanceLookup
 type TransformNode = {
     position: THREE.Vector3
     baseMatrix: THREE.Matrix4
     compoundMatrix: THREE.Matrix4
     localMatrix: THREE.Matrix4
     instanceLookup: InstanceLookup
-    parent?: TransformNode
+    parent: TransformNode
     children: TransformNode[]
 }
 
@@ -275,7 +274,9 @@ export function createTransformNode({
     id?: number
     parent?: TransformNode
 } = {}): TransformNode {
-    const node: TransformNode = {
+    const node = {} as TransformNode
+
+    Object.assign(node, {
         position: pos ?? new THREE.Vector3(),
         baseMatrix: mat ?? new THREE.Matrix4(),
         compoundMatrix: new THREE.Matrix4(),
@@ -284,11 +285,11 @@ export function createTransformNode({
             id: id ?? -1,
             index: -1,
         },
+        parent: parent ?? node,
         children: [],
-    }
+    })
 
     if (parent !== undefined) {
-        node.parent = parent
         parent.children.push(node)
     }
 

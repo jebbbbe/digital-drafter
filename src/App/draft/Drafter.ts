@@ -6,7 +6,8 @@ import {
     setInstanceMatrixAt,
     createLinkedInstanceMatrixTexture,
     doublePositionBuffer,
-    setDataTextureMatrixAt,
+    setUintAttributeAt,
+    updateBufferRanges,
 } from "../objects/buffers/buffers"
 import { calculateProjectionMatrix, applyTransformAroundOrigin } from "./matrix"
 import { InstancedProjectionMaterial } from "../objects/materials/InstancedProjectionMaterial"
@@ -19,7 +20,7 @@ type instanceItem = {
     geometry: THREE.BufferGeometry
     localTransform: THREE.Matrix4 // matches head of tree baseTransform..?
     buffers: {
-        matrix: THREE.InstancedBufferAttribute
+        instanceMatrix: THREE.InstancedBufferAttribute
         dataTexture: THREE.DataTexture
         parentIDs: THREE.InstancedBufferAttribute
     }
@@ -95,8 +96,8 @@ export class Drafter {
     constructor(
         scene: THREE.Scene,
         initalGeo: THREE.BufferGeometry,
-        initalPoints: { pos: THREE.Vector3; parent?: number }[] = [
-            { pos: new THREE.Vector3() },
+        initalPoints: { pos: THREE.Vector3; parent: number }[] = [
+            { pos: new THREE.Vector3(), parent: 0 },
         ]
     ) {
         this.tree = new TransformTree()
@@ -107,7 +108,7 @@ export class Drafter {
         this.newInstance(initalGeo)
         for (let i = 0; i < initalPoints.length; i++) {
             const wip = initalPoints[i]
-            this.addNode(0, wip?.parent, wip.pos)
+            this.addNode(0, wip.parent, wip.pos)
         }
 
         //debug set up
@@ -119,13 +120,13 @@ export class Drafter {
 
         // localTransform set from geo or pass in...
         // i think the roots base needs to be this..?
-        const scale = 1.0 //rand.random(0.5, 1.25)
-        const localTransform = new THREE.Matrix4().scale(
-            new THREE.Vector3(scale, scale, scale)
-        )
-        // .makeRotationX(
-        //     rand.randomItem([0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2])
-        // )
+        const scale = rand.random(0.75, 1.5)
+        const localTransform = new THREE.Matrix4()
+            .makeRotationX(
+                rand.randomItem([0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2])
+                // rand.random(0, Math.PI * 2)
+            )
+            .scale(new THREE.Vector3(scale, scale, scale))
 
         const newInstanceItem = createInstanceItem(
             geometry,
@@ -143,7 +144,7 @@ export class Drafter {
     removeInstance() {}
     addNode(
         id: number,
-        parentIndex: number | undefined,
+        parentIndex: number,
         point: THREE.Vector3 = new THREE.Vector3()
     ) {
         const instanceItem = this.instanceItems[id]
@@ -153,48 +154,43 @@ export class Drafter {
             return
         }
 
+        const node = createTransformNode({ id, pos: point })
         const parent =
-            typeof parentIndex === "number"
+            parentIndex >= 0
                 ? this.tree.findNode({ id, index: parentIndex })
                 : undefined
 
-        const node = createTransformNode({ id, pos: point })
         this.tree.addNode(node, parent)
 
-        const previousPosition = parent ? parent.position : new THREE.Vector3()
+        const isRoot = node.parent === node
 
-        calculateProjectionMatrix(
-            previousPosition,
-            node.position,
-            node.baseMatrix
-        )
-
-        let mat
-        if (parent) {
+        if (isRoot) {
+            node.baseMatrix.identity()
+            node.compoundMatrix.copy(instanceItem.localTransform)
+        } else {
+            calculateProjectionMatrix(
+                node.parent.position,
+                node.position,
+                node.baseMatrix
+            )
             node.compoundMatrix
                 .copy(node.baseMatrix)
-                .multiply(parent.compoundMatrix)
+                .multiply(node.parent.compoundMatrix)
         }
-        mat = node.compoundMatrix
-
-        // unsure about the implementation of localMatrix...
-        applyTransformAroundOrigin(
-            node.position,
-            instanceItem.localTransform,
-            node.compoundMatrix,
-            node.localMatrix
-        )
-        mat = node.localMatrix
 
         // update buffers
         const index = instanceItem.count
-        setInstanceMatrixAt(instanceItem.buffers.matrix, index, mat)
-        setDataTextureMatrixAt(instanceItem.buffers.dataTexture, index, mat)
-
-        if (parent && typeof parentIndex === "number") {
-            ;(instanceItem.buffers.parentIDs.array as Int8Array)[index] =
-                parentIndex
-        }
+        setInstanceMatrixAt(
+            instanceItem.buffers.instanceMatrix,
+            index,
+            node.compoundMatrix
+        )
+        setUintAttributeAt(
+            instanceItem.buffers.parentIDs,
+            index,
+            node.parent.instanceLookup.index
+        )
+        updateBufferRanges(index, instanceItem.buffers)
 
         // inc count to draw visible.
         incrementInstanceCount(instanceItem)
@@ -208,42 +204,36 @@ function createInstanceItem(
     geometry: THREE.BufferGeometry,
     localTransform: THREE.Matrix4,
     materials: any,
-    id: number
+    id: number,
+    capacity: number = InstanceCount
 ): instanceItem {
     // create instances
-    const mesh = new THREE.InstancedMesh(
-        geometry,
-        materials.mesh,
-        InstanceCount
-    )
+    const mesh = new THREE.InstancedMesh(geometry, materials.mesh, capacity)
 
     const edges = new THREE.EdgesGeometry(geometry, 30)
     const line = new InstancedLineSegments<THREE.LineBasicMaterial>(
         edges,
         materials.line,
-        InstanceCount
+        capacity
     )
 
-    const extrude = doublePositionBuffer(edges.clone())
-    const projMaterial = materials.projection.clone()
     const proj = new InstancedLineSegments<InstancedProjectionMaterial>(
-        extrude,
-        projMaterial,
-        InstanceCount
+        doublePositionBuffer(edges.clone()),
+        materials.projection.clone(),
+        capacity
     )
 
     //match shared instanceMatrix
     const instanceMatrix = mesh.instanceMatrix
     line.instanceMatrix = instanceMatrix
-    // proj instance matrix must be identiy or we have to do more maths in the shader...
-    // proj.instanceMatrix = instanceMatrix
+
     const parentIDs = new THREE.InstancedBufferAttribute(
-        new Int8Array(InstanceCount),
+        new Int8Array(capacity),
         1
     )
-    extrude.setAttribute("lookupIndex", parentIDs)
+    proj.geometry.setAttribute("lookupIndex", parentIDs)
     const dataTexture = createLinkedInstanceMatrixTexture(instanceMatrix)
-    projMaterial.instanceMatrixTexture = dataTexture
+    proj.material.instanceMatrixTexture = dataTexture
 
     // userdata for raycast lookups
     // copy all info to isntancces.
@@ -252,15 +242,13 @@ function createInstanceItem(
     proj.userData = mesh.userData
 
     const group = new THREE.Group()
-    group.add(mesh)
-    group.add(line)
-    group.add(proj)
+    group.add(mesh, line, proj)
 
     return {
         geometry: geometry,
         localTransform,
         buffers: {
-            matrix: instanceMatrix,
+            instanceMatrix,
             dataTexture,
             parentIDs,
         },
@@ -271,7 +259,7 @@ function createInstanceItem(
             proj,
         },
         count: 0,
-        maxCount: InstanceCount,
+        maxCount: capacity,
     }
 }
 /*

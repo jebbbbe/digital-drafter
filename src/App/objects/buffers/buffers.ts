@@ -1,6 +1,6 @@
 import * as THREE from "three"
 
-export const maxUpdateRanges = 256 // could use a % of total buffer count, this hsould be fine
+export const maxUpdateRanges = 128 // could use a % of total buffer count, this hsould be fine
 
 export function createLinkedInstanceMatrixTexture(
     instanceMatrix: THREE.InstancedBufferAttribute | THREE.BufferAttribute
@@ -17,17 +17,15 @@ export function createLinkedInstanceMatrixTexture(
     texture.minFilter = THREE.NearestFilter
     texture.wrapS = THREE.ClampToEdgeWrapping
     texture.wrapT = THREE.ClampToEdgeWrapping
-    // texture.flipY = false
-    // texture.unpackAlignment = 1
-
-    // texture.generateMipmaps = false
     return texture
 }
 
 /**
  * Writes a matrix into an instanced matrix buffer at the given slot.
  *
- * Manages addUpdateRange frequency, no need to set `instanceMatrix.needsUpdate = true`
+ * This only serializes the matrix into the backing typed array. Call
+ * `updateBufferRanges()` or set `instanceMatrix.needsUpdate = true` yourself so
+ * Three.js uploads the written range to the GPU.
  *
  * Mirrors the behavior of `THREE.InstancedMesh#setMatrixAt`:
  * https://threejs.org/docs/#api/en/objects/InstancedMesh.setMatrixAt
@@ -41,49 +39,57 @@ export function setInstanceMatrixAt(
     index: number,
     matrix: THREE.Matrix4
 ) {
-    const offset = index * 16
-    matrix.toArray(instanceMatrix.array, offset)
+    matrix.toArray(instanceMatrix.array, index * 16)
+}
 
+export function setUintAttributeAt(
+    attribute: THREE.InstancedBufferAttribute,
+    index: number,
+    value: number
+) {
+    attribute.array[index] = value
+}
+
+/**
+ * Marks the per-instance matrix buffers and parent lookup buffer dirty.
+ *
+ * Adds a narrow update range for one instance when the queued range count is
+ * still below `maxUpdateRanges`. Once that threshold is reached, all queued
+ * ranges are cleared so the next upload falls back to a full-buffer update.
+ * This keeps many small edits from building up an excessively large range list.
+ *
+ * @param index - Instance slot whose data was modified.
+ * @param buffers - Related GPU-backed buffers that must stay in sync.
+ * @param buffers.instanceMatrix - Attribute storing one serialized mat4 per instance.
+ * @param buffers.dataTexture - Texture view over the same matrix data for random shader reads.
+ * @param buffers.parentIDs - Attribute storing one parent lookup index per instance.
+ */
+export function updateBufferRanges(
+    index: number,
+    {
+        instanceMatrix,
+        dataTexture,
+        parentIDs,
+    }: {
+        instanceMatrix: THREE.InstancedBufferAttribute
+        dataTexture: THREE.DataTexture
+        parentIDs: THREE.InstancedBufferAttribute
+    }
+) {
     if (instanceMatrix.updateRanges.length >= maxUpdateRanges) {
         instanceMatrix.clearUpdateRanges()
+        dataTexture.clearUpdateRanges()
+        parentIDs.clearUpdateRanges()
     } else {
+        const offset = index * 16
         instanceMatrix.addUpdateRange(offset, 16)
+        dataTexture.addUpdateRange(offset, 16)
+        parentIDs.addUpdateRange(index, 1)
     }
 
     instanceMatrix.needsUpdate = true
-}
-
-// this updates the buffer twice, we just need the update ranges to be seperate...
-/**
- * Writes a matrix into an DataTexture at the given slot.
- *
- * Manages addUpdateRange frequency, no need to set `attribute.needsUpdate = true`
- *
- * Mirrors the behavior of `THREE.InstancedMesh#setMatrixAt`:
- * https://threejs.org/docs/#api/en/objects/InstancedMesh.setMatrixAt
- *
- * @param attribute - Backing `InstancedBufferAttribute` for instance matrices.
- * @param index - Instance slot to write.
- * @param matrix - Matrix to serialize into the buffer.
- */
-export function setDataTextureMatrixAt(
-    attribute: THREE.DataTexture,
-    index: number,
-    matrix: THREE.Matrix4
-) {
-    const offset = index * 16
-    matrix.toArray(
-        attribute.image.data as NonNullable<THREE.TypedArray>,
-        offset
-    )
-
-    if (attribute.updateRanges.length >= maxUpdateRanges) {
-        attribute.clearUpdateRanges()
-    } else {
-        attribute.addUpdateRange(offset, 16)
-    }
-
-    attribute.needsUpdate = true
+    dataTexture.needsUpdate = true
+    parentIDs.needsUpdate = true
 }
 
 /**
