@@ -6,6 +6,7 @@ import { loadGlb } from "./utils/loader"
 import { RaycastHelper } from "./interaction/RaycastHelper"
 import { Drafter } from "./draft/Drafter"
 import * as rand from "./utils/random"
+import type { NodeLocation } from "./draft/TransformTree"
 
 let isAppReady = false
 const cube = new THREE.Mesh(
@@ -27,6 +28,9 @@ let frameId = 0
 
 let raycastHelper!: RaycastHelper
 let drafter!: Drafter
+
+let testNode: any
+let testNodeVelocityX = 0.1
 
 export function init(container: HTMLElement): () => void {
     // const assetsLoader = loadAssets()
@@ -98,7 +102,7 @@ export function init(container: HTMLElement): () => void {
         )
         .scale(new THREE.Vector3(scale, scale, scale))
     const initalNodes = makeDrafterArgs([
-        { pos: new THREE.Vector3(0, 0, 0), parent: 0 },
+        // { pos: new THREE.Vector3(0, 0, 0), parent: 0 },
         { pos: new THREE.Vector3(5, 0, 5), parent: 0 },
         { pos: new THREE.Vector3(5, 0, 0), parent: 1 },
         { pos: new THREE.Vector3(5, 0, -5), parent: 2 },
@@ -118,13 +122,19 @@ export function init(container: HTMLElement): () => void {
     ;(globalThis as any).drafter = drafter
     console.log(drafter)
 
+    testNode = drafter.tree.findNode({ id: 0, index: 2 })
+
     // const [loadedCubeModel] = await assetsLoader
     // if (!loadedCubeModel) {
     //     throw new Error('Failed to resolve asset "/cube.glb"')
     // }
     // scene.add(loadedCubeModel)
 
-    raycastHelper = new RaycastHelper(camera, scene, renderer.domElement)
+    raycastHelper = new RaycastHelper(
+        camera,
+        drafter.interactivObjects,
+        renderer.domElement
+    )
 
     layout.addResizeListener(renderer, camera, render)
 
@@ -132,19 +142,23 @@ export function init(container: HTMLElement): () => void {
 
     globalThis.addEventListener("pointerdown", (e) => {
         let intersects = raycastHelper.castFromEvent(e)
-        if (intersects.length === 0) {
-            // no intersects
-            return
-        }
+        if (intersects.length === 0) return
+        // dont needd early retuirns if we use drafter.interactiveObjects
         const int = intersects[0]
-        if (!int.face) {
-            // not a mesh
-            return
-        }
+        // if (!int.face) return
         const id = int.object.userData.id
+        // if (!id) return
         const index = int.instanceId
-
-        console.log(id, index, int)
+        // if (!index) return
+        const location = { id, index } as NodeLocation
+        const node = drafter.tree.findNode(location) as any
+        if (!node) return
+        console.log("TEST INT")
+        console.log(int)
+        console.log({ id, index })
+        console.log(node)
+        node.position.copy(new THREE.Vector3(1, 0, 3))
+        drafter.updatePatchedNode(node)
     })
 
     isAppReady = true
@@ -154,6 +168,13 @@ export function init(container: HTMLElement): () => void {
 function render(): void {
     orbitControls.update()
     renderer.render(scene, camera)
+    if (testNode) {
+        testNode.position.x += testNodeVelocityX
+        if (testNode.position.x >= 10 || testNode.position.x <= -10) {
+            testNodeVelocityX *= -1
+        }
+        drafter.updatePatchedNode(testNode)
+    }
 }
 
 function animate(): void {

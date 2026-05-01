@@ -5,7 +5,6 @@ type TransformData = {
     position: THREE.Vector3
     baseMatrix: THREE.Matrix4
     compoundMatrix: THREE.Matrix4
-    localMatrix: THREE.Matrix4
 }
 
 export type TransformNode = Node<TransformData>
@@ -19,11 +18,10 @@ export function createTransformNode(
         position: node.position ?? new THREE.Vector3(),
         baseMatrix: node.baseMatrix ?? new THREE.Matrix4(),
         compoundMatrix: node.compoundMatrix ?? new THREE.Matrix4(),
-        localMatrix: node.localMatrix ?? new THREE.Matrix4(),
-        locaiton: {
+        location: {
             id: -1,
             index: -1,
-            ...node.locaiton,
+            ...node.location,
         },
         parent: node.parent ?? newNode,
         children: node.children ?? [],

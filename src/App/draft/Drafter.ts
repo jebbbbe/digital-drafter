@@ -18,12 +18,13 @@ import {
     decrementInstanceCount,
 } from "./InstanceItem"
 import type { NodeLocation } from "./TransformTree"
-import * as rand from "../utils/random"
+import { walkSubtree } from "./recursive"
 
 export class Drafter {
     tree!: TransformTree
     scene!: THREE.Scene
-    instanceItems!: InstanceItem[]
+    instanceItems: InstanceItem[] = []
+    interactivObjects: THREE.Object3D[] = []
     materials = {
         line: new THREE.LineBasicMaterial({
             color: settings.display.line.color,
@@ -60,34 +61,48 @@ export class Drafter {
         },
         enable: true,
     }
-    constructor(scene: THREE.Scene) {
+    constructor(scene: THREE.Scene, debug: boolean = false) {
         this.scene = scene
-        this.instanceItems = []
         this.tree = new TransformTree()
-
-        //debug set up
+        if (debug) this.setUpDebug()
+    }
+    setUpDebug() {
+        this.debug.enable = true
         this.debug.objects.line.material = this.materials.debugLine
         this.debug.objects.point.material = this.materials.debugPoint
     }
     newInstance(
         geometry: THREE.BufferGeometry,
-        localTransform: THREE.Matrix4 = new THREE.Matrix4()
+        localTransform: THREE.Matrix4 = new THREE.Matrix4(),
+        init: boolean = true
     ): InstanceItem {
+        const id = this.instanceItems.length
         const newInstanceItem = createInstanceItem(
             geometry,
             localTransform,
             this.materials,
-            this.instanceItems.length
+            id
         )
         this.scene.add(newInstanceItem.group)
         this.instanceItems.push(newInstanceItem)
+        this.interactivObjects.push(newInstanceItem.instances.mesh)
+        if (init) {
+            this.addNode(
+                { id, index: 0 },
+                {
+                    compoundMatrix: localTransform,
+                }
+            )
+        }
+
         return newInstanceItem
     }
     removeInstance() {}
+    patchInstance() {}
     addNode(
         parentLocation: NodeLocation = { id: -1, index: -1 },
         partialNode: Partial<TransformNode>
-    ) {
+    ): TransformNode | undefined {
         const id = parentLocation.id
         const instanceItem = this.instanceItems[id]
 
@@ -96,15 +111,15 @@ export class Drafter {
             return
         }
         if (instanceItem === undefined) {
-            console.error("cound nott find InstanceItem")
+            console.error("cound not find InstanceItem")
             return
         }
         // copy parents location to partialNode, unless we defined it already
         // this is so we can add Nodes that use a different bucket id
-        if (partialNode.locaiton?.id === undefined) {
-            partialNode.locaiton = {
+        if (partialNode.location?.id === undefined) {
+            partialNode.location = {
                 id: parentLocation.id,
-                index: partialNode.locaiton?.index ?? -1,
+                index: partialNode.location?.index ?? -1,
             }
         }
 
@@ -112,48 +127,58 @@ export class Drafter {
         const parent = this.tree.findNode(parentLocation)
         this.tree.addNode(node, parent)
 
-        // dfs( node, instanceItem)
-        // iter(node, instanceItem)
-        iter(node, this.instanceItems)
-        //
-        function iter(node: TransformNode, instanceItems: InstanceItem[]) {
-            const isRoot = node.parent === node
-            const instanceItem = instanceItems[node.locaiton.id]
+        incrementInstanceCount(instanceItem)
+        applyNodeMatrixUpdate(node, this.instanceItems)
 
-            if (isRoot) {
-                node.baseMatrix.identity()
-                node.compoundMatrix.copy(instanceItem.localTransform)
-            } else {
-                calculateProjectionMatrix(
-                    node.parent.position,
-                    node.position,
-                    node.baseMatrix
-                )
-                node.compoundMatrix
-                    .copy(node.baseMatrix)
-                    .multiply(node.parent.compoundMatrix)
-            }
-            // update buffers
-            // we cant pass in instance item, must lookup from idx. children might be in other buckets
-            const index = instanceItem.count
-            setInstanceMatrixAt(
-                instanceItem.buffers.instanceMatrix,
-                index,
-                node.compoundMatrix
-            )
-            setUintAttributeAt(
-                instanceItem.buffers.parentIDs,
-                index,
-                node.parent.locaiton.index
-            )
-            updateBufferRanges(index, instanceItem.buffers)
-            // inc count to draw visible.
-            incrementInstanceCount(instanceItem)
-        }
+        return node
     }
     pruneNode() {}
     removeNode() {}
-    patchInstance() {}
+    /* path node props directly before passing, this updates draw geo*/
+    updatePatchedNode(patchedNode: TransformNode) {
+        const fn = (node: TransformNode) =>
+            applyNodeMatrixUpdate(node, this.instanceItems)
+        walkSubtree(patchedNode, fn)
+    }
+}
+
+/*
+applies tree based update to TransformNode
+updates instances buffers to be draw to screen
+*/
+function applyNodeMatrixUpdate(
+    node: TransformNode,
+    instanceItems: InstanceItem[]
+) {
+    const isRoot = node.parent === node
+
+    if (!isRoot) {
+        calculateProjectionMatrix(
+            node.parent.position,
+            node.position,
+            node.baseMatrix
+        )
+        node.compoundMatrix
+            .copy(node.baseMatrix)
+            .multiply(node.parent.compoundMatrix)
+    }
+    // update buffers
+    // we cant pass in instance item, must lookup from idx. children might be in other buckets
+    const instanceItem = instanceItems[node.location.id]
+    const index = node.location.index // instanceItem.count
+    setInstanceMatrixAt(
+        instanceItem.buffers.instanceMatrix,
+        index,
+        node.compoundMatrix
+    )
+    setUintAttributeAt(
+        instanceItem.buffers.parentIDs,
+        index,
+        node.parent.location.index
+    )
+    updateBufferRanges(index, instanceItem.buffers)
+    // inc count to draw visible.
+    // incrementInstanceCount(instanceItem)
 }
 
 /*

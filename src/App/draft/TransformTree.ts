@@ -7,7 +7,7 @@ export type NodeLocation = {
 }
 
 export type Node<T = {}> = T & {
-    locaiton: NodeLocation
+    location: NodeLocation
     parent: Node<T>
     children: Node<T>[]
 }
@@ -77,7 +77,7 @@ export class TransformTree {
             parent.children.push(node)
         }
 
-        const { id } = node.locaiton
+        const { id } = node.location
         if (id === -1) {
             console.error("node has no id, cant find bucket", node)
             return
@@ -95,7 +95,7 @@ export class TransformTree {
 
         const index = bucket.count
         bucket.array[index] = node
-        node.locaiton.index = index
+        node.location.index = index
         bucket.count++
 
         return node
@@ -134,7 +134,7 @@ export class TransformTree {
      * @returns The node's previous parent and children for caller-side handling.
      */
     removeNode(node: Node): { children: Node[]; parent: Node } | undefined {
-        const { id, index } = node.locaiton
+        const { id, index } = node.location
         const bucket = this.buckets[id]
         if (!bucket) {
             console.error("bucket not found for node", node)
@@ -152,7 +152,7 @@ export class TransformTree {
         const { parent, children } = node
 
         ;[array[lastIndex], array[index]] = [array[index], array[lastIndex]]
-        array[index]!.locaiton.index = index
+        array[index]!.location.index = index
 
         array[lastIndex] = undefined
         bucket.count--
@@ -186,8 +186,8 @@ export class TransformTree {
                 capacity: InstanceCount,
             }
         } else {
-            rootNode.locaiton.id = id
-            rootNode.locaiton.index = 0
+            rootNode.location.id = id
+            rootNode.location.index = 0
             bucket = {
                 array: new Array(InstanceCount),
                 count: 1,
@@ -220,8 +220,8 @@ export class TransformTree {
 
         for (let i = 0; i < nodes.length; i++) {
             const node = nodes[i]
-            node.locaiton.id = id
-            node.locaiton.index = i
+            node.location.id = id
+            node.location.index = i
             bucket.array[i] = node
         }
 

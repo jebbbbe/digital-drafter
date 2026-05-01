@@ -1,23 +1,27 @@
 import * as THREE from "three"
 
 export class RaycastHelper {
-    camera: THREE.Camera
-    scene: THREE.Scene
-    domElem: HTMLCanvasElement
     raycaster = new THREE.Raycaster()
     pointer = new THREE.Vector2()
+    camera: THREE.Camera
+    targets: THREE.Object3D[]
+    domElem: HTMLCanvasElement
     constructor(
         camera: THREE.Camera,
-        scene: THREE.Scene,
+        targets: THREE.Scene | THREE.Object3D[] = [],
         domElem: HTMLCanvasElement
     ) {
         this.camera = camera
-        this.scene = scene
         this.domElem = domElem
+        if (targets instanceof THREE.Scene) {
+            this.targets = targets.children
+        } else {
+            this.targets = targets
+        }
     }
     castFromEvent(
         e: MouseEvent,
-        objects: THREE.Object3D[] = this.scene.children,
+        objects: THREE.Object3D[] = this.targets,
         recursive: boolean = false
     ) {
         // convert to NDC
