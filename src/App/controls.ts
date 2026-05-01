@@ -1,6 +1,11 @@
 import * as THREE from "three"
 import { downloadBlob, saveAsGlb, saveAsGltf } from "./utils/loader"
 import {
+    panelPaths,
+    setLevaControlDisabled,
+} from "../components/Leva/LevaStore"
+import type { TransformNode } from "./draft/TransformNode"
+import {
     isAppReady,
     camera,
     cube,
@@ -10,6 +15,16 @@ import {
     renderer,
 } from "./main"
 import * as rand from "./utils/random"
+
+const _matrixPosition = new THREE.Vector3()
+const _matrixQuaternion = new THREE.Quaternion()
+const _matrixScale = new THREE.Vector3()
+
+function setMatrixUniformScale(matrix: THREE.Matrix4, value: number): void {
+    matrix.decompose(_matrixPosition, _matrixQuaternion, _matrixScale)
+    _matrixScale.set(value, value, value)
+    matrix.compose(_matrixPosition, _matrixQuaternion, _matrixScale)
+}
 
 function syncCameraRotationBindings(enableRotate: boolean): void {
     if (!isAppReady) {
@@ -111,6 +126,21 @@ export function toggleCameraRotation(): void {
     if (!enableRotate) {
         resetCamera()
     }
+}
+
+export function setRootScaleMatrix(value: number): void {
+    if (!isAppReady) return
+
+    const instanceItem = drafter.instanceItems[0]
+    const rootNode = drafter.tree.findNode({ id: 0, index: 0 }) as
+        | TransformNode
+        | undefined
+    if (!instanceItem || !rootNode) return
+
+    setMatrixUniformScale(instanceItem.localTransform, value)
+
+    rootNode.compoundMatrix.copy(instanceItem.localTransform)
+    drafter.updatePatchedNode(rootNode)
 }
 
 export function saveCubeAsGlb(): void {

@@ -68,7 +68,19 @@ function Controls() {
             },
             { collapsed: true }
         ),
-        Debug: folder({}, { collapsed: true }),
+        Debug: folder(
+            {
+                rootScale: {
+                    label: "Root Scale",
+                    value: 1,
+                    min: 0.1,
+                    max: 4,
+                    step: 0.05,
+                    onChange: controls.setRootScaleMatrix,
+                },
+            },
+            { collapsed: true }
+        ),
         "Download Image": button(() => controls.downloadImage()),
     })
 
@@ -79,7 +91,6 @@ function Controls() {
                 // fill // default = false, true makes the pane fill the parent dom node it's rendered in
                 // flat // default = false, true removes border radius and shadow
                 // oneLineLabels // default = false, alternative layout for labels, with labels and fields on separate rows
-                // hideTitleBar // default = false, hides the GUI header
                 collapsed={false} // default = false, when true the GUI is collapsed
                 // hidden // default = false, when true the GUI is hidden
                 // neverHide // default = false, when true the GUI stays visible even when no controls are mounted
@@ -90,7 +101,7 @@ function Controls() {
                     drag: true, // Enable dragging
                     filter: false, // Enable filter/search
                     position: { x: 0, y: 0 }, // Initial position (when drag is enabled)
-                    onDrag: (position) => {}, // Callback when dragged
+                    // onDrag: () => {}, // Callback when dragged
                 }}
             />
             {/* <button type="button" onClick={controls.randomizeCubeColor}>
