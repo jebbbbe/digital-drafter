@@ -1,7 +1,7 @@
 import * as THREE from "three"
 import { settings } from "../settings"
 import { TransformTree } from "./TransformTree"
-import { createTransformNode } from "./TransformNode"
+import { createTransformNode, type TransformNode } from "./TransformNode"
 import {
     setInstanceMatrixAt,
     setUintAttributeAt,
@@ -17,12 +17,13 @@ import {
     incrementInstanceCount,
     decrementInstanceCount,
 } from "./InstanceItem"
+import type { InstanceLookup } from "./TransformTree"
 import * as rand from "../utils/random"
 
 export class Drafter {
     tree!: TransformTree
     scene!: THREE.Scene
-    InstanceItems!: InstanceItem[]
+    instanceItems!: InstanceItem[]
     materials = {
         line: new THREE.LineBasicMaterial({
             color: settings.display.line.color,
@@ -59,107 +60,96 @@ export class Drafter {
         },
         enable: true,
     }
-    constructor(
-        scene: THREE.Scene,
-        initalGeo: THREE.BufferGeometry,
-        initalPoints: { pos: THREE.Vector3; parent: number }[] = [
-            { pos: new THREE.Vector3(), parent: 0 },
-        ]
-    ) {
-        this.tree = new TransformTree()
+    constructor(scene: THREE.Scene) {
         this.scene = scene
-        this.InstanceItems = []
-
-        // weak setup
-        this.newInstance(initalGeo)
-        for (let i = 0; i < initalPoints.length; i++) {
-            const wip = initalPoints[i]
-            this.addNode(0, wip.parent, wip.pos)
-        }
+        this.instanceItems = []
+        this.tree = new TransformTree()
 
         //debug set up
         this.debug.objects.line.material = this.materials.debugLine
         this.debug.objects.point.material = this.materials.debugPoint
     }
-    newInstance(geometry: THREE.BufferGeometry): InstanceItem {
-        const newID = this.InstanceItems.length
-
-        // localTransform set from geo or pass in...
-        // i think the roots base needs to be this..?
-        const scale = rand.random(0.75, 1.5)
-        const localTransform = new THREE.Matrix4()
-            .makeRotationX(
-                rand.randomItem([0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2])
-                // rand.random(0, Math.PI * 2)
-            )
-            .scale(new THREE.Vector3(scale, scale, scale))
-
+    newInstance(
+        geometry: THREE.BufferGeometry,
+        localTransform: THREE.Matrix4 = new THREE.Matrix4()
+    ): InstanceItem {
         const newInstanceItem = createInstanceItem(
             geometry,
             localTransform,
             this.materials,
-            newID
+            this.instanceItems.length
         )
-        setInstanceCount(newInstanceItem, 0)
-
         this.scene.add(newInstanceItem.group)
-        this.InstanceItems.push(newInstanceItem)
-
+        this.instanceItems.push(newInstanceItem)
         return newInstanceItem
     }
     removeInstance() {}
     addNode(
-        id: number,
-        parentIndex: number,
-        point: THREE.Vector3 = new THREE.Vector3()
+        parentLocation: InstanceLookup = { id: -1, index: -1 },
+        partialNode: Partial<TransformNode>
     ) {
-        const InstanceItem = this.InstanceItems[id]
+        const id = parentLocation.id
+        const instanceItem = this.instanceItems[id]
 
-        if (InstanceItem.count === InstanceItem.maxCount) {
+        if (instanceItem.count === instanceItem.maxCount) {
             console.error("not implemented resize instance item")
             return
         }
-
-        const node = createTransformNode({ id, pos: point })
-        const parent =
-            parentIndex >= 0
-                ? this.tree.findNode({ id, index: parentIndex })
-                : undefined
-
-        this.tree.addNode(node, parent)
-
-        const isRoot = node.parent === node
-
-        if (isRoot) {
-            node.baseMatrix.identity()
-            node.compoundMatrix.copy(InstanceItem.localTransform)
-        } else {
-            calculateProjectionMatrix(
-                node.parent.position,
-                node.position,
-                node.baseMatrix
-            )
-            node.compoundMatrix
-                .copy(node.baseMatrix)
-                .multiply(node.parent.compoundMatrix)
+        if (instanceItem === undefined) {
+            console.error("cound nott find InstanceItem")
+            return
+        }
+        // copy parents location to partialNode, unless we defined it already
+        // this is so we can add Nodes that use a different bucket id
+        if (partialNode.instanceLookup?.id === undefined) {
+            partialNode.instanceLookup = {
+                id: parentLocation.id,
+                index: partialNode.instanceLookup?.index ?? -1,
+            }
         }
 
-        // update buffers
-        const index = InstanceItem.count
-        setInstanceMatrixAt(
-            InstanceItem.buffers.instanceMatrix,
-            index,
-            node.compoundMatrix
-        )
-        setUintAttributeAt(
-            InstanceItem.buffers.parentIDs,
-            index,
-            node.parent.instanceLookup.index
-        )
-        updateBufferRanges(index, InstanceItem.buffers)
+        const node = createTransformNode(partialNode)
+        const parent = this.tree.findNode(parentLocation)
+        this.tree.addNode(node, parent)
 
-        // inc count to draw visible.
-        incrementInstanceCount(InstanceItem)
+        // dfs( node, instanceItem)
+        // iter(node, instanceItem)
+        iter(node, this.instanceItems)
+        //
+        function iter(node: TransformNode, instanceItems: InstanceItem[]) {
+            const isRoot = node.parent === node
+            const instanceItem = instanceItems[node.instanceLookup.id]
+
+            if (isRoot) {
+                node.baseMatrix.identity()
+                node.compoundMatrix.copy(instanceItem.localTransform)
+            } else {
+                calculateProjectionMatrix(
+                    node.parent.position,
+                    node.position,
+                    node.baseMatrix
+                )
+                node.compoundMatrix
+                    .copy(node.baseMatrix)
+                    .multiply(node.parent.compoundMatrix)
+            }
+            // update buffers
+            // we cant pass in instance item, must lookup from idx. children might be in other buckets
+            const index = instanceItem.count
+            setInstanceMatrixAt(
+                instanceItem.buffers.instanceMatrix,
+                index,
+                node.compoundMatrix
+            )
+            setUintAttributeAt(
+                instanceItem.buffers.parentIDs,
+                index,
+                node.parent.instanceLookup.index
+            )
+            updateBufferRanges(index, instanceItem.buffers)
+            // inc count to draw visible.
+            incrementInstanceCount(instanceItem)
+        }
     }
     pruneNode() {}
     removeNode() {}

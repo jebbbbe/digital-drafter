@@ -10,35 +10,28 @@ type TransformData = {
 
 export type TransformNode = Node<TransformData>
 
-export function createTransformNode({
-    pos,
-    mat,
-    id,
-    parent,
-}: {
-    pos?: THREE.Vector3
-    mat?: THREE.Matrix4
-    id?: number
-    parent?: TransformNode
-} = {}): TransformNode {
-    const node = {} as TransformNode
+export function createTransformNode(
+    node: Partial<TransformNode> = {}
+): TransformNode {
+    const newNode = {} as TransformNode
 
-    Object.assign(node, {
-        position: pos ?? new THREE.Vector3(),
-        baseMatrix: mat ?? new THREE.Matrix4(),
-        compoundMatrix: new THREE.Matrix4(),
-        localMatrix: new THREE.Matrix4(),
+    Object.assign(newNode, {
+        position: node.position ?? new THREE.Vector3(),
+        baseMatrix: node.baseMatrix ?? new THREE.Matrix4(),
+        compoundMatrix: node.compoundMatrix ?? new THREE.Matrix4(),
+        localMatrix: node.localMatrix ?? new THREE.Matrix4(),
         instanceLookup: {
-            id: id ?? -1,
+            id: -1,
             index: -1,
+            ...node.instanceLookup,
         },
-        parent: parent ?? node,
-        children: [],
+        parent: node.parent ?? newNode,
+        children: node.children ?? [],
     })
 
-    if (parent !== undefined) {
-        parent.children.push(node)
+    if (node.parent !== undefined) {
+        node.parent.children.push(newNode)
     }
 
-    return node
+    return newNode
 }

@@ -5,6 +5,7 @@ import { AspectLayout } from "./utils/AspectLayout"
 import { loadGlb } from "./utils/loader"
 import { RaycastHelper } from "./interaction/RaycastHelper"
 import { Drafter } from "./draft/Drafter"
+import * as rand from "./utils/random"
 
 let isAppReady = false
 const cube = new THREE.Mesh(
@@ -69,8 +70,34 @@ export function init(container: HTMLElement): () => void {
     // scene.add(ambient, sun, gridHelper, axesHelper)
     scene.add(ambient, sun)
 
+    function makeDrafterArgs(arr: any[]) {
+        for (let i = 0; i < arr.length; i++) {
+            const item = arr[i]
+            arr[i] = {
+                parent: {
+                    id: 0,
+                    index: item.parent,
+                },
+                node: {
+                    position: item.pos,
+                },
+            }
+        }
+        return arr as any
+    }
+
     // Drafter
-    drafter = new Drafter(scene, cube.geometry, [
+    drafter = new Drafter(scene)
+
+    const initalGeo = cube.geometry
+    const scale = rand.random(0.75, 1.5)
+    const initalTransform = new THREE.Matrix4()
+        .makeRotationX(
+            rand.randomItem([0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2])
+            // rand.random(0, Math.PI * 2)
+        )
+        .scale(new THREE.Vector3(scale, scale, scale))
+    const initalNodes = makeDrafterArgs([
         { pos: new THREE.Vector3(0, 0, 0), parent: 0 },
         { pos: new THREE.Vector3(5, 0, 5), parent: 0 },
         { pos: new THREE.Vector3(5, 0, 0), parent: 1 },
@@ -80,6 +107,14 @@ export function init(container: HTMLElement): () => void {
         { pos: new THREE.Vector3(10, 0, 0), parent: 2 },
         { pos: new THREE.Vector3(-10, 0, 0), parent: 0 },
     ])
+
+    drafter.newInstance(initalGeo, initalTransform)
+
+    for (let i = 0; i < initalNodes.length; i++) {
+        const wip = initalNodes[i]
+        drafter.addNode(wip.parent, wip.node)
+    }
+
     ;(globalThis as any).drafter = drafter
     console.log(drafter)
 

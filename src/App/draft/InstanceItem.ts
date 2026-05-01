@@ -3,7 +3,12 @@ import { InstancedLineSegments } from "../objects/meshes/InstancedLineSegments"
 import { InstancedProjectionMaterial } from "../objects/materials/InstancedProjectionMaterial"
 import { InstanceCount } from "./capacity"
 import { doublePositionBuffer } from "../objects/buffers/buffers"
-import { createLinkedInstanceMatrixTexture } from "../objects/buffers/buffers"
+import {
+    createLinkedInstanceMatrixTexture,
+    setInstanceMatrixAt,
+    setUintAttributeAt,
+    updateBufferRanges,
+} from "../objects/buffers/buffers"
 
 export type InstanceItem = {
     // brush:any for CSG later...
@@ -68,7 +73,7 @@ export function createInstanceItem(
     const group = new THREE.Group()
     group.add(mesh, line, proj)
 
-    return {
+    const newInstanceItem = {
         geometry: geometry,
         localTransform,
         buffers: {
@@ -85,6 +90,9 @@ export function createInstanceItem(
         count: 0,
         maxCount: capacity,
     }
+    setInstanceCount(newInstanceItem, 0)
+
+    return newInstanceItem
 }
 
 // instance updates
@@ -101,4 +109,17 @@ export function setInstanceCount(instance: InstanceItem, count?: number): void {
     instance.instances.mesh.count = instance.count
     instance.instances.line.count = instance.count
     instance.instances.proj.count = instance.count
+}
+
+export function updateSharedBuffers(
+    instanceItem: InstanceItem,
+    matrix: THREE.Matrix4,
+    parentIndex: number
+) {
+    const index = instanceItem.count
+    setInstanceMatrixAt(instanceItem.buffers.instanceMatrix, index, matrix)
+    setUintAttributeAt(instanceItem.buffers.parentIDs, index, parentIndex)
+    updateBufferRanges(index, instanceItem.buffers)
+    // inc count to draw visible.
+    incrementInstanceCount(instanceItem)
 }
