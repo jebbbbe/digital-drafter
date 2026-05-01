@@ -1,59 +1,28 @@
 import * as THREE from "three"
-import { TransformTree, createTransformNode } from "./TransformTree"
-import { InstanceCount } from "./capacity"
-import { InstancedLineSegments } from "../objects/meshes/InstancedLineSegments"
+import { settings } from "../settings"
+import { TransformTree } from "./TransformTree"
+import { createTransformNode } from "./TransformNode"
 import {
     setInstanceMatrixAt,
-    createLinkedInstanceMatrixTexture,
-    doublePositionBuffer,
     setUintAttributeAt,
     updateBufferRanges,
 } from "../objects/buffers/buffers"
-import { calculateProjectionMatrix, applyTransformAroundOrigin } from "./matrix"
+import { calculateProjectionMatrix } from "./matrix"
 import { InstancedProjectionMaterial } from "../objects/materials/InstancedProjectionMaterial"
 import { Line2 } from "three/examples/jsm/Addons.js"
-import { settings } from "../settings"
+import type { InstanceItem } from "./InstanceItem"
+import {
+    createInstanceItem,
+    setInstanceCount,
+    incrementInstanceCount,
+    decrementInstanceCount,
+} from "./InstanceItem"
 import * as rand from "../utils/random"
-
-type instanceItem = {
-    // brush:any for CSG later...
-    geometry: THREE.BufferGeometry
-    localTransform: THREE.Matrix4 // matches head of tree baseTransform..?
-    buffers: {
-        instanceMatrix: THREE.InstancedBufferAttribute
-        dataTexture: THREE.DataTexture
-        parentIDs: THREE.InstancedBufferAttribute
-    }
-    group: THREE.Group
-    instances: {
-        mesh: THREE.InstancedMesh
-        line: InstancedLineSegments<THREE.LineBasicMaterial>
-        proj: InstancedLineSegments<InstancedProjectionMaterial>
-    }
-    count: number
-    maxCount: number
-}
-
-// instance updates
-function incrementInstanceCount(instance: instanceItem): void {
-    instance.count++
-    setInstanceCount(instance)
-}
-function decrementInstanceCount(instance: instanceItem): void {
-    instance.count--
-    setInstanceCount(instance)
-}
-function setInstanceCount(instance: instanceItem, count?: number): void {
-    if (count) instance.count = count
-    instance.instances.mesh.count = instance.count
-    instance.instances.line.count = instance.count
-    instance.instances.proj.count = instance.count
-}
 
 export class Drafter {
     tree!: TransformTree
     scene!: THREE.Scene
-    instanceItems!: instanceItem[]
+    InstanceItems!: InstanceItem[]
     materials = {
         line: new THREE.LineBasicMaterial({
             color: settings.display.line.color,
@@ -72,9 +41,6 @@ export class Drafter {
             visible: settings.display.mesh.visible,
         }),
         // this one needs to be cloned everytime
-        // projection: new THREE.LineBasicMaterial({
-        //     color: 0x00ff00,
-        // }),
         projection: new InstancedProjectionMaterial({
             color: settings.display.projection.color,
             visible: settings.display.projection.visible,
@@ -102,7 +68,7 @@ export class Drafter {
     ) {
         this.tree = new TransformTree()
         this.scene = scene
-        this.instanceItems = []
+        this.InstanceItems = []
 
         // weak setup
         this.newInstance(initalGeo)
@@ -115,8 +81,8 @@ export class Drafter {
         this.debug.objects.line.material = this.materials.debugLine
         this.debug.objects.point.material = this.materials.debugPoint
     }
-    newInstance(geometry: THREE.BufferGeometry): instanceItem {
-        const newID = this.instanceItems.length
+    newInstance(geometry: THREE.BufferGeometry): InstanceItem {
+        const newID = this.InstanceItems.length
 
         // localTransform set from geo or pass in...
         // i think the roots base needs to be this..?
@@ -137,7 +103,7 @@ export class Drafter {
         setInstanceCount(newInstanceItem, 0)
 
         this.scene.add(newInstanceItem.group)
-        this.instanceItems.push(newInstanceItem)
+        this.InstanceItems.push(newInstanceItem)
 
         return newInstanceItem
     }
@@ -147,9 +113,9 @@ export class Drafter {
         parentIndex: number,
         point: THREE.Vector3 = new THREE.Vector3()
     ) {
-        const instanceItem = this.instanceItems[id]
+        const InstanceItem = this.InstanceItems[id]
 
-        if (instanceItem.count === instanceItem.maxCount) {
+        if (InstanceItem.count === InstanceItem.maxCount) {
             console.error("not implemented resize instance item")
             return
         }
@@ -166,7 +132,7 @@ export class Drafter {
 
         if (isRoot) {
             node.baseMatrix.identity()
-            node.compoundMatrix.copy(instanceItem.localTransform)
+            node.compoundMatrix.copy(InstanceItem.localTransform)
         } else {
             calculateProjectionMatrix(
                 node.parent.position,
@@ -179,89 +145,27 @@ export class Drafter {
         }
 
         // update buffers
-        const index = instanceItem.count
+        const index = InstanceItem.count
         setInstanceMatrixAt(
-            instanceItem.buffers.instanceMatrix,
+            InstanceItem.buffers.instanceMatrix,
             index,
             node.compoundMatrix
         )
         setUintAttributeAt(
-            instanceItem.buffers.parentIDs,
+            InstanceItem.buffers.parentIDs,
             index,
             node.parent.instanceLookup.index
         )
-        updateBufferRanges(index, instanceItem.buffers)
+        updateBufferRanges(index, InstanceItem.buffers)
 
         // inc count to draw visible.
-        incrementInstanceCount(instanceItem)
+        incrementInstanceCount(InstanceItem)
     }
     pruneNode() {}
     removeNode() {}
     patchInstance() {}
 }
 
-function createInstanceItem(
-    geometry: THREE.BufferGeometry,
-    localTransform: THREE.Matrix4,
-    materials: any,
-    id: number,
-    capacity: number = InstanceCount
-): instanceItem {
-    // create instances
-    const mesh = new THREE.InstancedMesh(geometry, materials.mesh, capacity)
-
-    const edges = new THREE.EdgesGeometry(geometry, 30)
-    const line = new InstancedLineSegments<THREE.LineBasicMaterial>(
-        edges,
-        materials.line,
-        capacity
-    )
-
-    const proj = new InstancedLineSegments<InstancedProjectionMaterial>(
-        doublePositionBuffer(edges.clone()),
-        materials.projection.clone(),
-        capacity
-    )
-
-    //match shared instanceMatrix
-    const instanceMatrix = mesh.instanceMatrix
-    line.instanceMatrix = instanceMatrix
-
-    const parentIDs = new THREE.InstancedBufferAttribute(
-        new Int8Array(capacity),
-        1
-    )
-    proj.geometry.setAttribute("lookupIndex", parentIDs)
-    const dataTexture = createLinkedInstanceMatrixTexture(instanceMatrix)
-    proj.material.instanceMatrixTexture = dataTexture
-
-    // userdata for raycast lookups
-    // copy all info to isntancces.
-    mesh.userData.id = id
-    line.userData = mesh.userData
-    proj.userData = mesh.userData
-
-    const group = new THREE.Group()
-    group.add(mesh, line, proj)
-
-    return {
-        geometry: geometry,
-        localTransform,
-        buffers: {
-            instanceMatrix,
-            dataTexture,
-            parentIDs,
-        },
-        group,
-        instances: {
-            mesh,
-            line,
-            proj,
-        },
-        count: 0,
-        maxCount: capacity,
-    }
-}
 /*
 to use instance material, 
 no position prop
@@ -301,7 +205,7 @@ requires propagation update
 new instance 
 user shape select
 new tree item: 
-new instanceItem
+new InstanceItem
 place, add to scene.
 might have a parent refrence in the case of boolean operations...
 will need a way to propegate down?

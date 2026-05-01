@@ -1,0 +1,104 @@
+import * as THREE from "three"
+import { InstancedLineSegments } from "../objects/meshes/InstancedLineSegments"
+import { InstancedProjectionMaterial } from "../objects/materials/InstancedProjectionMaterial"
+import { InstanceCount } from "./capacity"
+import { doublePositionBuffer } from "../objects/buffers/buffers"
+import { createLinkedInstanceMatrixTexture } from "../objects/buffers/buffers"
+
+export type InstanceItem = {
+    // brush:any for CSG later...
+    geometry: THREE.BufferGeometry
+    localTransform: THREE.Matrix4 // matches head of tree baseTransform..?
+    buffers: {
+        instanceMatrix: THREE.InstancedBufferAttribute
+        dataTexture: THREE.DataTexture
+        parentIDs: THREE.InstancedBufferAttribute
+    }
+    group: THREE.Group
+    instances: {
+        mesh: THREE.InstancedMesh
+        line: InstancedLineSegments<THREE.LineBasicMaterial>
+        proj: InstancedLineSegments<InstancedProjectionMaterial>
+    }
+    count: number
+    maxCount: number
+}
+
+export function createInstanceItem(
+    geometry: THREE.BufferGeometry,
+    localTransform: THREE.Matrix4,
+    materials: any,
+    id: number,
+    capacity: number = InstanceCount
+): InstanceItem {
+    // create instances
+    const mesh = new THREE.InstancedMesh(geometry, materials.mesh, capacity)
+
+    const edges = new THREE.EdgesGeometry(geometry, 30)
+    const line = new InstancedLineSegments<THREE.LineBasicMaterial>(
+        edges,
+        materials.line,
+        capacity
+    )
+
+    const proj = new InstancedLineSegments<InstancedProjectionMaterial>(
+        doublePositionBuffer(edges.clone()),
+        materials.projection.clone(),
+        capacity
+    )
+
+    //match shared instanceMatrix
+    const instanceMatrix = mesh.instanceMatrix
+    line.instanceMatrix = instanceMatrix
+
+    const parentIDs = new THREE.InstancedBufferAttribute(
+        new Int8Array(capacity),
+        1
+    )
+    proj.geometry.setAttribute("lookupIndex", parentIDs)
+    const dataTexture = createLinkedInstanceMatrixTexture(instanceMatrix)
+    proj.material.instanceMatrixTexture = dataTexture
+
+    // userdata for raycast lookups
+    // copy all info to isntancces.
+    mesh.userData.id = id
+    line.userData = mesh.userData
+    proj.userData = mesh.userData
+
+    const group = new THREE.Group()
+    group.add(mesh, line, proj)
+
+    return {
+        geometry: geometry,
+        localTransform,
+        buffers: {
+            instanceMatrix,
+            dataTexture,
+            parentIDs,
+        },
+        group,
+        instances: {
+            mesh,
+            line,
+            proj,
+        },
+        count: 0,
+        maxCount: capacity,
+    }
+}
+
+// instance updates
+export function incrementInstanceCount(instance: InstanceItem): void {
+    instance.count++
+    setInstanceCount(instance)
+}
+export function decrementInstanceCount(instance: InstanceItem): void {
+    instance.count--
+    setInstanceCount(instance)
+}
+export function setInstanceCount(instance: InstanceItem, count?: number): void {
+    if (count) instance.count = count
+    instance.instances.mesh.count = instance.count
+    instance.instances.line.count = instance.count
+    instance.instances.proj.count = instance.count
+}

@@ -1,24 +1,20 @@
 import * as THREE from "three"
 import { InstanceCount, increaseCapacity, nearestCapacity } from "./capacity"
 
-type InstanceLookup = {
+export type InstanceLookup = {
     id: number
     index: number
 }
 
-type TransformNode = {
-    position: THREE.Vector3
-    baseMatrix: THREE.Matrix4
-    compoundMatrix: THREE.Matrix4
-    localMatrix: THREE.Matrix4
+export type Node<T = {}> = T & {
     instanceLookup: InstanceLookup
-    parent: TransformNode
-    children: TransformNode[]
+    parent: Node<T>
+    children: Node<T>[]
 }
 
 // packed array of nodes
 type Bucket = {
-    array: Array<TransformNode | undefined>
+    array: Array<Node | undefined>
     count: number
     capacity: number
 }
@@ -46,10 +42,10 @@ export class TransformTree {
     }
 
     /**
-     * Retrieves a TransformNode from the tree using an instance lookup.
+     * Retrieves a Node from the tree using an instance lookup.
      *
      * @param lookup - Contains the bucket id and index of the instance.
-     * @returns The matching TransformNode, or undefined if not found.
+     * @returns The matching Node, or undefined if not found.
      *
      * @example
      * const node = tree.find({ id: 0, index: 5 });
@@ -57,7 +53,7 @@ export class TransformTree {
      *   // use node
      * }
      */
-    findNode(lookup: InstanceLookup): TransformNode | undefined {
+    findNode(lookup: InstanceLookup): Node | undefined {
         const bucket = this.buckets[lookup.id]
         if (!bucket) return
         if (lookup.index < 0 || lookup.index >= bucket.count) return
@@ -75,7 +71,7 @@ export class TransformTree {
      * @param parent - Optional parent for the inserted node.
      * @returns The inserted node.
      */
-    addNode(node: TransformNode, parent?: TransformNode) {
+    addNode(node: Node, parent?: Node): Node | undefined {
         if (parent) {
             node.parent = parent
             parent.children.push(node)
@@ -113,8 +109,13 @@ export class TransformTree {
      *
      * @param node - Node to prune from the tree.
      */
-    pruneNode(node: TransformNode) {
-        const { parent, children } = this.removeNode(node)
+    pruneNode(node: Node) {
+        const removed = this.removeNode(node)
+        if (removed === undefined) {
+            console.error("Couldnt prune Node", node)
+            return
+        }
+        const { parent, children } = removed
         if (parent === undefined) return
         for (let i = 0; i < children.length; i++) {
             const child = children[i]
@@ -132,12 +133,12 @@ export class TransformTree {
      * @param node - Node to remove.
      * @returns The node's previous parent and children for caller-side handling.
      */
-    removeNode(node: TransformNode) {
+    removeNode(node: Node): { children: Node[]; parent: Node } | undefined {
         const { id, index } = node.instanceLookup
         const bucket = this.buckets[id]
         if (!bucket) {
             console.error("bucket not found for node", node)
-            return { children: node.children, parent: node.parent }
+            return
         }
 
         const { array, count } = bucket
@@ -145,7 +146,7 @@ export class TransformTree {
 
         if (index < 0 || index >= count) {
             console.error("node index is outside the active bucket range", node)
-            return { children: node.children, parent: node.parent }
+            return
         }
 
         const { parent, children } = node
@@ -174,7 +175,7 @@ export class TransformTree {
      * @param rootNode - Optional root node to seed the bucket with.
      * @returns The current tree for chaining.
      */
-    addBucket(rootNode?: TransformNode) {
+    addBucket(rootNode?: Node) {
         let bucket: Bucket
         const id = this.buckets.length
 
@@ -208,7 +209,7 @@ export class TransformTree {
      * @param nodes - Packed node array to load into a fresh bucket.
      * @returns The current tree for chaining.
      */
-    loadBucket(nodes: TransformNode[]) {
+    loadBucket(nodes: Node[]) {
         const id = this.buckets.length
         const capacity = nearestCapacity(nodes.length)
         const bucket: Bucket = {
@@ -261,37 +262,4 @@ export class TransformTree {
         bucket.capacity = newCapacity
         bucket.array = next
     }
-}
-
-export function createTransformNode({
-    pos,
-    mat,
-    id,
-    parent,
-}: {
-    pos?: THREE.Vector3
-    mat?: THREE.Matrix4
-    id?: number
-    parent?: TransformNode
-} = {}): TransformNode {
-    const node = {} as TransformNode
-
-    Object.assign(node, {
-        position: pos ?? new THREE.Vector3(),
-        baseMatrix: mat ?? new THREE.Matrix4(),
-        compoundMatrix: new THREE.Matrix4(),
-        localMatrix: new THREE.Matrix4(),
-        instanceLookup: {
-            id: id ?? -1,
-            index: -1,
-        },
-        parent: parent ?? node,
-        children: [],
-    })
-
-    if (parent !== undefined) {
-        parent.children.push(node)
-    }
-
-    return node
 }
