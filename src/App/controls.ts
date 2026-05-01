@@ -31,9 +31,14 @@ export function addTestNode(): void {
     if (!isAppReady) return
 
     drafter.addNode(
-        0,
-        0,
-        new THREE.Vector3(rand.random(-10, 10), 0, rand.random(-5, 5))
+        { id: 0, index: rand.randomInt(0, 3) },
+        {
+            position: new THREE.Vector3(
+                rand.random(-10, 10),
+                0,
+                rand.random(-5, 5)
+            ),
+        }
     )
 }
 

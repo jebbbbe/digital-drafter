@@ -30,7 +30,7 @@ let raycastHelper!: RaycastHelper
 let drafter!: Drafter
 
 let testNode: any
-let testNodeVelocityX = 0.1
+let testNodeVelocityX = 0.02
 
 export function init(container: HTMLElement): () => void {
     // const assetsLoader = loadAssets()
