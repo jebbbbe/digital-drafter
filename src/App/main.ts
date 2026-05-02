@@ -3,10 +3,9 @@ import * as shape from "./objects/geometries/geometry"
 import { OrbitControls } from "three/examples/jsm/Addons.js"
 import { AspectLayout } from "./utils/AspectLayout"
 import { loadGlb } from "./utils/loader"
-import { RaycastHelper } from "./interaction/RaycastHelper"
+import { InteractionManager } from "./interaction/InteractionManager"
 import { Drafter } from "./draft/Drafter"
 import * as rand from "./utils/random"
-import type { NodeLocation } from "./draft/TransformTree"
 
 let isAppReady = false
 const cube = new THREE.Mesh(
@@ -26,14 +25,14 @@ let orbitControls!: OrbitControls
 let layout!: AspectLayout
 let frameId = 0
 
-let raycastHelper!: RaycastHelper
+let interactionManager!: InteractionManager
 let drafter!: Drafter
 
 let testNode: any
 let testNodeVelocityX = 0.02
 
 export function init(container: HTMLElement): () => void {
-    // const assetsLoader = loadAssets()
+    // const assetsLoader = loadAssets()x
 
     dispose()
 
@@ -130,36 +129,17 @@ export function init(container: HTMLElement): () => void {
     // }
     // scene.add(loadedCubeModel)
 
-    raycastHelper = new RaycastHelper(
+    interactionManager = new InteractionManager({
         camera,
-        drafter.interactivObjects,
-        renderer.domElement
-    )
+        domElement: renderer.domElement,
+        orbitControls,
+        drafter,
+    })
+    interactionManager.addEventListeners()
 
     layout.addResizeListener(renderer, camera, render)
 
     frameId = globalThis.requestAnimationFrame(animate)
-
-    globalThis.addEventListener("pointerdown", (e) => {
-        let intersects = raycastHelper.castFromEvent(e)
-        if (intersects.length === 0) return
-        // dont needd early retuirns if we use drafter.interactiveObjects
-        const int = intersects[0]
-        // if (!int.face) return
-        const id = int.object.userData.id
-        // if (!id) return
-        const index = int.instanceId
-        // if (!index) return
-        const location = { id, index } as NodeLocation
-        const node = drafter.tree.findNode(location) as any
-        if (!node) return
-        console.log("TEST INT")
-        console.log(int)
-        console.log({ id, index })
-        console.log(node)
-        node.position.copy(new THREE.Vector3(1, 0, 3))
-        drafter.updatePatchedNode(node)
-    })
 
     isAppReady = true
     return dispose
@@ -190,6 +170,7 @@ function dispose(): void {
     }
     globalThis.cancelAnimationFrame(frameId)
     layout.removeResizeListener()
+    interactionManager.dispose()
     renderer.dispose()
     renderer.domElement.remove()
 }
@@ -210,6 +191,8 @@ function initOrbit(
     orbitControls.touches.TWO = THREE.TOUCH.DOLLY_PAN
     orbitControls.minDistance = 1 //zoom min scaling
     orbitControls.maxDistance = 2000 //zoom max scaling
+    orbitControls.minZoom = 0.0075
+    orbitControls.maxZoom = 0.4
     orbitControls.update()
     // orbitControls.addEventListener("change", () => { // for no aniumation loop()
     // renderer.render(scene, camera);

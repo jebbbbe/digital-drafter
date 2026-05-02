@@ -31,3 +31,28 @@ export function getSubTreeProps(
     })
     return out
 }
+
+/**
+ * Returns true when reparenting `node` under `nextParent` would create a cycle.
+ *
+ * This is used before mutating tree links so recursive subtree walks remain
+ * finite.
+ */
+export function createsCycle(
+    node: TransformNode,
+    nextParent: TransformNode
+): boolean {
+    let current: TransformNode = nextParent
+
+    while (true) {
+        if (current === node) {
+            return true
+        }
+
+        if (current.parent === current) {
+            return false
+        }
+
+        current = current.parent
+    }
+}

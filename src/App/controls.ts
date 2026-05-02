@@ -42,16 +42,17 @@ function syncCameraRotationBindings(enableRotate: boolean): void {
     orbitControls.touches.TWO = THREE.TOUCH.DOLLY_PAN
 }
 
-export function addTestNode(): void {
+export function addTestNode(x: number = 10, z: number = 5): void {
     if (!isAppReady) return
+    const max = drafter.instanceItems[0].count - 1
 
     drafter.addNode(
-        { id: 0, index: rand.randomInt(0, 3) },
+        { id: 0, index: rand.randomInt(0, max) },
         {
             position: new THREE.Vector3(
-                rand.random(-10, 10),
+                rand.random(-x, x),
                 0,
-                rand.random(-5, 5)
+                rand.random(-z, z)
             ),
         }
     )

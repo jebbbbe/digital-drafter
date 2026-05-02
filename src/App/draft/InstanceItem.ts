@@ -51,6 +51,7 @@ export function createInstanceItem(
         materials.projection.clone(),
         capacity
     )
+    proj.frustumCulled = false // it doesnt use its matrix buffer, so bounding sphere doesnt update correctly...
 
     //match shared instanceMatrix
     const instanceMatrix = mesh.instanceMatrix
@@ -115,11 +116,17 @@ export function updateSharedBuffers(
     instanceItem: InstanceItem,
     matrix: THREE.Matrix4,
     parentIndex: number
-) {
+): void {
     const index = instanceItem.count
     setInstanceMatrixAt(instanceItem.buffers.instanceMatrix, index, matrix)
     setUintAttributeAt(instanceItem.buffers.parentIDs, index, parentIndex)
     updateBufferRanges(index, instanceItem.buffers)
     // inc count to draw visible.
     incrementInstanceCount(instanceItem)
+}
+
+export function computeBoundingSphere(instanceItem: InstanceItem): void {
+    instanceItem.instances.mesh.computeBoundingSphere()
+    instanceItem.instances.line.computeBoundingSphere()
+    // instanceItem.instances.proj.computeBoundingSphere()
 }

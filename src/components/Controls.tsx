@@ -4,10 +4,10 @@ import { settings } from "../App/settings"
 function Controls() {
     useControls({
         Actions: folder({
-            "Add Test Node": button(controls.addTestNode),
+            "Add Test Node": button(() => controls.addTestNode()),
             "Add Many Test Nodes": button(() => {
                 for (let i = 0; i < 20; i++) {
-                    controls.addTestNode()
+                    controls.addTestNode(100, 100)
                 }
             }),
         }),

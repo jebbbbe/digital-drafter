@@ -16,6 +16,7 @@ import {
     setInstanceCount,
     incrementInstanceCount,
     decrementInstanceCount,
+    computeBoundingSphere,
 } from "./InstanceItem"
 import type { NodeLocation } from "./TransformTree"
 import { walkSubtree } from "./recursive"
@@ -129,6 +130,7 @@ export class Drafter {
 
         incrementInstanceCount(instanceItem)
         applyNodeMatrixUpdate(node, this.instanceItems)
+        computeBoundingSphere(instanceItem)
 
         return node
     }
@@ -139,6 +141,8 @@ export class Drafter {
         const fn = (node: TransformNode) =>
             applyNodeMatrixUpdate(node, this.instanceItems)
         walkSubtree(patchedNode, fn)
+        // this wont update childnodes of different id
+        computeBoundingSphere(this.instanceItems[patchedNode.location.id])
     }
 }
 
