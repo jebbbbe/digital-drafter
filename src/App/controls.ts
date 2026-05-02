@@ -15,6 +15,7 @@ import {
     renderer,
 } from "./main"
 import * as rand from "./utils/random"
+import { getMaxRenderTargetSize } from "./utils/capabilities"
 
 const _matrixPosition = new THREE.Vector3()
 const _matrixQuaternion = new THREE.Quaternion()
@@ -152,11 +153,17 @@ export function saveCubeAsGltf(): void {
     void saveAsGltf(cube, "cube.gltf")
 }
 
-export function downloadImage(maxRes = 2048, filename = "drawing.png"): void {
+export function downloadImage(
+    filename = "drawing.png",
+    maxRes = 4096 * 2
+): void {
     if (!isAppReady) return
 
     const viewportSize = renderer.getSize(new THREE.Vector2())
     const aspect = viewportSize.x / viewportSize.y
+    let glSize = getMaxRenderTargetSize(renderer)
+    console.log(glSize)
+    // maxRes = glSize
     const exportWidth = aspect >= 1 ? maxRes : Math.round(maxRes * aspect)
     const exportHeight = aspect >= 1 ? Math.round(maxRes / aspect) : maxRes
 

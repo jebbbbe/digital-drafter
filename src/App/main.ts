@@ -10,8 +10,13 @@ import * as rand from "./utils/random"
 let isAppReady = false
 const cube = new THREE.Mesh(
     // shape.makeCustomMergeShape(),
-    shape.makeCustomBVHShape(),
+    // shape.makeCustomBVHShape(),
     // shape.makeCustomBVHHierarchyShape(),
+    shape.makeAsterix(0.1),
+    // shape.makeAsterix(30),
+    // shape.makeBadSphere(0.95),
+    // shape.createWeirdSphereoid(2),
+    // shape.createMengerSpongeGeometry(2),
     new THREE.MeshStandardMaterial({
         color: "#1d8bff",
         roughness: 0.35,
@@ -150,7 +155,7 @@ function render(): void {
     renderer.render(scene, camera)
     if (testNode) {
         testNode.position.x += testNodeVelocityX
-        if (testNode.position.x >= 10 || testNode.position.x <= -10) {
+        if (testNode.position.x >= 7 || testNode.position.x <= -3) {
             testNodeVelocityX *= -1
         }
         drafter.updatePatchedNode(testNode)
@@ -191,7 +196,7 @@ function initOrbit(
     orbitControls.touches.TWO = THREE.TOUCH.DOLLY_PAN
     orbitControls.minDistance = 1 //zoom min scaling
     orbitControls.maxDistance = 2000 //zoom max scaling
-    orbitControls.minZoom = 0.0075
+    orbitControls.minZoom = 0.006
     orbitControls.maxZoom = 0.4
     orbitControls.update()
     // orbitControls.addEventListener("change", () => { // for no aniumation loop()

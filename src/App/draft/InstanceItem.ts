@@ -39,7 +39,7 @@ export function createInstanceItem(
     // create instances
     const mesh = new THREE.InstancedMesh(geometry, materials.mesh, capacity)
 
-    const edges = new THREE.EdgesGeometry(geometry, 30)
+    const edges = new THREE.EdgesGeometry(geometry, 3)
     const line = new InstancedLineSegments<THREE.LineBasicMaterial>(
         edges,
         materials.line,
