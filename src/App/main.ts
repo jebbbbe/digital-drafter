@@ -1,5 +1,6 @@
 import * as THREE from "three"
 import * as shape from "./objects/geometries/geometry"
+import { brushCleaner } from "./objects/geometries/brushCleaner"
 import { OrbitControls } from "three/examples/jsm/Addons.js"
 import { AspectLayout } from "./utils/AspectLayout"
 import { loadGlb } from "./utils/loader"
@@ -8,11 +9,13 @@ import { Drafter } from "./draft/Drafter"
 import * as rand from "./utils/random"
 
 let isAppReady = false
+
 const cube = new THREE.Mesh(
+    new THREE.BoxGeometry(1, 1, 1),
     // shape.makeCustomMergeShape(),
     // shape.makeCustomBVHShape(),
     // shape.makeCustomBVHHierarchyShape(),
-    shape.makeAsterix(0.1),
+    // shape.makeAsterix(0.1),
     // shape.makeAsterix(30),
     // shape.makeBadSphere(0.95),
     // shape.createWeirdSphereoid(2),
@@ -76,7 +79,7 @@ export function init(container: HTMLElement): () => void {
     axesHelper.renderOrder = 1
 
     // scene.add(ambient, sun, gridHelper, axesHelper)
-    scene.add(ambient, sun)
+    // scene.add(ambient, sun)
 
     function makeDrafterArgs(arr: any[]) {
         for (let i = 0; i < arr.length; i++) {
@@ -97,7 +100,15 @@ export function init(container: HTMLElement): () => void {
     // Drafter
     drafter = new Drafter(scene)
 
-    const initalGeo = cube.geometry
+    // const initalGeo = shape.makeCustomMergeShape()
+    // const initalGeo = shape.makeCustomBVHShape()
+    // const initalGeo = shape.makeCustomBVHHierarchyShape()
+    // const initalGeo = shape.makeAsterix(0.1)
+    const initalGeo = shape.makeAsterix(30)
+    // const initalGeo = shape.makeBadSphere(0.95)
+    // const initalGeo = shape.createWeirdSphereoid(2)
+    // const initalGeo = shape.createMengerSpongeGeometry(2)
+
     const scale = rand.random(0.75, 1.5)
     const initalTransform = new THREE.Matrix4()
         .makeRotationX(

@@ -2,7 +2,7 @@ import * as THREE from "three"
 import { InstancedLineSegments } from "../objects/meshes/InstancedLineSegments"
 import { InstancedProjectionMaterial } from "../objects/materials/InstancedProjectionMaterial"
 import { InstanceCount } from "./capacity"
-import { doublePositionBuffer } from "../objects/buffers/buffers"
+import { brushCleaner } from "../objects/geometries/brushCleaner"
 import {
     createLinkedInstanceMatrixTexture,
     setInstanceMatrixAt,
@@ -36,18 +36,23 @@ export function createInstanceItem(
     id: number,
     capacity: number = InstanceCount
 ): InstanceItem {
-    // create instances
-    const mesh = new THREE.InstancedMesh(geometry, materials.mesh, capacity)
+    const geometries = brushCleaner(geometry)
+    // localTransform.multiply(geometries.localTransform) // how to handle?
 
-    const edges = new THREE.EdgesGeometry(geometry, 3)
+    const mesh = new THREE.InstancedMesh(
+        geometries.meshGeometry,
+        materials.mesh,
+        capacity
+    )
+
     const line = new InstancedLineSegments<THREE.LineBasicMaterial>(
-        edges,
+        geometries.lineGeometry,
         materials.line,
         capacity
     )
 
     const proj = new InstancedLineSegments<InstancedProjectionMaterial>(
-        doublePositionBuffer(edges.clone()),
+        geometries.projGeometry,
         materials.projection.clone(),
         capacity
     )

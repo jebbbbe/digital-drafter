@@ -32,6 +32,8 @@ HOLLOW_INTERSECTION   // A ∩ B
 
 */
 
+const _defaultBox = new THREE.BoxGeometry(1, 1, 1)
+
 export function makeCustomMergeShape(): THREE.BufferGeometry {
     const geo1 = new THREE.BoxGeometry(1, 3, 1)
     const geo2 = new THREE.BoxGeometry(1, 1, 2)
@@ -59,16 +61,8 @@ export function makeCustomBVHShape(): THREE.BufferGeometry {
     // const result = evaluator.evaluate(brush1, brush2, ADDITION)
     const result = evaluator.evaluate(brush1, brush2, SUBTRACTION)
 
-    if (result) {
-        let geometry = result.geometry
-        geometry.deleteAttribute("uv")
-        geometry.deleteAttribute("normal")
-        geometry = BufferGeometryUtils.mergeVertices(geometry, 1e-2)
-        geometry.computeVertexNormals()
-        return geometry
-    } else {
-        return geo1
-    }
+    if (!result) return geo1
+    return result.geometry
 }
 
 export function makeCustomBVHHierarchyShape(): THREE.BufferGeometry {
@@ -97,14 +91,11 @@ export function makeCustomBVHHierarchyShape(): THREE.BufferGeometry {
 
     const result = evaluator.evaluateHierarchy(root)
 
-    if (result) {
-        return result.geometry
-    } else {
-        return rootGeo
-    }
+    if (!result) return rootGeo
+    return result.geometry
 }
 
-export function makeAsterix(s = 10) {
+export function makeAsterix(s = 10): THREE.BufferGeometry {
     const evaluator = new Evaluator()
 
     const g1 = new THREE.BoxGeometry(s, 1, 1)
@@ -115,19 +106,11 @@ export function makeAsterix(s = 10) {
     const b3 = new Brush(g3)
     const s1 = evaluator.evaluate(b1, b2, ADDITION)
     const result = evaluator.evaluate(b3, s1, ADDITION)
-    if (result) {
-        let geometry = result.geometry
-        geometry.deleteAttribute("uv")
-        geometry.deleteAttribute("normal")
-        geometry = BufferGeometryUtils.mergeVertices(geometry, 1e-2)
-        geometry.computeVertexNormals()
-        return geometry
-    } else {
-        return g1
-    }
+    if (!result) return g1
+    return result.geometry
 }
 
-export function makeBadSphere(s = 0.5) {
+export function makeBadSphere(s = 0.5): THREE.BufferGeometry {
     const evaluator = new Evaluator()
     const g1 = new THREE.BoxGeometry(s, s, 2)
     const g2 = new THREE.BoxGeometry(s, 2, s)
@@ -142,19 +125,11 @@ export function makeBadSphere(s = 0.5) {
     result = evaluator.evaluate(result, b2, SUBTRACTION)
     result = evaluator.evaluate(result, b3, SUBTRACTION)
 
-    if (result) {
-        let geometry = result.geometry
-        geometry.deleteAttribute("uv")
-        geometry.deleteAttribute("normal")
-        geometry = BufferGeometryUtils.mergeVertices(geometry, 1e-2)
-        geometry.computeVertexNormals()
-        return geometry
-    } else {
-        return g1
-    }
+    if (!result) return g1
+    return result.geometry
 }
 
-export function createWeirdSphereoid(iter = 1) {
+export function createWeirdSphereoid(iter = 1): THREE.BufferGeometry {
     const evaluator = new Evaluator()
     const pos = [
         0, 1, 2, 3, 5, 6, 7, 8, 9, 11, 15, 17, 18, 19, 20, 21, 23, 24, 25, 26,
@@ -178,17 +153,8 @@ export function createWeirdSphereoid(iter = 1) {
         brush.updateMatrixWorld()
     }
     brush.updateMatrixWorld()
-    if (brush) {
-        let geometry = brush.geometry
-        geometry.deleteAttribute("uv")
-        geometry.deleteAttribute("normal")
-        geometry = BufferGeometryUtils.mergeVertices(geometry, 1e-2)
-        geometry.computeVertexNormals()
-        // geometry.computeBoundingBox()
-        // geometry.computeBoundingSphere()
-    } else {
-        return geo
-    }
+    if (!brush) return geo
+    return brush.geometry
 }
 
 export function createMengerSpongeGeometry(iter = 1): THREE.BufferGeometry {
@@ -239,18 +205,11 @@ export function createMengerSpongeGeometry(iter = 1): THREE.BufferGeometry {
     })
 
     const geometry = mergeGeometries(geometries)
+
     if (!geometry) {
         return new THREE.BoxGeometry(1, 1, 1)
     }
-
-    geometry.deleteAttribute("uv")
-    geometry.deleteAttribute("normal")
-    const mergedGeometry = BufferGeometryUtils.mergeVertices(geometry, 1e-6)
-    mergedGeometry.computeVertexNormals()
-    mergedGeometry.computeBoundingBox()
-    mergedGeometry.computeBoundingSphere()
-
-    return mergedGeometry
+    return geometry
 }
 
 export function createMengerSpongeCSG(iter = 1): THREE.BufferGeometry {
@@ -337,49 +296,9 @@ export function createMengerSpongeCSG(iter = 1): THREE.BufferGeometry {
     if (!result) {
         return new THREE.BoxGeometry(1, 1, 1)
     }
-
-    let geometry = result.geometry
-    geometry.deleteAttribute("uv")
-    geometry.deleteAttribute("normal")
-    geometry = BufferGeometryUtils.mergeVertices(geometry, 1e-6)
-    geometry.computeVertexNormals()
-    geometry.computeBoundingBox()
-    geometry.computeBoundingSphere()
-
-    return geometry
+    return result.geometry
 }
 
 export function makeCube() {
     return new THREE.BoxGeometry(1, 1, 1)
-}
-
-export function normalizeGeometryToUnitBox(
-    geometry: THREE.BufferGeometry
-): THREE.BufferGeometry {
-    geometry.computeBoundingBox()
-
-    const boundingBox = geometry.boundingBox
-    if (!boundingBox) {
-        return geometry
-    }
-
-    const size = new THREE.Vector3()
-    const center = new THREE.Vector3()
-    boundingBox.getSize(size)
-    boundingBox.getCenter(center)
-
-    const largestDimension = Math.max(size.x, size.y, size.z)
-    if (largestDimension === 0) {
-        return geometry
-    }
-    // directly modify the buffer
-    geometry.translate(-center.x, -center.y, -center.z)
-    geometry.scale(
-        1 / largestDimension,
-        1 / largestDimension,
-        1 / largestDimension
-    )
-    geometry.computeBoundingBox()
-
-    return geometry
 }

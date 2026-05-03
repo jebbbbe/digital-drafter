@@ -13,7 +13,7 @@ export const settings = {
             visible: true,
         },
         projection: {
-            color: "rgb(60, 60, 60)",
+            color: "#a7a7a7",
             visible: true,
         },
     },
