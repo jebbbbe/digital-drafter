@@ -1,6 +1,7 @@
 import * as THREE from "three"
 import { InstanceCount, increaseCapacity, nearestCapacity } from "./capacity"
 import { FreeList } from "../objects/FreeList"
+import { PackedArray } from "../objects/PackedArray"
 
 export type NodeLocation = {
     id: number
@@ -13,13 +14,6 @@ export type Node<T = {}> = T & {
     children: Node<T>[]
 }
 
-// packed array of nodes
-type Bucket = {
-    array: Array<Node | undefined>
-    count: number
-    capacity: number
-}
-
 /**
  * Packed transform tree keyed by instanced-mesh id and instance slot.
  *
@@ -29,8 +23,7 @@ type Bucket = {
  * packed buckets keep locaiton and removal fast.
  */
 export class TransformTree {
-    // buckets: Array<Bucket | undefined>
-    buckets: FreeList<Bucket>
+    freelist: FreeList<PackedArray<Node>>
     /**
      * Creates a tree with one empty bucket for instance id `0`.
      *
@@ -38,7 +31,7 @@ export class TransformTree {
      * meshes are introduced.
      */
     constructor() {
-        this.buckets = new FreeList()
+        this.freelist = new FreeList()
         this.addBucket()
     }
 
@@ -55,11 +48,11 @@ export class TransformTree {
      * }
      */
     findNode(locaiton: NodeLocation): Node | undefined {
-        const bucket = this.buckets[locaiton.id]
-        if (!bucket) return
-        if (locaiton.index < 0 || locaiton.index >= bucket.count) return
+        const array = this.freelist[locaiton.id]
+        if (!array) return
+        if (locaiton.index < 0 || locaiton.index >= array.count) return
 
-        return bucket.array[locaiton.index] // edit
+        return array[locaiton.index]
     }
 
     /**
@@ -84,20 +77,19 @@ export class TransformTree {
             return
         }
 
-        const bucket = this.buckets[id]
-        if (!bucket) {
-            console.error("bucket not found for node.id", node)
+        const array = this.freelist[id]
+        if (!array) {
+            console.error("array not found for node.id", node)
             return
         }
 
-        if (bucket.count === bucket.capacity) {
-            this._reallocBucket(bucket)
+        if (array.count === array.length) {
+            this.resizeBucket(id)
         }
 
-        const index = bucket.count
-        bucket.array[index] = node
-        node.location.index = index
-        bucket.count++
+        const idx = array.push(node)
+        if (idx === -1) console.error("addNode push error")
+        node.location.index = idx
 
         return node
     }
@@ -136,28 +128,21 @@ export class TransformTree {
      */
     removeNode(node: Node): { children: Node[]; parent: Node } | undefined {
         const { id, index } = node.location
-        const bucket = this.buckets[id]
-        if (!bucket) {
-            console.error("bucket not found for node", node)
-            return
-        }
-
-        const { array, count } = bucket
-        const lastIndex = count - 1
-
-        if (index < 0 || index >= count) {
-            console.error("node index is outside the active bucket range", node)
+        const array = this.freelist[id]
+        if (!array) {
+            console.error("array not found for node", node)
             return
         }
 
         const { parent, children } = node
 
-        ;[array[lastIndex], array[index]] = [array[index], array[lastIndex]]
-        array[index]!.location.index = index
+        // swap location
+        array.remove(index)
+        const swapped = array[index]
+        if (swapped) swapped.location.index = index
+        node.location.index = -1
 
-        array[lastIndex] = undefined
-        bucket.count--
-
+        // remove node from parent
         if (parent) {
             const pc = parent.children
             const idx = pc.indexOf(node)
@@ -177,27 +162,16 @@ export class TransformTree {
      * @returns The current tree for chaining.
      */
     addBucket(rootNode?: Node) {
-        let bucket: Bucket
-        const id = this.buckets.nextIndex()
+        const array = new PackedArray<Node>(InstanceCount)
 
-        if (rootNode === undefined) {
-            bucket = {
-                array: new Array(InstanceCount),
-                count: 0,
-                capacity: InstanceCount,
-            }
-        } else {
+        if (rootNode !== undefined) {
+            const id = this.freelist.nextIndex()
             rootNode.location.id = id
             rootNode.location.index = 0
-            bucket = {
-                array: new Array(InstanceCount),
-                count: 1,
-                capacity: InstanceCount,
-            }
-            bucket.array[0] = rootNode
+            array.push(rootNode)
         }
 
-        this.buckets.push(bucket)
+        this.freelist.push(array)
         return this
     }
 
@@ -211,22 +185,18 @@ export class TransformTree {
      * @returns The current tree for chaining.
      */
     loadBucket(nodes: Node[]) {
-        const id = this.buckets.nextIndex()
+        const id = this.freelist.nextIndex()
         const capacity = nearestCapacity(nodes.length)
-        const bucket: Bucket = {
-            array: new Array(capacity),
-            count: nodes.length,
-            capacity,
-        }
+        const array = new PackedArray<Node>(capacity)
 
         for (let i = 0; i < nodes.length; i++) {
             const node = nodes[i]
             node.location.id = id
             node.location.index = i
-            bucket.array[i] = node
+            array.push(node)
         }
 
-        this.buckets.push(bucket)
+        this.freelist.push(array)
 
         return this
     }
@@ -241,8 +211,14 @@ export class TransformTree {
      * @returns The current tree for chaining.
      */
     removeBucket(id: number) {
-        console.warn("do we need to worry about gaps in buckets array?")
-        this.buckets.remove(id)
+        const removed = this.freelist[id]
+        console.warn("not implemented fully, need to check children", removed)
+        /*
+        mock,
+        go through all items in removed, if children has another id, remove that node. 
+        remove roots when in another bucket,
+        */
+        this.freelist.remove(id)
         return this
     }
 
@@ -251,16 +227,13 @@ export class TransformTree {
      *
      * @param target - Bucket object or bucket id.
      */
-    _reallocBucket(target: Bucket | number) {
-        const bucket: Bucket =
-            typeof target === "number" ? this.buckets[target]! : target
-        const { array, count, capacity } = bucket
-        const newCapacity = increaseCapacity(capacity)
-        const next = new Array(newCapacity)
-        for (let i = 0; i < count; i++) {
-            next[i] = array[i]
+    resizeBucket(id: number) {
+        const array = this.freelist[id]
+        if (!array) {
+            console.error("Could not find array to resize, ", id)
+            return
         }
-        bucket.capacity = newCapacity
-        bucket.array = next
+        const newCapacity = increaseCapacity(array.count)
+        array.resize(newCapacity)
     }
 }
