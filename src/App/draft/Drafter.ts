@@ -7,6 +7,7 @@ import {
     setUintAttributeAt,
     updateBufferRanges,
 } from "../objects/buffers/buffers"
+import { FreeList } from "../objects/FreeList"
 import { calculateProjectionMatrix } from "./matrix"
 import { InstancedProjectionMaterial } from "../objects/materials/InstancedProjectionMaterial"
 import { Line2 } from "three/examples/jsm/Addons.js"
@@ -24,7 +25,7 @@ import { walkSubtree } from "./recursive"
 export class Drafter {
     tree!: TransformTree
     scene!: THREE.Scene
-    instanceItems: InstanceItem[] = []
+    instanceItems: FreeList<InstanceItem> // InstanceItem[] = []
     interactivObjects: THREE.Object3D[] = []
     materials = {
         line: new THREE.LineBasicMaterial({
@@ -64,6 +65,7 @@ export class Drafter {
     }
     constructor(scene: THREE.Scene, debug: boolean = false) {
         this.scene = scene
+        this.instanceItems = new FreeList()
         this.tree = new TransformTree()
         if (debug) this.setUpDebug()
     }
@@ -77,7 +79,7 @@ export class Drafter {
         localTransform: THREE.Matrix4 = new THREE.Matrix4(),
         init: boolean = true
     ): InstanceItem {
-        const id = this.instanceItems.length
+        const id = this.instanceItems.nextIndex()
         const newInstanceItem = createInstanceItem(
             geometry,
             localTransform,
@@ -98,7 +100,21 @@ export class Drafter {
 
         return newInstanceItem
     }
-    removeInstance() {}
+    removeInstance(id: number) {
+        // not implemented
+        console.warn("not implemented")
+        const instanceItem = this.instanceItems[id]
+        if (!instanceItem) return
+
+        // clean up other refrences
+        this.scene.remove(instanceItem.group)
+        const rm = this.interactivObjects.indexOf(instanceItem.instances.mesh)
+        if (rm !== -1) {
+            this.interactivObjects.splice(rm, 1)
+        }
+        this.instanceItems.remove(id)
+        this.tree.removeBucket(id)
+    }
     patchInstance() {}
     addNode(
         parentLocation: NodeLocation = { id: -1, index: -1 },
@@ -106,6 +122,10 @@ export class Drafter {
     ): TransformNode | undefined {
         const id = parentLocation.id
         const instanceItem = this.instanceItems[id]
+        if (!instanceItem) {
+            console.error("couldnt find instanceItem at id", location)
+            return
+        }
 
         if (instanceItem.count === instanceItem.maxCount) {
             console.error("not implemented resize instance item")
@@ -142,7 +162,13 @@ export class Drafter {
             applyNodeMatrixUpdate(node, this.instanceItems)
         walkSubtree(patchedNode, fn)
         // this wont update childnodes of different id
-        computeBoundingSphere(this.instanceItems[patchedNode.location.id])
+
+        const instanceItem = this.instanceItems[patchedNode.location.id]
+        if (!instanceItem) {
+            console.error("couldnt find instanceItem at id", location)
+            return
+        }
+        computeBoundingSphere(instanceItem)
     }
 }
 
@@ -152,7 +178,7 @@ updates instances buffers to be draw to screen
 */
 function applyNodeMatrixUpdate(
     node: TransformNode,
-    instanceItems: InstanceItem[]
+    instanceItems: FreeList<InstanceItem>
 ) {
     const isRoot = node.parent === node
 
@@ -169,6 +195,10 @@ function applyNodeMatrixUpdate(
     // update buffers
     // we cant pass in instance item, must lookup from idx. children might be in other buckets
     const instanceItem = instanceItems[node.location.id]
+    if (!instanceItem) {
+        console.error("couldnt find instanceItem at id", location)
+        return
+    }
     const index = node.location.index // instanceItem.count
     setInstanceMatrixAt(
         instanceItem.buffers.instanceMatrix,

@@ -1,5 +1,6 @@
 import * as THREE from "three"
 import { InstanceCount, increaseCapacity, nearestCapacity } from "./capacity"
+import { FreeList } from "../objects/FreeList"
 
 export type NodeLocation = {
     id: number
@@ -25,11 +26,11 @@ type Bucket = {
  * Each bucket mirrors the active range of an instance matrix buffer so nodes can
  * be found with the same `{ id, index }` pair returned by raycasts or instance
  * bookkeeping. Parent and child links are stored as object references while the
- * packed buckets keep lookup and removal fast.
+ * packed buckets keep locaiton and removal fast.
  */
 export class TransformTree {
-    buckets: Array<Bucket | undefined>
-
+    // buckets: Array<Bucket | undefined>
+    buckets: FreeList<Bucket>
     /**
      * Creates a tree with one empty bucket for instance id `0`.
      *
@@ -37,14 +38,14 @@ export class TransformTree {
      * meshes are introduced.
      */
     constructor() {
-        this.buckets = []
+        this.buckets = new FreeList()
         this.addBucket()
     }
 
     /**
-     * Retrieves a Node from the tree using an instance lookup.
+     * Retrieves a Node from the tree using an instance locaiton.
      *
-     * @param lookup - Contains the bucket id and index of the instance.
+     * @param locaiton - Contains the bucket id and index of the instance.
      * @returns The matching Node, or undefined if not found.
      *
      * @example
@@ -53,12 +54,12 @@ export class TransformTree {
      *   // use node
      * }
      */
-    findNode(lookup: NodeLocation): Node | undefined {
-        const bucket = this.buckets[lookup.id]
+    findNode(locaiton: NodeLocation): Node | undefined {
+        const bucket = this.buckets[locaiton.id]
         if (!bucket) return
-        if (lookup.index < 0 || lookup.index >= bucket.count) return
+        if (locaiton.index < 0 || locaiton.index >= bucket.count) return
 
-        return bucket.array[lookup.index]
+        return bucket.array[locaiton.index] // edit
     }
 
     /**
@@ -177,7 +178,7 @@ export class TransformTree {
      */
     addBucket(rootNode?: Node) {
         let bucket: Bucket
-        const id = this.buckets.length
+        const id = this.buckets.nextIndex()
 
         if (rootNode === undefined) {
             bucket = {
@@ -204,13 +205,13 @@ export class TransformTree {
      * Loads a bucket from an existing packed node array.
      *
      * The bucket capacity is rounded up from the node count, and every node is
-     * rewritten so its lookup matches the loaded bucket slot.
+     * rewritten so its locaiton matches the loaded bucket slot.
      *
      * @param nodes - Packed node array to load into a fresh bucket.
      * @returns The current tree for chaining.
      */
     loadBucket(nodes: Node[]) {
-        const id = this.buckets.length
+        const id = this.buckets.nextIndex()
         const capacity = nearestCapacity(nodes.length)
         const bucket: Bucket = {
             array: new Array(capacity),
@@ -241,7 +242,7 @@ export class TransformTree {
      */
     removeBucket(id: number) {
         console.warn("do we need to worry about gaps in buckets array?")
-        this.buckets[id] = undefined
+        this.buckets.remove(id)
         return this
     }
 
