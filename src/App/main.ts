@@ -234,6 +234,7 @@ export function init(container: HTMLElement): () => void {
 
     interactionManager = new InteractionManager({
         camera,
+        scene,
         domElement: renderer.domElement,
         orbitControls,
         drafter,

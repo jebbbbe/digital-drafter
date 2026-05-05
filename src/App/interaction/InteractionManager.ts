@@ -1,5 +1,6 @@
 import * as THREE from "three"
 import { OrbitControls } from "three/examples/jsm/Addons.js"
+import { TransformControls } from "three/examples/jsm/controls/TransformControls.js"
 import { Drafter } from "../draft/Drafter"
 import type { TransformNode } from "../draft/TransformNode"
 import type { NodeLocation } from "../draft/TransformTree"
@@ -9,46 +10,104 @@ import * as rand from "../utils/random"
 
 type InteractionManagerArgs = {
     camera: THREE.Camera
+    scene: THREE.Scene
     domElement: HTMLCanvasElement
     orbitControls: OrbitControls
     drafter: Drafter
     targets?: THREE.Object3D[]
 }
 
+type ActiveEvent = {
+    target: HTMLCanvasElement | TransformControls
+    type: string
+    listener: Function
+}
+
 export class InteractionManager {
     domElement: HTMLCanvasElement
-    orbitControls: OrbitControls
+    scene: THREE.Scene
     drafter: Drafter
     raycastHelper: RaycastHelper
+    orbitControls: OrbitControls
+    transformControls: TransformControls
+    transformControlsEnabled = true
+    transformProxy = new THREE.Object3D()
+    activeEvents = new Set<ActiveEvent>()
 
     constructor({
         camera,
+        scene,
         domElement,
         orbitControls,
         drafter,
         targets = drafter.interactivObjects,
     }: InteractionManagerArgs) {
+        this.scene = scene
         this.domElement = domElement
         this.orbitControls = orbitControls
         this.drafter = drafter
         this.raycastHelper = new RaycastHelper(camera, targets, domElement)
+
+        this.transformControls = new TransformControls(camera, domElement)
+        this.transformControls.setMode("translate")
+
+        this.scene.add(this.transformProxy)
+        this.scene.add(this.transformControls.getHelper())
     }
 
     addEventListeners(): void {
-        this.domElement.addEventListener("pointerdown", this.handlePointerDown)
+        this.addActiveEvent("pointerdown", this.handlePointerDown)
+        this.addActiveEvent(
+            "dragging-changed",
+            this.handleTransformDraggingChanged,
+            this.transformControls
+        )
     }
 
     dispose(): void {
-        this.domElement.removeEventListener(
-            "pointerdown",
-            this.handlePointerDown
-        )
+        for (const event of this.activeEvents) {
+            ;(event.target as any).removeEventListener(
+                event.type,
+                event.listener
+            )
+        }
+        this.activeEvents.clear()
+        this.transformControls.detach()
+        this.scene.remove(this.transformProxy)
+        this.scene.remove(this.transformControls.getHelper())
+    }
+
+    addActiveEvent(
+        type: string,
+        listener: Function,
+        target: HTMLCanvasElement | TransformControls = this.domElement
+    ) {
+        ;(target as any).addEventListener(type, listener)
+        const event = { target, type, listener } as ActiveEvent
+        this.activeEvents.add(event)
+        return event
+    }
+
+    removeActiveEvent(event: ActiveEvent | undefined) {
+        if (!event) return
+        ;(event.target as any).removeEventListener(event.type, event.listener)
+        this.activeEvents.delete(event)
     }
 
     handlePointerDown = (e: PointerEvent): void => {
         console.log("handlePointerDown")
+
         const intersects = this.raycastHelper.castFromEvent(e)
-        if (intersects.length === 0) return
+        if (intersects.length === 0) {
+            if (
+                !this.transformControlsEnabled ||
+                (!this.transformControls.dragging &&
+                    !this.transformControls.axis)
+            ) {
+                this.detachTransformControls()
+            }
+            return
+        }
         // dont need early returns if we use drafter.interactiveObjects
         const int = intersects[0]
         const id = int.object.userData.id
@@ -58,6 +117,11 @@ export class InteractionManager {
             | TransformNode
             | undefined
         if (!node) return
+
+        if (this.transformControlsEnabled) {
+            this.attachTransformControls(node)
+            return
+        }
 
         // console.log(int)
         // console.log(location)
@@ -78,6 +142,49 @@ export class InteractionManager {
         // this.randomChangeNodeParent(node, location)
     }
 
+    handleTransformDraggingChanged = (e: { value: unknown }) => {
+        this.orbitControls.enabled = !Boolean(e.value)
+    }
+
+    attachTransformControls(node: TransformNode) {
+        for (const event of this.activeEvents) {
+            if (
+                event.target === this.transformControls &&
+                event.type === "objectChange"
+            ) {
+                this.removeActiveEvent(event)
+            }
+        }
+
+        this.transformProxy.position.copy(node.position)
+        this.transformProxy.rotation.set(0, 0, 0)
+        this.transformProxy.scale.set(1, 1, 1)
+        this.transformProxy.updateMatrixWorld(true)
+        const handleObjectChange = () => {
+            node.position.copy(this.transformProxy.position)
+            this.drafter.updatePatchedNode(node)
+        }
+        this.addActiveEvent(
+            "objectChange",
+            handleObjectChange,
+            this.transformControls
+        )
+        this.transformControls.attach(this.transformProxy)
+    }
+
+    detachTransformControls() {
+        for (const event of this.activeEvents) {
+            if (
+                event.target === this.transformControls &&
+                event.type === "objectChange"
+            ) {
+                this.removeActiveEvent(event)
+            }
+        }
+        this.transformControls.detach()
+        this.orbitControls.enabled = true
+    }
+
     moveNode(node: TransformNode) {
         this.orbitControls.enabled = false
 
@@ -89,17 +196,16 @@ export class InteractionManager {
             this.drafter.updatePatchedNode(node)
         }
 
+        let moveEvent: ActiveEvent | undefined
+        let upEvent: ActiveEvent | undefined
         const handlePointerUp = () => {
-            this.domElement.removeEventListener(
-                "pointermove",
-                handlePointerMove
-            )
-            this.domElement.removeEventListener("pointerup", handlePointerUp)
+            this.removeActiveEvent(moveEvent)
+            this.removeActiveEvent(upEvent)
             this.orbitControls.enabled = true
         }
 
-        this.domElement.addEventListener("pointermove", handlePointerMove)
-        this.domElement.addEventListener("pointerup", handlePointerUp)
+        moveEvent = this.addActiveEvent("pointermove", handlePointerMove)
+        upEvent = this.addActiveEvent("pointerup", handlePointerUp)
     }
 
     randomMoveNode(node: TransformNode) {
