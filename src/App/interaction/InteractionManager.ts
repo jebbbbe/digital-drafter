@@ -49,32 +49,52 @@ export class InteractionManager {
         console.log("handlePointerDown")
         const intersects = this.raycastHelper.castFromEvent(e)
         if (intersects.length === 0) return
-        // dont needd early retuirns if we use drafter.interactiveObjects
+        // dont need early returns if we use drafter.interactiveObjects
         const int = intersects[0]
-        // if (!int.face) return
         const id = int.object.userData.id
-        // if (!id) return
         const index = int.instanceId
-        // if (!index) return
         const location = { id, index } as NodeLocation
-        const node = this.drafter.tree.findNode(location) as TransformNode | undefined
+        const node = this.drafter.tree.findNode(location) as
+            | TransformNode
+            | undefined
         if (!node) return
-        console.log("TEST INT")
-        console.log(int)
-        console.log({ id, index })
-        console.log(node)
 
-        // simplle move
-        // node.position.copy(new THREE.Vector3(1, 0, 3))
-        // this.drafter.updatePatchedNode(node)
+        // console.log(int)
+        // console.log(location)
+        // console.log(node)
 
-        // change node to random other parent
+        const isRoot = node === node.parent
+        if (isRoot) {
+            // aval root fns
+            this.randomMoveNode(node)
+        } else {
+            // non root fns
+            this.randomChangeNodeParent(node, location)
+        }
+
+        // this.randomMoveNode(node)
+        // this.randomChangeNodeParent(node, location)
+    }
+
+    randomMoveNode(node: TransformNode) {
+        const s = 6
+        node.position.copy(
+            new THREE.Vector3(
+                rand.random(-s, s),
+                rand.random(-s, s),
+                rand.random(-s, s)
+            )
+        )
+        this.drafter.updatePatchedNode(node)
+    }
+
+    randomChangeNodeParent(node: TransformNode, location: NodeLocation) {
         const currParent = node.parent.children.indexOf(node)
         if (currParent !== -1) {
             node.parent.children.splice(currParent, 1)
         }
 
-        const bucket = this.drafter.tree.getBucket(id)
+        const bucket = this.drafter.tree.getBucket(location.id)
         if (bucket === undefined) return
         let newIdx = rand.randomInt(0, bucket.count - 1)
         if (newIdx === node.location.index) newIdx = 0
