@@ -133,19 +133,25 @@ export class InteractionManager {
             // return
         }
 
+        console.log(intersects)
         // console.log(int)
         // console.log(location)
         // console.log(node)
+
+        const startHit = this.raycastHelper.castFromEventToPlane(e)
+        const moveOffset = startHit
+            ? new THREE.Vector3().subVectors(node.position, startHit)
+            : new THREE.Vector3()
 
         const isRoot = node === node.parent
         if (isRoot) {
             // aval root fns
             // this.randomMoveNode(node)
-            this.moveNode(node)
+            this.moveNode(node, moveOffset)
         } else {
             // non root fns
             // this.randomChangeNodeParent(node, location)
-            this.moveNode(node)
+            this.moveNode(node, moveOffset)
         }
 
         // this.randomMoveNode(node)
@@ -182,14 +188,16 @@ export class InteractionManager {
         this.orbitControls.enabled = true
     }
 
-    moveNode(node: TransformNode) {
+    moveNode(node: TransformNode, startOffset: THREE.Vector3) {
         this.orbitControls.enabled = false
+        const prevEnableTransform = this.transformControls.enabled
+        this.transformControls.enabled = false
 
-        const handlePointerMove = (e: PointerEvent) => {
-            const hit = this.raycastHelper.castFromEventToPlane(e)
+        const handlePointerMove = (moveEvent: PointerEvent) => {
+            const hit = this.raycastHelper.castFromEventToPlane(moveEvent)
             if (!hit) return
 
-            node.position.copy(hit)
+            node.position.copy(hit).add(startOffset)
             this.drafter.updatePatchedNode(node)
 
             if (this.transformControlsEnabled) {
@@ -202,6 +210,7 @@ export class InteractionManager {
             this.removeActiveEvent("moveNode.pointerMove")
             this.removeActiveEvent("moveNode.pointerUp")
             this.orbitControls.enabled = true
+            this.transformControls.enabled = prevEnableTransform
         }
 
         this.addActiveEvent(
