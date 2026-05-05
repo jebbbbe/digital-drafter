@@ -7,6 +7,7 @@ import { InteractionManager } from "./interaction/InteractionManager"
 import { Drafter } from "./draft/Drafter"
 import * as rand from "./utils/random"
 import type { TransformNode } from "./draft/TransformNode"
+import type { NodeLocation } from "./draft/TransformTree"
 
 let isAppReady = false
 
@@ -82,6 +83,7 @@ export function init(container: HTMLElement): () => void {
 
     // Drafter
     drafter = new Drafter(scene)
+
     // const initalGeo = shape.makeCustomMergeShape()
     const initalGeo0 = shape.makeCustomBVHShape()
     // const initalGeo = shape.makeCustomBVHHierarchyShape()
@@ -102,44 +104,106 @@ export function init(container: HTMLElement): () => void {
         )
         .scale(new THREE.Vector3(scale, scale, scale))
 
-    // prettier-ignore
-    const initalRoots = [
-        { position: new THREE.Vector3(0, 0, 0), location: { id: 0 }, baseMatrix: initalTransform, } as Partial<TransformNode>,
-        { position: new THREE.Vector3(4, 0, 4), location: { id: 0 }, baseMatrix: initalTransform, }as Partial<TransformNode>,
-        { position: new THREE.Vector3(-4, 0, 4), location: { id: 0 }, baseMatrix: initalTransform, }as Partial<TransformNode>,
+    const initalTrees: Array<{
+        root: Partial<TransformNode>
+        leafs: Array<{ node: Partial<TransformNode>; parent: NodeLocation }>
+    }> = [
+        {
+            root: {
+                position: new THREE.Vector3(0, 0, 0),
+                location: { id: 0, index: -1 },
+                baseMatrix: initalTransform,
+            },
+            // prettier-ignore
+            leafs: [
+                { node:{position: new THREE.Vector3(2, 0, 2),   }, parent:{ id:0, index: 0 }},
+                { node:{position: new THREE.Vector3(2, 0, 0),   }, parent:{ id:0, index: 1 }},
+                { node:{position: new THREE.Vector3(2, 0, -2),  }, parent:{ id:0, index: 2 }},
+                { node:{position: new THREE.Vector3(-2, 0, -2), }, parent:{ id:0, index: 0 }},
+                { node:{position: new THREE.Vector3(-2, 0, 2),  }, parent:{ id:0, index: 0 }},
+                { node:{position: new THREE.Vector3(4, 0, 0),  }, parent:{ id:0, index: 2 }},
+                { node:{position: new THREE.Vector3(-4, 0, 0), }, parent:{ id:0, index: 0 }},
+                { node:{position: new THREE.Vector3(-4, 0, 2), }, parent:{ id:0, index: 5 }},
+                { node:{position: new THREE.Vector3(-4, 0, -2), }, parent:{ id:0, index: 4 }},
+            ],
+        },
+        {
+            root: {
+                position: new THREE.Vector3(4, 0, 4),
+                location: { id: 0, index: -1 },
+                baseMatrix: initalTransform,
+            },
+            // prettier-ignore
+            leafs: [],
+        },
+        {
+            root: {
+                position: new THREE.Vector3(-4, 0, 4),
+                location: { id: 0, index: -1 },
+                baseMatrix: initalTransform,
+            },
+            // prettier-ignore
+            leafs: [],
+        },
 
-        { position: new THREE.Vector3(4, 0, -4), location: { id: 1 }, baseMatrix: initalTransform, }as Partial<TransformNode>,
-        { position: new THREE.Vector3(-4, 0, -4), location: { id: 1 }, baseMatrix: new THREE.Matrix4(), }as Partial<TransformNode>,
-       
-        { position: new THREE.Vector3(-6, 0, -4), location: { id: 2 }, baseMatrix: initalTransform, }as Partial<TransformNode>,
+        {
+            root: {
+                position: new THREE.Vector3(4, 0, -4),
+                location: { id: 1, index: -1 },
+                baseMatrix: initalTransform,
+            },
+            // prettier-ignore
+            leafs: [
+                { node:{position: new THREE.Vector3(6, 0, -4),   }, parent:{ id:1, index: 0 }},
+                { node:{position: new THREE.Vector3(6, 0, -2),   }, parent:{ id:1, index: 1 }},
+                { node:{position: new THREE.Vector3(8, 0, -2),   }, parent:{ id:1, index: 2 }},
+                { node:{position: new THREE.Vector3(6, 0, 0),   }, parent:{ id:1, index: 3 }},
+                { node:{position: new THREE.Vector3(6, 0, 2),   }, parent:{ id:1, index: 4 }},
+                { node:{position: new THREE.Vector3(8, 0, 0),   }, parent:{ id:1, index: 2 }},
+                { node:{position: new THREE.Vector3(8, 0, 2),   }, parent:{ id:1, index: 6 }},
+                { node:{position: new THREE.Vector3(8, 0, -4),   }, parent:{ id:1, index: 3 }},
+            ],
+        },
+        {
+            root: {
+                position: new THREE.Vector3(-4, 0, -4),
+                location: { id: 1, index: -1 },
+                baseMatrix: new THREE.Matrix4(),
+            },
+            // prettier-ignore
+            leafs: [],
+        },
+        {
+            root: {
+                position: new THREE.Vector3(-6, 0, -4),
+                location: { id: 2, index: -1 },
+                baseMatrix: initalTransform,
+            },
+            // prettier-ignore
+            leafs: [
+                { node:{position: new THREE.Vector3(-6, 0, -2),   }, parent:{ id:2, index: 0 }},
+                { node:{position: new THREE.Vector3(-8, 0, -2),   }, parent:{ id:2, index: 1 }},
+                { node:{position: new THREE.Vector3(-6, 0, 0),   }, parent:{ id:2, index: 2 }},
+                { node:{position: new THREE.Vector3(-6, 0, 2),   }, parent:{ id:2, index: 3 }},
+                { node:{position: new THREE.Vector3(-8, 0, 0),   }, parent:{ id:2, index: 1 }},
+                { node:{position: new THREE.Vector3(-8, 0, 2),   }, parent:{ id:2, index: 5 }},
+                { node:{position: new THREE.Vector3(-8, 0, -4),   }, parent:{ id:2, index: 2 }},
+            ],
+        },
     ]
 
-    // prettier-ignore
-    const initalNodes = [
-        // { node:{position: new THREE.Vector3(0, 0, 0),   }, parent:{ id:0, index: -1 }},
-        { node:{position: new THREE.Vector3(2, 0, 2),   }, parent:{ id:0, index: 0 }},
-        { node:{position: new THREE.Vector3(2, 0, 0),   }, parent:{ id:0, index: 1 }},
-        { node:{position: new THREE.Vector3(2, 0, -2),  }, parent:{ id:0, index: 2 }},
-        { node:{position: new THREE.Vector3(-2, 0, -2), }, parent:{ id:0, index: 0 }},
-        { node:{position: new THREE.Vector3(-2, 0, 2),  }, parent:{ id:0, index: 0 }},
-        { node:{position: new THREE.Vector3(4, 0, 0),  }, parent:{ id:0, index: 2 }},
-        { node:{position: new THREE.Vector3(-4, 0, 0), }, parent:{ id:0, index: 0 }},
-        { node:{position: new THREE.Vector3(-4, 0, 2), }, parent:{ id:0, index: 5 }},
-        { node:{position: new THREE.Vector3(-4, 0, -2), }, parent:{ id:0, index: 4 }},
-        
-    ]
-
-    drafter.addRootNode(initalRoots[0])
-    for (let i = 0; i < initalNodes.length; i++) {
-        const wip = initalNodes[i]
-        drafter.addLeafNode(wip.node, wip.parent)
+    function addTrees(drafter: Drafter, trees: any) {
+        for (let i = 0; i < trees.length; i++) {
+            const tree = trees[i].root
+            drafter.addRootNode(tree)
+            const leafs = trees[i].leafs
+            for (let i = 0; i < leafs.length; i++) {
+                const leaf = leafs[i]
+                drafter.addLeafNode(leaf.node, leaf.parent)
+            }
+        }
     }
-    drafter.addRootNode(initalRoots[1])
-    drafter.addRootNode(initalRoots[2])
-    drafter.addRootNode(initalRoots[3])
-    drafter.addRootNode(initalRoots[4])
-    drafter.addRootNode(initalRoots[5])
-    
+    addTrees(drafter, initalTrees)
     ;(globalThis as any).drafter = drafter
     console.log(drafter)
 

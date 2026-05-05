@@ -168,13 +168,17 @@ export class Drafter {
     // i dont like parentLocation, switch to passing another node...
     addLeafNode(
         partialNode: Partial<TransformNode>,
-        parentLocation: NodeLocation = { id: -1, index: -1 }
+        parentLocation: NodeLocation | TransformNode = { id: -1, index: -1 }
     ): TransformNode | undefined {
+        const parentNodeLocation =
+            "location" in parentLocation
+                ? parentLocation.location
+                : parentLocation
         // copy parents location to partialNode, unless we defined it already
         // this is so we can add Nodes that use a different id
         if (partialNode.location?.id === undefined) {
             partialNode.location = {
-                id: parentLocation.id,
+                id: parentNodeLocation.id,
                 index: partialNode.location?.index ?? -1,
             }
         }
@@ -192,7 +196,7 @@ export class Drafter {
         }
 
         const node = createTransformNode(partialNode)
-        const parent = this.tree.findNode(parentLocation)
+        const parent = this.tree.findNode(parentNodeLocation)
         this.tree.addNode(node, parent)
 
         incrementInstanceCount(instanceItem)
