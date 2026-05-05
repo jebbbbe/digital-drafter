@@ -47,7 +47,7 @@ export class InteractionManager {
 
     handlePointerDown = (e: PointerEvent): void => {
         console.log("handlePointerDown")
-        let intersects = this.raycastHelper.castFromEvent(e)
+        const intersects = this.raycastHelper.castFromEvent(e)
         if (intersects.length === 0) return
         // dont needd early retuirns if we use drafter.interactiveObjects
         const int = intersects[0]
@@ -57,7 +57,7 @@ export class InteractionManager {
         const index = int.instanceId
         // if (!index) return
         const location = { id, index } as NodeLocation
-        const node = this.drafter.tree.findNode(location) as any
+        const node = this.drafter.tree.findNode(location) as TransformNode | undefined
         if (!node) return
         console.log("TEST INT")
         console.log(int)
@@ -74,12 +74,12 @@ export class InteractionManager {
             node.parent.children.splice(currParent, 1)
         }
 
-        const bucket = this.drafter.tree.buckets[id]
+        const bucket = this.drafter.tree.getBucket(id)
         if (bucket === undefined) return
         let newIdx = rand.randomInt(0, bucket.count - 1)
         if (newIdx === node.location.index) newIdx = 0
         if (newIdx === node.location.index) newIdx = 1
-        const nextParent = bucket.array[newIdx] as TransformNode | undefined
+        const nextParent = bucket[newIdx] as TransformNode | undefined
         if (!nextParent || nextParent === node) return
         if (createsCycle(node, nextParent)) return
 

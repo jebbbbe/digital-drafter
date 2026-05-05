@@ -1,4 +1,3 @@
-import * as THREE from "three"
 import { InstanceCount, increaseCapacity, nearestCapacity } from "./capacity"
 import { FreeList } from "../objects/FreeList"
 import { PackedArray } from "../objects/PackedArray"
@@ -8,7 +7,7 @@ export type NodeLocation = {
     index: number
 }
 
-export type Node<T = {}> = T & {
+export type Node<T = object> = T & {
     location: NodeLocation
     parent: Node<T>
     children: Node<T>[]
@@ -151,7 +150,6 @@ export class TransformTree {
         }
         this.roots.delete(node)
 
-
         return { children, parent }
     }
 
@@ -175,6 +173,10 @@ export class TransformTree {
 
         this.freelist.push(array)
         return id
+    }
+
+    getBucket(id: number): PackedArray<Node> | undefined {
+        return this.freelist[id]
     }
 
     /**

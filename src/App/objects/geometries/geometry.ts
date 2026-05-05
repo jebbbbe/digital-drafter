@@ -134,9 +134,9 @@ export function createWeirdSphereoid(iter = 1): THREE.BufferGeometry {
     const pos = [
         0, 1, 2, 3, 5, 6, 7, 8, 9, 11, 15, 17, 18, 19, 20, 21, 23, 24, 25, 26,
     ]
-    let geo = new THREE.BoxGeometry(1, 1, 1)
+    let geo = _defaultBox.clone()
     let brush = new Brush(geo)
-    let oneThird = 1 / 3
+    const oneThird = 1 / 3
 
     for (let i = 0; i < iter; i++) {
         for (let j = 0; j < pos.length; j++) {
@@ -207,7 +207,7 @@ export function createMengerSpongeGeometry(iter = 1): THREE.BufferGeometry {
     const geometry = mergeGeometries(geometries)
 
     if (!geometry) {
-        return new THREE.BoxGeometry(1, 1, 1)
+        return _defaultBox.clone()
     }
     return geometry
 }
@@ -279,12 +279,12 @@ export function createMengerSpongeCSG(iter = 1): THREE.BufferGeometry {
     }
 
     if (holeGeometries.length === 0) {
-        return new THREE.BoxGeometry(1, 1, 1)
+        return _defaultBox.clone()
     }
 
     const holesGeometry = mergeGeometries(holeGeometries)
     if (!holesGeometry) {
-        return new THREE.BoxGeometry(1, 1, 1)
+        return _defaultBox.clone()
     }
 
     const rootBrush = new Brush(new THREE.BoxGeometry(1, 1, 1))
@@ -294,7 +294,7 @@ export function createMengerSpongeCSG(iter = 1): THREE.BufferGeometry {
 
     const result = evaluator.evaluate(rootBrush, holesBrush, SUBTRACTION)
     if (!result) {
-        return new THREE.BoxGeometry(1, 1, 1)
+        return _defaultBox.clone()
     }
     return result.geometry
 }

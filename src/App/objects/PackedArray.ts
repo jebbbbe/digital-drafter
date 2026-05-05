@@ -37,7 +37,7 @@ export class PackedArray<T> extends Array<T | undefined> {
     free(index: number): T | undefined {
         if (index < 0 || index >= this.count) return undefined
         const removed = this[index]
-        const lastIndex = this.swap(index)
+        this.swap(index)
         this.count--
         return removed
     }

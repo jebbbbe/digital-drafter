@@ -14,7 +14,6 @@ import { Line2 } from "three/examples/jsm/Addons.js"
 import type { InstanceItem } from "./InstanceItem"
 import {
     createInstanceItem,
-    setInstanceCount,
     incrementInstanceCount,
     decrementInstanceCount,
     computeBoundingSphere,
@@ -128,7 +127,7 @@ export class Drafter {
         // todo
         // implement is this
         // better to reasign geo or adjust it?
-        console.warn("resizeInstance not implemented")
+        console.warn("resizeInstance not implemented", instance)
     }
 
     addRootNode(rootNode: Partial<TransformNode>) {
@@ -208,7 +207,7 @@ export class Drafter {
     }
     pruneNode(target: TransformNode | NodeLocation) {
         //todo
-        console.warn("not implemented yet")
+        console.warn("not implemented yet", target)
         return
         /*
         const location = "location" in target ? target.location : target

@@ -162,9 +162,8 @@ export function downloadImage(
 
     const viewportSize = renderer.getSize(new THREE.Vector2())
     const aspect = viewportSize.x / viewportSize.y
-    let glSize = getMaxRenderTargetSize(renderer)
-    console.log(glSize)
-    // maxRes = glSize
+    const glSize = getMaxRenderTargetSize(renderer)
+    console.log({glSize})
     const exportWidth = aspect >= 1 ? maxRes : Math.round(maxRes * aspect)
     const exportHeight = aspect >= 1 ? Math.round(maxRes / aspect) : maxRes
 

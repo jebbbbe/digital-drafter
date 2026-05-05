@@ -1,12 +1,12 @@
 import * as THREE from "three"
 import * as shape from "./objects/geometries/geometry"
-import { brushCleaner } from "./objects/geometries/brushCleaner"
 import { OrbitControls } from "three/examples/jsm/Addons.js"
 import { AspectLayout } from "./utils/AspectLayout"
 import { loadGlb } from "./utils/loader"
 import { InteractionManager } from "./interaction/InteractionManager"
 import { Drafter } from "./draft/Drafter"
 import * as rand from "./utils/random"
+import type { TransformNode } from "./draft/TransformNode"
 
 let isAppReady = false
 
@@ -70,15 +70,15 @@ export function init(container: HTMLElement): () => void {
     orbitControls = initOrbit(camera, renderer)
 
     // content
-    const ambient = new THREE.AmbientLight(0xffffff, 0.7)
-    const sun = new THREE.DirectionalLight(0xffffff, 0.9)
-    sun.position.set(2, 3, 4)
+    // const ambient = new THREE.AmbientLight(0xffffff, 0.7)
+    // const sun = new THREE.DirectionalLight(0xffffff, 0.9)
+    // sun.position.set(2, 3, 4)
+    // scene.add(ambient, sun)
+
     const gridHelper = new THREE.GridHelper()
     const axesHelper = new THREE.AxesHelper(10)
     axesHelper.renderOrder = 1
-
-    // scene.add(ambient, sun, gridHelper, axesHelper)
-    // scene.add(ambient, sun)
+    // scene.add(gridHelper, axesHelper)
 
     // Drafter
     drafter = new Drafter(scene)
@@ -104,14 +104,14 @@ export function init(container: HTMLElement): () => void {
 
     // prettier-ignore
     const initalRoots = [
-        { position: new THREE.Vector3(0, 0, 0), location: { id: 0 }, baseMatrix: initalTransform, },
-        { position: new THREE.Vector3(4, 0, 4), location: { id: 0 }, baseMatrix: initalTransform, },
-        { position: new THREE.Vector3(-4, 0, 4), location: { id: 0 }, baseMatrix: initalTransform, },
+        { position: new THREE.Vector3(0, 0, 0), location: { id: 0 }, baseMatrix: initalTransform, } as Partial<TransformNode>,
+        { position: new THREE.Vector3(4, 0, 4), location: { id: 0 }, baseMatrix: initalTransform, }as Partial<TransformNode>,
+        { position: new THREE.Vector3(-4, 0, 4), location: { id: 0 }, baseMatrix: initalTransform, }as Partial<TransformNode>,
 
-        { position: new THREE.Vector3(4, 0, -4), location: { id: 1 }, baseMatrix: initalTransform, },
-        { position: new THREE.Vector3(-4, 0, -4), location: { id: 1 }, baseMatrix: new THREE.Matrix4(), },
+        { position: new THREE.Vector3(4, 0, -4), location: { id: 1 }, baseMatrix: initalTransform, }as Partial<TransformNode>,
+        { position: new THREE.Vector3(-4, 0, -4), location: { id: 1 }, baseMatrix: new THREE.Matrix4(), }as Partial<TransformNode>,
        
-        { position: new THREE.Vector3(-6, 0, -4), location: { id: 2 }, baseMatrix: initalTransform, },
+        { position: new THREE.Vector3(-6, 0, -4), location: { id: 2 }, baseMatrix: initalTransform, }as Partial<TransformNode>,
     ]
 
     // prettier-ignore
@@ -129,18 +129,17 @@ export function init(container: HTMLElement): () => void {
         
     ]
 
-    drafter.addRootNode(initalRoots[0] as any)
+    drafter.addRootNode(initalRoots[0])
     for (let i = 0; i < initalNodes.length; i++) {
         const wip = initalNodes[i]
         drafter.addLeafNode(wip.node, wip.parent)
     }
-    drafter.addRootNode(initalRoots[1] as any)
-    drafter.addRootNode(initalRoots[2] as any)
-    drafter.addRootNode(initalRoots[3] as any)
-    drafter.addRootNode(initalRoots[4] as any)
-    drafter.addRootNode(initalRoots[5] as any)
-
-
+    drafter.addRootNode(initalRoots[1])
+    drafter.addRootNode(initalRoots[2])
+    drafter.addRootNode(initalRoots[3])
+    drafter.addRootNode(initalRoots[4])
+    drafter.addRootNode(initalRoots[5])
+    
     ;(globalThis as any).drafter = drafter
     console.log(drafter)
 
