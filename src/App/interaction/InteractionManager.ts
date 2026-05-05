@@ -107,6 +107,20 @@ export class InteractionManager {
     handlePointerDown = (e: PointerEvent): void => {
         console.log("handlePointerDown")
 
+        if (
+            this.transformControlsEnabled &&
+            this.activeEvents.transformObjectChange
+        ) {
+            const gizmoHits = this.raycastHelper.castFromEvent(
+                e,
+                [this.transformControls.getHelper()],
+                true
+            )
+            if (gizmoHits.length > 0 && this.transformControls.axis) {
+                return
+            }
+        }
+
         const intersects = this.raycastHelper.castFromEvent(e)
         if (intersects.length === 0) {
             if (
