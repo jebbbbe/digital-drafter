@@ -8,6 +8,7 @@ const defaultGeoProcess = {
     removeAttributes: true,
     mergeVertices: true,
     computeNormals: true,
+    removeProjVertices: true,
     applyLocalTranform: !true,
 }
 
@@ -19,23 +20,38 @@ export function brushCleaner(
         geometry.deleteAttribute("uv")
         geometry.deleteAttribute("normal")
     }
-    settings.mergeVertices ??
-        (geometry = BufferGeometryUtils.mergeVertices(
+
+    if (settings.mergeVertices) {
+        geometry = BufferGeometryUtils.mergeVertices(
             geometry,
             settings.mergeTolerance
-        ))
-    settings.computeNormals ?? geometry.computeVertexNormals()
+        )
+    }
+
+    if (settings.computeNormals) {
+        geometry.computeVertexNormals()
+    }
 
     const localTransform = new THREE.Matrix4()
     normalizeGeometryBox(geometry, localTransform)
+
     if (settings.applyLocalTranform) {
         geometry.applyMatrix4(localTransform)
         geometry.computeBoundingBox()
         localTransform.identity()
     }
+
     const meshGeometry = geometry
     const lineGeometry = new THREE.EdgesGeometry(geometry, settings.edgeAngle)
-    const projGeometry = doublePositionBuffer(lineGeometry.clone())
+
+    let projGeometry: THREE.BufferGeometry = lineGeometry.clone()
+    if (settings.removeProjVertices) {
+        projGeometry = BufferGeometryUtils.mergeVertices(
+            projGeometry,
+            settings.mergeTolerance
+        )
+    }
+    projGeometry = doublePositionBuffer(projGeometry)
     return {
         meshGeometry,
         lineGeometry,
