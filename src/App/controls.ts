@@ -13,6 +13,7 @@ import {
     scene,
     orbitControls,
     renderer,
+    setStatsEnabled,
 } from "./main"
 import * as rand from "./utils/random"
 import { getMaxRenderTargetSize } from "./utils/capabilities"
@@ -144,6 +145,10 @@ export function setRootScaleMatrix(value: number): void {
 
     rootNode.compoundMatrix.copy(instanceItem.localTransform)
     drafter.updatePatchedNode(rootNode)
+}
+
+export function setStatsVisible(value: boolean): void {
+    setStatsEnabled(value)
 }
 
 export function saveCubeAsGlb(): void {

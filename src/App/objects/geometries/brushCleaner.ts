@@ -8,7 +8,7 @@ const defaultGeoProcess = {
     removeAttributes: true,
     mergeVertices: true,
     computeNormals: true,
-    removeProjVertices: true,
+    removeProjVertices: true, // 60ms v 220ms speed up
     applyLocalTranform: !true,
 }
 

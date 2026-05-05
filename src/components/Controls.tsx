@@ -2,85 +2,100 @@ import { controls } from "../App/index"
 import { button, folder, Leva, useControls } from "leva"
 import { settings } from "../App/settings"
 function Controls() {
-    useControls({
-        Actions: folder({
-            "Add Test Node": button(() => controls.addTestNode()),
-            "Add Many Test Nodes": button(() => {
-                for (let i = 0; i < 20; i++) {
-                    controls.addTestNode(100, 100)
-                }
-            }),
+    const Actions = folder({
+        "Add Test Node": button(() => controls.addTestNode()),
+        "Add Many Test Nodes": button(() => {
+            for (let i = 0; i < 20; i++) {
+                controls.addTestNode(100, 100)
+            }
         }),
-        Display: folder({
-            Background: {
+    })
+
+    const Display = folder({
+        Background: {
+            label: "color",
+            value: settings.display.background,
+            onChange: controls.setSceneColor,
+        },
+        Mesh: folder({
+            meshColor: {
                 label: "color",
-                value: settings.display.background,
-                onChange: controls.setSceneColor,
+                value: settings.display.mesh.color,
+                onChange: controls.setMeshColor,
             },
-            Mesh: folder({
-                meshColor: {
-                    label: "color",
-                    value: settings.display.mesh.color,
-                    onChange: controls.setMeshColor,
-                },
-                meshVisible: {
-                    label: "visible",
-                    value: settings.display.mesh.visible,
-                    onChange: controls.setMeshVisible,
-                },
-            }),
-            Line: folder({
-                lineColor: {
-                    label: "color",
-                    value: settings.display.line.color,
-                    onChange: controls.setLineColor,
-                },
-                lineVisible: {
-                    label: "visible",
-                    value: settings.display.line.visible,
-                    onChange: controls.setLineVisible,
-                },
-            }),
-            Projection: folder({
-                projectionColor: {
-                    label: "color",
-                    value: settings.display.projection.color,
-                    onChange: controls.setProjectionColor,
-                },
-                projectionVisible: {
-                    label: "visible",
-                    value: settings.display.projection.visible,
-                    onChange: controls.setProjectionVisible,
-                },
-            }),
+            meshVisible: {
+                label: "visible",
+                value: settings.display.mesh.visible,
+                onChange: controls.setMeshVisible,
+            },
         }),
-        Camera: folder(
-            {
-                resetCamera: button(controls.resetCamera),
-                toggleCameraRotation: button(controls.toggleCameraRotation),
+        Line: folder({
+            lineColor: {
+                label: "color",
+                value: settings.display.line.color,
+                onChange: controls.setLineColor,
             },
-            { collapsed: false }
-        ),
-        Export: folder(
-            {
-                saveCubeAsGlb: button(controls.saveCubeAsGlb),
-                saveCubeAsGltf: button(controls.saveCubeAsGltf),
+            lineVisible: {
+                label: "visible",
+                value: settings.display.line.visible,
+                onChange: controls.setLineVisible,
             },
-            { collapsed: true }
-        ),
-        Debug: folder(
-            {
-                rootScale: {
-                    label: "Root Scale",
-                    value: 1,
-                    min: 0.1,
-                    max: 4,
-                    step: 0.05,
-                    onChange: controls.setRootScaleMatrix,
-                },
+        }),
+        Projection: folder({
+            projectionColor: {
+                label: "color",
+                value: settings.display.projection.color,
+                onChange: controls.setProjectionColor,
             },
-            { collapsed: true }
-        ),
+            projectionVisible: {
+                label: "visible",
+                value: settings.display.projection.visible,
+                onChange: controls.setProjectionVisible,
+            },
+        }),
+    })
+
+    const Camera = folder(
+        {
+            resetCamera: button(controls.resetCamera),
+            toggleCameraRotation: button(controls.toggleCameraRotation),
+        },
+        { collapsed: false }
+    )
+
+    const Export = folder(
+        {
+            saveCubeAsGlb: button(controls.saveCubeAsGlb),
+            saveCubeAsGltf: button(controls.saveCubeAsGltf),
+        },
+        { collapsed: true }
+    )
+
+    const Debug = folder(
+        {
+            showStats: {
+                label: "Show Stats",
+                value: false,
+                onChange: controls.setStatsVisible,
+            },
+            rootScale: {
+                label: "Root Scale",
+                value: 1,
+                min: 0.1,
+                max: 4,
+                step: 0.05,
+                onChange: controls.setRootScaleMatrix,
+            },
+        },
+        { collapsed: true }
+    )
+
+    useControls({
+        Actions,
+        Display,
+        Camera,
+        Export,
+        Debug,
         "Download Image": button(() => controls.downloadImage()),
     })
 

@@ -1,6 +1,7 @@
 import * as THREE from "three"
 import * as shape from "./objects/geometries/geometry"
 import { OrbitControls } from "three/examples/jsm/Addons.js"
+import Stats from "three/examples/jsm/libs/stats.module.js"
 import { AspectLayout } from "./utils/AspectLayout"
 import { loadGlb } from "./utils/loader"
 import { InteractionManager } from "./interaction/InteractionManager"
@@ -10,6 +11,7 @@ import type { TransformNode } from "./draft/TransformNode"
 import type { NodeLocation } from "./draft/TransformTree"
 
 let isAppReady = false
+let statsEnabled = false
 
 const cube = new THREE.Mesh(
     new THREE.BoxGeometry(1, 1, 1),
@@ -33,12 +35,23 @@ let camera!: THREE.OrthographicCamera
 let orbitControls!: OrbitControls
 let layout!: AspectLayout
 let frameId = 0
+let stats: Stats | undefined
 
 let interactionManager!: InteractionManager
 let drafter!: Drafter
 
 let testNode: any
 let testNodeVelocityX = 0.001
+
+function syncStatsVisibility(): void {
+    if (!stats) return
+    stats.dom.style.display = statsEnabled ? "" : "none"
+}
+
+export function setStatsEnabled(value: boolean): void {
+    statsEnabled = value
+    syncStatsVisibility()
+}
 
 export function init(container: HTMLElement): () => void {
     // const assetsLoader = loadAssets()x
@@ -56,6 +69,10 @@ export function init(container: HTMLElement): () => void {
     renderer.setSize(layout.x, layout.y)
     renderer.setPixelRatio(globalThis.devicePixelRatio)
     container.appendChild(renderer.domElement)
+
+    stats = new Stats()
+    container.appendChild(stats.dom)
+    syncStatsVisibility()
 
     // scene
     scene = new THREE.Scene()
@@ -232,6 +249,9 @@ export function init(container: HTMLElement): () => void {
 }
 
 function render(): void {
+    if (statsEnabled) {
+        stats?.update()
+    }
     orbitControls.update()
     renderer.render(scene, camera)
     if (testNode) {
@@ -257,6 +277,8 @@ function dispose(): void {
     globalThis.cancelAnimationFrame(frameId)
     layout.removeResizeListener()
     interactionManager.dispose()
+    stats?.dom.remove()
+    stats = undefined
     renderer.dispose()
     renderer.domElement.remove()
 }
