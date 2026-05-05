@@ -66,14 +66,40 @@ export class InteractionManager {
         const isRoot = node === node.parent
         if (isRoot) {
             // aval root fns
-            this.randomMoveNode(node)
+            // this.randomMoveNode(node)
+            this.moveNode(node)
         } else {
             // non root fns
-            this.randomChangeNodeParent(node, location)
+            // this.randomChangeNodeParent(node, location)
+            this.moveNode(node)
         }
 
         // this.randomMoveNode(node)
         // this.randomChangeNodeParent(node, location)
+    }
+
+    moveNode(node: TransformNode) {
+        this.orbitControls.enabled = false
+
+        const handlePointerMove = (e: PointerEvent) => {
+            const hit = this.raycastHelper.castFromEventToPlane(e)
+            if (!hit) return
+
+            node.position.copy(hit)
+            this.drafter.updatePatchedNode(node)
+        }
+
+        const handlePointerUp = () => {
+            this.domElement.removeEventListener(
+                "pointermove",
+                handlePointerMove
+            )
+            this.domElement.removeEventListener("pointerup", handlePointerUp)
+            this.orbitControls.enabled = true
+        }
+
+        this.domElement.addEventListener("pointermove", handlePointerMove)
+        this.domElement.addEventListener("pointerup", handlePointerUp)
     }
 
     randomMoveNode(node: TransformNode) {
