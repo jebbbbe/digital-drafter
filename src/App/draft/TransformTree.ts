@@ -24,6 +24,7 @@ export type Node<T = {}> = T & {
  */
 export class TransformTree {
     freelist: FreeList<PackedArray<Node>>
+    roots = new Set<Node>()
     /**
      * Creates a tree with one empty bucket for instance id `0`.
      *
@@ -32,7 +33,6 @@ export class TransformTree {
      */
     constructor() {
         this.freelist = new FreeList()
-        this.addBucket()
     }
 
     /**
@@ -115,6 +115,7 @@ export class TransformTree {
             child.parent = parent
             parent.children.push(child)
         }
+        this.roots.delete(node)
     }
 
     /**
@@ -148,6 +149,8 @@ export class TransformTree {
             const idx = pc.indexOf(node)
             if (idx !== -1) pc.splice(idx, 1)
         }
+        this.roots.delete(node)
+
 
         return { children, parent }
     }
@@ -161,18 +164,17 @@ export class TransformTree {
      * @param rootNode - Optional root node to seed the bucket with.
      * @returns The current tree for chaining.
      */
-    addBucket(rootNode?: Node) {
+    addBucket(rootNode?: Node): number {
         const array = new PackedArray<Node>(InstanceCount)
-
+        const id = this.freelist.nextIndex()
         if (rootNode !== undefined) {
-            const id = this.freelist.nextIndex()
             rootNode.location.id = id
             rootNode.location.index = 0
             array.push(rootNode)
         }
 
         this.freelist.push(array)
-        return this
+        return id
     }
 
     /**

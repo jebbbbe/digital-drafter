@@ -31,13 +31,12 @@ export type InstanceItem = {
 
 export function createInstanceItem(
     geometry: THREE.BufferGeometry,
-    localTransform: THREE.Matrix4,
     materials: any,
     id: number,
     capacity: number = InstanceCount
 ): InstanceItem {
     const geometries = brushCleaner(geometry)
-    // localTransform.multiply(geometries.localTransform) // how to handle?
+    const localTransform  = geometries.localTransform
 
     const mesh = new THREE.InstancedMesh(
         geometries.meshGeometry,

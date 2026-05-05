@@ -63,47 +63,51 @@ export class Drafter {
         },
         enable: true,
     }
+
     constructor(scene: THREE.Scene, debug: boolean = false) {
         this.scene = scene
         this.instanceItems = new FreeList()
         this.tree = new TransformTree()
         if (debug) this.setUpDebug()
     }
+
     setUpDebug() {
         this.debug.enable = true
         this.debug.objects.line.material = this.materials.debugLine
         this.debug.objects.point.material = this.materials.debugPoint
     }
-    newInstance(
-        geometry: THREE.BufferGeometry,
-        localTransform: THREE.Matrix4 = new THREE.Matrix4(),
-        init: boolean = true
-    ): InstanceItem {
+
+    newInstance(geometry: THREE.BufferGeometry): InstanceItem {
+        // get next avaliable index from freelist
         const id = this.instanceItems.nextIndex()
-        const newInstanceItem = createInstanceItem(
-            geometry,
-            localTransform,
-            this.materials,
-            id
-        )
+        // create new InstanceItem
+        const newInstanceItem = createInstanceItem(geometry, this.materials, id)
+        // add Geo to the Scene
         this.scene.add(newInstanceItem.group)
+        // push to Freelist, should arrive at id
         this.instanceItems.push(newInstanceItem)
+        // push to interactive objects
         this.interactivObjects.push(newInstanceItem.instances.mesh)
-        if (init) {
-            this.addNode(
-                { id, index: 0 },
-                {
-                    compoundMatrix: localTransform,
-                }
-            )
+        // create new node freelist bucket, id should match the instanceitems
+        const treeId = this.tree.addBucket()
+        if (id !== treeId) {
+            console.error("id missmatch on new instance", id, treeId)
         }
 
         return newInstanceItem
     }
+
+    patchInstance() {
+        // todo
+        // use to update geometries.
+        // not sure best interface yet.
+    }
+
     removeInstance(id: number) {
-        // not implemented
         console.warn("not implemented")
+        // get item
         const instanceItem = this.instanceItems[id]
+        // nothign to delete
         if (!instanceItem) return
 
         // clean up other refrences
@@ -112,36 +116,80 @@ export class Drafter {
         if (rm !== -1) {
             this.interactivObjects.splice(rm, 1)
         }
+        // remove from both freelists,
         this.instanceItems.remove(id)
         this.tree.removeBucket(id)
+        // todo
+        // we will need to remove all node children located in another freelist id,
+        // we can implement when we atart to have this with geo csg brush
     }
-    patchInstance() {}
-    addNode(
-        parentLocation: NodeLocation = { id: -1, index: -1 },
-        partialNode: Partial<TransformNode>
-    ): TransformNode | undefined {
-        const id = parentLocation.id
+
+    resizeInstance(instance: InstanceItem) {
+        // todo
+        // implement is this
+        // better to reasign geo or adjust it?
+        console.warn("resizeInstance not implemented")
+    }
+
+    addRootNode(rootNode: Partial<TransformNode>) {
+        console.log("addRootNode")
+        // get id for insertion
+        const id = rootNode?.location?.id
+        if (id === undefined) {
+            console.log("rootnode missing location", rootNode)
+            return
+        }
+
         const instanceItem = this.instanceItems[id]
         if (!instanceItem) {
-            console.error("couldnt find instanceItem at id", location)
+            console.error("couldnt find instanceItem at id", rootNode)
             return
         }
 
         if (instanceItem.count === instanceItem.maxCount) {
-            console.error("not implemented resize instance item")
+            this.resizeInstance(instanceItem)
             return
         }
-        if (instanceItem === undefined) {
-            console.error("cound not find InstanceItem")
-            return
-        }
+
+        // make node
+        const node = createTransformNode(rootNode)
+        // add node to tree
+        this.tree.addNode(node)
+        // add node to root set
+        this.tree.roots.add(node)
+
+        // increment count
+        incrementInstanceCount(instanceItem)
+        //  this should correctly set the root matrix?
+        applyNodeMatrixUpdate(node, this.instanceItems)
+        // update matrix
+        computeBoundingSphere(instanceItem)
+    }
+
+    // i dont like parentLocation, switch to passing another node...
+    addLeafNode(
+        partialNode: Partial<TransformNode>,
+        parentLocation: NodeLocation = { id: -1, index: -1 }
+    ): TransformNode | undefined {
         // copy parents location to partialNode, unless we defined it already
-        // this is so we can add Nodes that use a different bucket id
+        // this is so we can add Nodes that use a different id
         if (partialNode.location?.id === undefined) {
             partialNode.location = {
                 id: parentLocation.id,
                 index: partialNode.location?.index ?? -1,
             }
+        }
+
+        const id = partialNode.location.id
+        const instanceItem = this.instanceItems[id]
+        if (!instanceItem) {
+            console.error("couldnt find instanceItem at id", partialNode)
+            return
+        }
+
+        if (instanceItem.count === instanceItem.maxCount) {
+            this.resizeInstance(instanceItem)
+            return
         }
 
         const node = createTransformNode(partialNode)
@@ -152,10 +200,42 @@ export class Drafter {
         applyNodeMatrixUpdate(node, this.instanceItems)
         computeBoundingSphere(instanceItem)
 
+        // console.log("addLeafNode")
+        // console.log({node})
+        // console.log({parent})
+
         return node
     }
-    pruneNode() {}
-    removeNode() {}
+    pruneNode(target: TransformNode | NodeLocation) {
+        //todo
+        console.warn("not implemented yet")
+        return
+        /*
+        const location = "location" in target ? target.location : target
+        const id = location.id
+        const instanceItem = this.instanceItems[id]
+        if (!instanceItem) {
+            console.error("couldnt find instanceItem at id", location)
+            return
+        }
+
+        // delete from instance material
+
+        decrementInstanceCount(instanceItem)
+
+        // delete from tree
+        const node = this.tree.findNode(location)
+        if (!node) return
+        this.tree.pruneNode(node)
+        // recusive dfs
+
+        // if target is a root, remove from tree,root
+        */
+    }
+    removeNode() {
+        // removes node from InstanceItem AND tree
+        // delete children recusivly
+    }
     /* path node props directly before passing, this updates draw geo*/
     updatePatchedNode(patchedNode: TransformNode) {
         const fn = (node: TransformNode) =>
@@ -165,9 +245,11 @@ export class Drafter {
 
         const instanceItem = this.instanceItems[patchedNode.location.id]
         if (!instanceItem) {
-            console.error("couldnt find instanceItem at id", location)
+            console.error("couldnt find instanceItem at id", patchedNode)
             return
         }
+
+        // this leaves stale children, we need to update all that have this ...
         computeBoundingSphere(instanceItem)
     }
 }
@@ -180,6 +262,13 @@ function applyNodeMatrixUpdate(
     node: TransformNode,
     instanceItems: FreeList<InstanceItem>
 ) {
+    // we must look up the instance here, as child might have other id
+    const instanceItem = instanceItems[node.location.id]
+    if (!instanceItem) {
+        console.error("couldnt find instanceItem at id", node)
+        return
+    }
+
     const isRoot = node.parent === node
 
     if (!isRoot) {
@@ -191,28 +280,40 @@ function applyNodeMatrixUpdate(
         node.compoundMatrix
             .copy(node.baseMatrix)
             .multiply(node.parent.compoundMatrix)
+    } else {
+        node.baseMatrix.makeTranslation(node.position)
+        node.compoundMatrix
+            .copy(node.baseMatrix)
+            .multiply(instanceItem.localTransform)
     }
+
     // update buffers
-    // we cant pass in instance item, must lookup from idx. children might be in other buckets
-    const instanceItem = instanceItems[node.location.id]
+    setInstanceBuffersIndex(instanceItem, node)
+}
+
+function setInstanceBuffersIndex(
+    instanceItem: InstanceItem,
+    node: TransformNode
+) {
     if (!instanceItem) {
-        console.error("couldnt find instanceItem at id", location)
+        console.error("couldnt find instanceItem at id", instanceItem)
         return
     }
-    const index = node.location.index // instanceItem.count
+    const index = node.location.index
+    // update matrix buffer
     setInstanceMatrixAt(
         instanceItem.buffers.instanceMatrix,
         index,
         node.compoundMatrix
     )
+    // update parent buffer
     setUintAttributeAt(
         instanceItem.buffers.parentIDs,
         index,
         node.parent.location.index
     )
+    // set updateRanges for faster gpu patch
     updateBufferRanges(index, instanceItem.buffers)
-    // inc count to draw visible.
-    // incrementInstanceCount(instanceItem)
 }
 
 /*

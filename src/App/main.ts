@@ -37,7 +37,7 @@ let interactionManager!: InteractionManager
 let drafter!: Drafter
 
 let testNode: any
-let testNodeVelocityX = 0.02
+let testNodeVelocityX = 0.001
 
 export function init(container: HTMLElement): () => void {
     // const assetsLoader = loadAssets()x
@@ -62,13 +62,12 @@ export function init(container: HTMLElement): () => void {
 
     //camera
     camera = new THREE.OrthographicCamera(...layout.getThreeOrthographicArgs())
-    camera.zoom = 0.075
+    camera.zoom = 0.175
     camera.position.set(0, 100, 0)
     camera.lookAt(0, 0, 0)
 
     //orbitControls
     orbitControls = initOrbit(camera, renderer)
-    console.log({ orbitControls })
 
     // content
     const ambient = new THREE.AmbientLight(0xffffff, 0.7)
@@ -81,33 +80,19 @@ export function init(container: HTMLElement): () => void {
     // scene.add(ambient, sun, gridHelper, axesHelper)
     // scene.add(ambient, sun)
 
-    function makeDrafterArgs(arr: any[]) {
-        for (let i = 0; i < arr.length; i++) {
-            const item = arr[i]
-            arr[i] = {
-                parent: {
-                    id: 0,
-                    index: item.parent,
-                },
-                node: {
-                    position: item.pos,
-                },
-            }
-        }
-        return arr as any
-    }
-
     // Drafter
     drafter = new Drafter(scene)
-
     // const initalGeo = shape.makeCustomMergeShape()
-    // const initalGeo = shape.makeCustomBVHShape()
+    const initalGeo0 = shape.makeCustomBVHShape()
     // const initalGeo = shape.makeCustomBVHHierarchyShape()
-    // const initalGeo = shape.makeAsterix(0.1)
-    const initalGeo = shape.makeAsterix(30)
+    const initalGeo = shape.makeAsterix(0.1)
+    const initalGeo1 = shape.makeAsterix(30)
     // const initalGeo = shape.makeBadSphere(0.95)
     // const initalGeo = shape.createWeirdSphereoid(2)
     // const initalGeo = shape.createMengerSpongeGeometry(2)
+    drafter.newInstance(initalGeo)
+    drafter.newInstance(initalGeo0)
+    drafter.newInstance(initalGeo1)
 
     const scale = rand.random(0.75, 1.5)
     const initalTransform = new THREE.Matrix4()
@@ -116,23 +101,45 @@ export function init(container: HTMLElement): () => void {
             // rand.random(0, Math.PI * 2)
         )
         .scale(new THREE.Vector3(scale, scale, scale))
-    const initalNodes = makeDrafterArgs([
-        // { pos: new THREE.Vector3(0, 0, 0), parent: 0 },
-        { pos: new THREE.Vector3(5, 0, 5), parent: 0 },
-        { pos: new THREE.Vector3(5, 0, 0), parent: 1 },
-        { pos: new THREE.Vector3(5, 0, -5), parent: 2 },
-        { pos: new THREE.Vector3(-5, 0, -5), parent: 0 },
-        { pos: new THREE.Vector3(-5, 0, 5), parent: 0 },
-        { pos: new THREE.Vector3(10, 0, 0), parent: 2 },
-        { pos: new THREE.Vector3(-10, 0, 0), parent: 0 },
-    ])
 
-    drafter.newInstance(initalGeo, initalTransform)
+    // prettier-ignore
+    const initalRoots = [
+        { position: new THREE.Vector3(0, 0, 0), location: { id: 0 }, baseMatrix: initalTransform, },
+        { position: new THREE.Vector3(4, 0, 4), location: { id: 0 }, baseMatrix: initalTransform, },
+        { position: new THREE.Vector3(-4, 0, 4), location: { id: 0 }, baseMatrix: initalTransform, },
 
+        { position: new THREE.Vector3(4, 0, -4), location: { id: 1 }, baseMatrix: initalTransform, },
+        { position: new THREE.Vector3(-4, 0, -4), location: { id: 1 }, baseMatrix: new THREE.Matrix4(), },
+       
+        { position: new THREE.Vector3(-6, 0, -4), location: { id: 2 }, baseMatrix: initalTransform, },
+    ]
+
+    // prettier-ignore
+    const initalNodes = [
+        // { node:{position: new THREE.Vector3(0, 0, 0),   }, parent:{ id:0, index: -1 }},
+        { node:{position: new THREE.Vector3(2, 0, 2),   }, parent:{ id:0, index: 0 }},
+        { node:{position: new THREE.Vector3(2, 0, 0),   }, parent:{ id:0, index: 1 }},
+        { node:{position: new THREE.Vector3(2, 0, -2),  }, parent:{ id:0, index: 2 }},
+        { node:{position: new THREE.Vector3(-2, 0, -2), }, parent:{ id:0, index: 0 }},
+        { node:{position: new THREE.Vector3(-2, 0, 2),  }, parent:{ id:0, index: 0 }},
+        { node:{position: new THREE.Vector3(4, 0, 0),  }, parent:{ id:0, index: 2 }},
+        { node:{position: new THREE.Vector3(-4, 0, 0), }, parent:{ id:0, index: 0 }},
+        { node:{position: new THREE.Vector3(-4, 0, 2), }, parent:{ id:0, index: 5 }},
+        { node:{position: new THREE.Vector3(-4, 0, -2), }, parent:{ id:0, index: 4 }},
+        
+    ]
+
+    drafter.addRootNode(initalRoots[0] as any)
     for (let i = 0; i < initalNodes.length; i++) {
         const wip = initalNodes[i]
-        drafter.addNode(wip.parent, wip.node)
+        drafter.addLeafNode(wip.node, wip.parent)
     }
+    drafter.addRootNode(initalRoots[1] as any)
+    drafter.addRootNode(initalRoots[2] as any)
+    drafter.addRootNode(initalRoots[3] as any)
+    drafter.addRootNode(initalRoots[4] as any)
+    drafter.addRootNode(initalRoots[5] as any)
+
 
     ;(globalThis as any).drafter = drafter
     console.log(drafter)
@@ -166,7 +173,7 @@ function render(): void {
     renderer.render(scene, camera)
     if (testNode) {
         testNode.position.x += testNodeVelocityX
-        if (testNode.position.x >= 7 || testNode.position.x <= -3) {
+        if (testNode.position.x >= 2.75 || testNode.position.x <= 1.25) {
             testNodeVelocityX *= -1
         }
         drafter.updatePatchedNode(testNode)

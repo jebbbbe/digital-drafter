@@ -45,17 +45,18 @@ function syncCameraRotationBindings(enableRotate: boolean): void {
 
 export function addTestNode(x: number = 10, z: number = 5): void {
     if (!isAppReady) return
-    const max = drafter.instanceItems[0].count - 1
-
-    drafter.addNode(
-        { id: 0, index: rand.randomInt(0, max) },
+    const instance = drafter.instanceItems[0]
+    if(!instance) return
+    const max = instance.count - 1
+    drafter.addLeafNode(
         {
             position: new THREE.Vector3(
                 rand.random(-x, x),
                 0,
                 rand.random(-z, z)
             ),
-        }
+        },
+        { id: 0, index: rand.randomInt(0, max) },
     )
 }
 

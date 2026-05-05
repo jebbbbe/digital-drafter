@@ -27,7 +27,7 @@ export function createTransformNode(
         children: node.children ?? [],
     })
 
-    if (node.parent !== undefined) {
+    if (node.parent !== undefined && node.parent !== newNode) {
         node.parent.children.push(newNode)
     }
 
