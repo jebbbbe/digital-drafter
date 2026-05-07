@@ -47,7 +47,7 @@ function syncCameraRotationBindings(enableRotate: boolean): void {
 export function addTestNode(x: number = 10, z: number = 5): void {
     if (!isAppReady) return
     const instance = drafter.instanceItems[0]
-    if(!instance) return
+    if (!instance) return
     const max = instance.count - 1
     drafter.addLeafNode(
         {
@@ -57,7 +57,7 @@ export function addTestNode(x: number = 10, z: number = 5): void {
                 rand.random(-z, z)
             ),
         },
-        { id: 0, index: rand.randomInt(0, max) },
+        { id: 0, index: rand.randomInt(0, max) }
     )
 }
 
@@ -90,6 +90,29 @@ export function setLineVisible(value: boolean): void {
     drafter.materials.line.visible = value
 }
 
+export function setDashColor(value: string): void {
+    if (!isAppReady) return
+    const len = drafter.instanceItems.length
+    for (let i = 0; i < len; i++) {
+        const instanceItem = drafter.instanceItems[i]
+        if (!instanceItem) continue
+        instanceItem.instances.dash.material.color.set(value)
+    }
+}
+
+export function setDashVisible(value: boolean): void {
+    // todo
+    // we should set visible on mesh, not material.
+    // not implemented with settings
+    if (!isAppReady) return
+    const len = drafter.instanceItems.length
+    for (let i = 0; i < len; i++) {
+        const instanceItem = drafter.instanceItems[i]
+        if (!instanceItem) continue
+        instanceItem.instances.dash.material.visible = value
+    }
+}
+
 export function setProjectionColor(value: string): void {
     if (!isAppReady) return
     const len = drafter.instanceItems.length
@@ -101,6 +124,9 @@ export function setProjectionColor(value: string): void {
 }
 
 export function setProjectionVisible(value: boolean): void {
+    // todo
+    // we should set visible on mesh, not material.
+    // not implemented with settings
     if (!isAppReady) return
     const len = drafter.instanceItems.length
     for (let i = 0; i < len; i++) {
@@ -168,7 +194,7 @@ export function downloadImage(
     const viewportSize = renderer.getSize(new THREE.Vector2())
     const aspect = viewportSize.x / viewportSize.y
     const glSize = getMaxRenderTargetSize(renderer)
-    console.log({glSize})
+    console.log({ glSize })
     const exportWidth = aspect >= 1 ? maxRes : Math.round(maxRes * aspect)
     const exportHeight = aspect >= 1 ? Math.round(maxRes / aspect) : maxRes
 

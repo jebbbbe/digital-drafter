@@ -41,6 +41,18 @@ function Controls() {
                 onChange: controls.setLineVisible,
             },
         }),
+        Dash: folder({
+            dashColor: {
+                label: "color",
+                value: settings.display.dash.color,
+                onChange: controls.setDashColor,
+            },
+            dashVisible: {
+                label: "visible",
+                value: settings.display.dash.visible,
+                onChange: controls.setDashVisible,
+            },
+        }),
         Projection: folder({
             projectionColor: {
                 label: "color",

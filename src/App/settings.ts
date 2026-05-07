@@ -12,6 +12,10 @@ export const settings = {
             color: "#000000",
             visible: true,
         },
+        dash: {
+            color: "#a7a7a7",
+            visible: false,
+        },
         projection: {
             color: "#a7a7a7",
             visible: true,

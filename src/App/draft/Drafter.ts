@@ -24,24 +24,28 @@ import { walkSubtree } from "./recursive"
 export class Drafter {
     tree!: TransformTree
     scene!: THREE.Scene
-    instanceItems: FreeList<InstanceItem> // InstanceItem[] = []
+    instanceItems: FreeList<InstanceItem>
     interactivObjects: THREE.Object3D[] = []
     materials = {
         line: new THREE.LineBasicMaterial({
             color: settings.display.line.color,
-            depthTest: true,
             visible: settings.display.line.visible,
+            // depthTest: true,
         }),
-        wireframe: new THREE.MeshBasicMaterial({
-            color: 0x000000,
-            wireframe: true,
+        dash: new THREE.LineDashedMaterial({
+            color: settings.display.dash.color,
+            visible: settings.display.dash.visible,
+            dashSize: 0.05,
+            gapSize: 0.01,
+            depthTest: false,
         }),
         mesh: new THREE.MeshBasicMaterial({
             color: settings.display.mesh.color,
+            visible: settings.display.mesh.visible,
             polygonOffset: true,
             polygonOffsetFactor: 1,
             polygonOffsetUnits: 1,
-            visible: settings.display.mesh.visible,
+            // depthWrite: true,
         }),
         // this one needs to be cloned everytime
         projection: new InstancedProjectionMaterial({
