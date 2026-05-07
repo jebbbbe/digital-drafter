@@ -1,5 +1,5 @@
 import * as THREE from "three"
-import { isAppReady, drafter, scene } from "../main"
+import { isAppReady, drafter, scene, interactionManager } from "../main"
 import { constants } from "../constants"
 import { syncLevaDisplayControls } from "../../components/Leva/LevaStore"
 
@@ -74,6 +74,21 @@ export function setProjectionVisible(value: boolean): void {
     }
 }
 
+export function setGizmoColors(colors: {
+    xAxis: string
+    yAxis: string
+    zAxis: string
+    active: string
+}): void {
+    if (!isAppReady) return
+    interactionManager.transformControls.setColors(
+        colors.xAxis,
+        colors.yAxis,
+        colors.zAxis,
+        colors.active
+    )
+}
+
 export function randomizeMeshColor(): void {
     if (!isAppReady) return
     const color = new THREE.Color().setHSL(
@@ -89,19 +104,31 @@ export function themeSelect(theme: string): boolean {
         constants.themes.objects[theme as keyof typeof constants.themes.objects]
     if (!themeObject) return false
 
-    const newTheme = themeObject.display
+    if ("display" in themeObject) {
+        const newTheme = themeObject.display
 
-    setSceneColor(newTheme.background)
-    setMeshColor(newTheme.mesh.color)
-    setMeshVisible(newTheme.mesh.visible)
-    setLineColor(newTheme.line.color)
-    setLineVisible(newTheme.line.visible)
-    setDashColor(newTheme.dash.color)
-    setDashVisible(newTheme.dash.visible)
-    setProjectionColor(newTheme.projection.color)
-    setProjectionVisible(newTheme.projection.visible)
+        setSceneColor(newTheme.background)
+        setMeshColor(newTheme.mesh.color)
+        setMeshVisible(newTheme.mesh.visible)
+        setLineColor(newTheme.line.color)
+        setLineVisible(newTheme.line.visible)
+        setDashColor(newTheme.dash.color)
+        setDashVisible(newTheme.dash.visible)
+        setProjectionColor(newTheme.projection.color)
+        setProjectionVisible(newTheme.projection.visible)
 
-    syncLevaDisplayControls(newTheme)
+        syncLevaDisplayControls(newTheme)
+    }
+    if ("gizmo" in themeObject) {
+        setGizmoColors(themeObject.gizmo)
+    } else {
+        setGizmoColors({
+            xAxis: "#ff0000",
+            yAxis: "#00ff00",
+            zAxis: "#0000ff",
+            active: "#ffff00",
+        })
+    }
 
     return true
 }

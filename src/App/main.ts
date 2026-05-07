@@ -310,7 +310,7 @@ function initOrbit(
     return orbitControls
 }
 
-export { isAppReady, renderer, scene, camera, orbitControls, cube, drafter }
+export { isAppReady, renderer, scene, camera, orbitControls, cube, drafter, interactionManager }
 
 function loadAssets(): Promise<[THREE.Object3D]> {
     return Promise.all([loadGlb("/cube.glb")])

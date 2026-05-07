@@ -218,13 +218,19 @@ export const constants = {
                         visible: true,
                     },
                     dash: {
-                        color: "#FD971F", // args //"#75715E", // comment
+                        color: "#FD971F", // args
                         visible: true,
                     },
                     projection: {
-                        color: "#A6E22E", // function
+                        color: "#75715E", // comment  // "#AE81FF ", // numbers
                         visible: true,
                     },
+                },
+                gizmo: {
+                    xAxis: "#F92672", //new
+                    yAxis: "#A6E22E", // function
+                    zAxis: "#66D9EF", // const
+                    active: "#E6DB74", // string
                 },
             },
             neon: {
