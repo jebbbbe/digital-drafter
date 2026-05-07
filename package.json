@@ -4,7 +4,7 @@
     "version": "0.0.0",
     "type": "module",
     "scripts": {
-        "dev": "vite",
+        "dev": "vite --host --port 5500",
         "build": "tsc -b && vite build && tsx --tsconfig tsconfig.app.json scripts/static-export.ts",
         "lint": "eslint .",
         "preview": "vite preview"
