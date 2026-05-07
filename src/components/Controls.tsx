@@ -1,80 +1,7 @@
 import { controls } from "../App/index"
 import { button, folder, Leva, useControls } from "leva"
-import { settings } from "../App/settings"
+import { constants } from "../App/constants"
 function Controls() {
-    const Actions = folder({
-        "Add Test Node": button(() => controls.addTestNode()),
-        "Add Many Test Nodes": button(() => {
-            for (let i = 0; i < 20; i++) {
-                controls.addTestNode(100, 100)
-            }
-        }),
-    })
-
-    const Display = folder({
-        Background: {
-            label: "color",
-            value: settings.display.background,
-            onChange: controls.setSceneColor,
-        },
-        Mesh: folder({
-            meshColor: {
-                label: "color",
-                value: settings.display.mesh.color,
-                onChange: controls.setMeshColor,
-            },
-            meshVisible: {
-                label: "visible",
-                value: settings.display.mesh.visible,
-                onChange: controls.setMeshVisible,
-            },
-        }),
-        Line: folder({
-            lineColor: {
-                label: "color",
-                value: settings.display.line.color,
-                onChange: controls.setLineColor,
-            },
-            lineVisible: {
-                label: "visible",
-                value: settings.display.line.visible,
-                onChange: controls.setLineVisible,
-            },
-        }),
-        Dash: folder({
-            dashColor: {
-                label: "color",
-                value: settings.display.dash.color,
-                onChange: controls.setDashColor,
-            },
-            dashVisible: {
-                label: "visible",
-                value: settings.display.dash.visible,
-                onChange: controls.setDashVisible,
-            },
-        }),
-        Projection: folder({
-            projectionColor: {
-                label: "color",
-                value: settings.display.projection.color,
-                onChange: controls.setProjectionColor,
-            },
-            projectionVisible: {
-                label: "visible",
-                value: settings.display.projection.visible,
-                onChange: controls.setProjectionVisible,
-            },
-        }),
-    })
-
-    const Camera = folder(
-        {
-            resetCamera: button(controls.resetCamera),
-            toggleCameraRotation: button(controls.toggleCameraRotation),
-        },
-        { collapsed: false }
-    )
-
     const Export = folder(
         {
             saveCubeAsGlb: button(controls.saveCubeAsGlb),
@@ -90,6 +17,7 @@ function Controls() {
                 value: false,
                 onChange: controls.setStatsVisible,
             },
+            toggleCameraRotation: button(controls.toggleCameraRotation),
             rootScale: {
                 label: "Root Scale",
                 value: 1,
@@ -98,16 +26,102 @@ function Controls() {
                 step: 0.05,
                 onChange: controls.setRootScaleMatrix,
             },
+            Export,
         },
-        { collapsed: true }
+        { collapsed: true, color: "#d30000" }
     )
 
+    const Actions = folder({
+        "Add Test Node": button(() => controls.addTestNode()),
+        "Add Many Test Nodes": button(() => {
+            for (let i = 0; i < 20; i++) {
+                controls.addTestNode(100, 100)
+            }
+        }),
+    })
+
+    const Scene = folder(
+        {
+            Background: {
+                label: "Background",
+                value: constants.display.background,
+                onChange: controls.setSceneColor,
+            },
+            Mesh: folder(
+                {
+                    meshColor: {
+                        label: "Color",
+                        value: constants.display.mesh.color,
+                        onChange: controls.setMeshColor,
+                    },
+                    meshVisible: {
+                        label: "Visible",
+                        value: constants.display.mesh.visible,
+                        onChange: controls.setMeshVisible,
+                    },
+                },
+                {}
+            ),
+            Line: folder({
+                lineColor: {
+                    label: "Color",
+                    value: constants.display.line.color,
+                    onChange: (a, b, c) => {
+                        console.log(a)
+                        console.log(b)
+                        console.log(c)
+                        controls.setLineColor
+                    },
+                },
+                lineVisible: {
+                    label: "Visible",
+                    value: constants.display.line.visible,
+                    onChange: controls.setLineVisible,
+                },
+            }),
+            Dash: folder({
+                dashColor: {
+                    label: "Color",
+                    value: constants.display.dash.color,
+                    onChange: controls.setDashColor,
+                },
+                dashVisible: {
+                    label: "Visible",
+                    value: constants.display.dash.visible,
+                    onChange: controls.setDashVisible,
+                },
+            }),
+            Projection: folder({
+                projectionColor: {
+                    label: "Color",
+                    value: constants.display.projection.color,
+                    onChange: controls.setProjectionColor,
+                },
+                projectionVisible: {
+                    label: "Visible",
+                    value: constants.display.projection.visible,
+                    onChange: controls.setProjectionVisible,
+                },
+            }),
+        },
+        { collapsed: false }
+    )
+
+    const Display = folder({
+        theme: {
+            label: "Theme",
+            value: constants.theme,
+            options: constants.themeOptions,
+            onChange: controls.themeSelect,
+        },
+        Scene,
+    })
+
     useControls({
+        Debug,
         Actions,
         Display,
-        Camera,
-        Export,
-        Debug,
+        "Reset Camera": button(controls.resetCamera),
         "Download Image": button(() => controls.downloadImage()),
     })
 

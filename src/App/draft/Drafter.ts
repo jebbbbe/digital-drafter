@@ -1,5 +1,5 @@
 import * as THREE from "three"
-import { settings } from "../settings"
+import { constants } from "../constants"
 import { TransformTree } from "./TransformTree"
 import { createTransformNode, type TransformNode } from "./TransformNode"
 import {
@@ -28,20 +28,20 @@ export class Drafter {
     interactivObjects: THREE.Object3D[] = []
     materials = {
         line: new THREE.LineBasicMaterial({
-            color: settings.display.line.color,
-            visible: settings.display.line.visible,
+            color: constants.display.line.color,
+            visible: constants.display.line.visible,
             // depthTest: true,
         }),
         dash: new THREE.LineDashedMaterial({
-            color: settings.display.dash.color,
-            visible: settings.display.dash.visible,
+            color: constants.display.dash.color,
+            visible: constants.display.dash.visible,
             dashSize: 0.05,
             gapSize: 0.01,
             depthTest: false,
         }),
         mesh: new THREE.MeshBasicMaterial({
-            color: settings.display.mesh.color,
-            visible: settings.display.mesh.visible,
+            color: constants.display.mesh.color,
+            visible: constants.display.mesh.visible,
             polygonOffset: true,
             polygonOffsetFactor: 1,
             polygonOffsetUnits: 1,
@@ -49,8 +49,8 @@ export class Drafter {
         }),
         // this one needs to be cloned everytime
         projection: new InstancedProjectionMaterial({
-            color: settings.display.projection.color,
-            visible: settings.display.projection.visible,
+            color: constants.display.projection.color,
+            visible: constants.display.projection.visible,
         }),
         debugLine: new THREE.LineBasicMaterial({
             color: 0xffff00,

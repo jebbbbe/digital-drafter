@@ -1,4 +1,5 @@
 import * as THREE from "three"
+import { constants } from "./constants"
 import * as shape from "./objects/geometries/geometry"
 import { OrbitControls } from "three/examples/jsm/Addons.js"
 import Stats from "three/examples/jsm/libs/stats.module.js"
@@ -80,8 +81,8 @@ export function init(container: HTMLElement): () => void {
 
     //camera
     camera = new THREE.OrthographicCamera(...layout.getThreeOrthographicArgs())
-    camera.zoom = 0.175
-    camera.position.set(0, 100, 0)
+    camera.zoom = constants.camera.zoom
+    camera.position.set(...constants.camera.position)
     camera.lookAt(0, 0, 0)
 
     //orbitControls
