@@ -23,24 +23,30 @@ export const constants = {
             visible: true,
         },
     },
-    theme: "default",
+    theme: "paper",
     themeOptions: {
-        Default: "default",
+        Paper: "paper",
         Light: "light",
         Dark: "dark",
+        Horn: "horn",
+        Blade: "blade",
+        Cab: "cab",
+        Gum: "gum",
+        Orchid: "orchid",
+        Monaki: "monaki",
         Neon: "neon",
     },
     themes: {
         objects: {
-            default: {
+            paper: {
                 display: {
-                    background: "#fcffee",
+                    background: "#fffcee",
                     mesh: {
-                        color: "#ffffff",
+                        color: "#fffdf6",
                         visible: true,
                     },
                     line: {
-                        color: "#000000",
+                        color: "#383b3b",
                         visible: true,
                     },
                     dash: {
@@ -86,7 +92,7 @@ export const constants = {
                         visible: true,
                     },
                     dash: {
-                        color: "#4d4d4d",
+                        color: "#bcbcbc",
                         visible: true,
                     },
                     projection: {
@@ -95,9 +101,135 @@ export const constants = {
                     },
                 },
             },
+            horn: {
+                display: {
+                    background: "#B4B4B4",
+                    mesh: {
+                        color: "#646464",
+                        visible: true,
+                    },
+                    line: {
+                        color: "#000000",
+                        visible: true,
+                    },
+                    dash: {
+                        color: "#000000",
+                        visible: true,
+                    },
+                    projection: {
+                        color: "#A0A0A0",
+                        visible: true,
+                    },
+                },
+            },
+            blade: {
+                display: {
+                    background: "#363636",
+                    mesh: {
+                        color: "#646464",
+                        visible: true,
+                    },
+                    line: {
+                        color: "#000000",
+                        visible: true,
+                    },
+                    dash: {
+                        color: "#5E5E5E",
+                        visible: true,
+                    },
+                    projection: {
+                        color: "#787878",
+                        visible: true,
+                    },
+                },
+            },
+            cab: {
+                display: {
+                    background: "#2B2B2B",
+                    mesh: {
+                        color: "#808080",
+                        visible: true,
+                    },
+                    line: {
+                        color: "#FFFFFF",
+                        visible: true,
+                    },
+                    dash: {
+                        color: "#9A9A9A",
+                        visible: true,
+                    },
+                    projection: {
+                        color: "#6E6E6E",
+                        visible: true,
+                    },
+                },
+            },
+            gum: {
+                display: {
+                    background: "#ffdcd5",
+                    mesh: {
+                        color: "#ffd1d1",
+                        visible: true,
+                    },
+                    line: {
+                        color: "#c62222",
+                        visible: true,
+                    },
+                    dash: {
+                        color: "#f49c9c",
+                        visible: true,
+                    },
+                    projection: {
+                        color: "#ffabab",
+                        visible: true,
+                    },
+                },
+            },
+            orchid: {
+                display: {
+                    background: "#d0d5b7",
+                    mesh: {
+                        color: "#fcfff0",
+                        visible: true,
+                    },
+                    line: {
+                        color: "#f9519f",
+                        visible: true,
+                    },
+                    dash: {
+                        color: "#f9519f",
+                        visible: true,
+                    },
+                    projection: {
+                        color: "#819720",
+                        visible: true,
+                    },
+                },
+            },
+            monaki: {
+                display: {
+                    background: "#272822", // background
+                    mesh: {
+                        color: "#272822", // background
+                        visible: true,
+                    },
+                    line: {
+                        color: "#F8F8F2", // text
+                        visible: true,
+                    },
+                    dash: {
+                        color: "#FD971F", // args //"#75715E", // comment
+                        visible: true,
+                    },
+                    projection: {
+                        color: "#A6E22E", // function
+                        visible: true,
+                    },
+                },
+            },
             neon: {
                 display: {
-                    background: "#5194e7",
+                    background: "#0073ff",
                     mesh: {
                         color: "#528bdb",
                         visible: true,
@@ -107,7 +239,7 @@ export const constants = {
                         visible: true,
                     },
                     dash: {
-                        color: "#ed5cc4",
+                        color: "#ff00b7",
                         visible: true,
                     },
                     projection: {

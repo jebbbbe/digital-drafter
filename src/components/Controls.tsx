@@ -1,6 +1,7 @@
 import { controls } from "../App/index"
 import { button, folder, Leva, useControls } from "leva"
 import { constants } from "../App/constants"
+import { rotate } from "three/tsl"
 function Controls() {
     const Export = folder(
         {
@@ -67,10 +68,10 @@ function Controls() {
                     label: "Color",
                     value: constants.display.line.color,
                     onChange: (a, b, c) => {
-                        console.log(a)
-                        console.log(b)
-                        console.log(c)
-                        controls.setLineColor
+                        // console.log(a)
+                        // console.log(b)
+                        // console.log(c)
+                        controls.setLineColor(a)
                     },
                 },
                 lineVisible: {
@@ -104,7 +105,7 @@ function Controls() {
                 },
             }),
         },
-        { collapsed: false }
+        { collapsed: true }
     )
 
     const Display = folder({
@@ -117,12 +118,59 @@ function Controls() {
         Scene,
     })
 
+    const Settings = folder(
+        {
+            controlScheme: {
+                label: "Control Scheme",
+                value: "default",
+                options: {
+                    default: "default",
+                },
+                disabled: true,
+            },
+            snap: {
+                label: "Snap",
+                value: true,
+                disabled: true,
+            },
+        },
+        { collapsed: true }
+    )
+
+    const Stub = folder({
+        position: {
+            value: {
+                x: 0,
+                y: 0,
+            },
+            disabled: true,
+        },
+        rotate: {
+            value: {
+                x: 0,
+                y: 0,
+            },
+            disabled: true,
+        },
+        scale: {
+            value: 0,
+            disabled: true,
+        },
+        Hide: button(() => {}, { disabled: true }),
+        Delete: button(() => {}, { disabled: true }),
+        Add: button(() => {}, { disabled: true }),
+        Cut: button(() => {}, { disabled: true }),
+        Intersect: button(() => {}, { disabled: true }),
+    })
+
     useControls({
         Debug,
         Actions,
         Display,
         "Reset Camera": button(controls.resetCamera),
         "Download Image": button(() => controls.downloadImage()),
+        Settings,
+        Stub,
     })
 
     return (
