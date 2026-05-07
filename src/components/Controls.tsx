@@ -29,7 +29,7 @@ function Controls() {
             },
             Export,
         },
-        { collapsed: true, color: "#d30000" }
+        { collapsed: false, color: "#d30000" }
     )
 
     const Actions = folder({
