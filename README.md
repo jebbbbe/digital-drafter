@@ -15,6 +15,7 @@
 - [ ] perf compare batched mesh? update geo...?
 - [ ] do update range at the end of recusive by keeping trak of dirty locations. 
 - [ ] recuseive funciton only calc compundMatrix, not baseMatrix as well
+- [ ] see if notes on matrix prefix can be used here?
 - [ ] dynamic draw usage
 ### v0.4.0
 - [ ] boolean BVH
@@ -28,6 +29,7 @@
 - [ ] second leva panel, interactive
 - [ ] interactive root controls. 
 - [ ] add new root...?
+- [ ] how to deal with recursive children in diff buckets...?
 - [ ] how to deal with recursive children in diff buckets...?
 ### v0.2.0
 - [ ] pref compare instanve v non instanced lw material in threetools
