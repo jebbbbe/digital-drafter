@@ -1,5 +1,16 @@
 # todo
 
+### other
+- [ ] save and load
+- [ ] electron
+- [ ] drawable interection shape
+- [ ] svg/dwg export
+- [ ] draw on mesh
+- [ ] mesh upload
+- [ ] CDN
+- [ ] auth
+- [ ] payment?
+
 ### v0.5.0
 - [ ] perf compare batched mesh? update geo...?
 - [ ] do update range at the end of recusive by keeping trak of dirty locations. 
