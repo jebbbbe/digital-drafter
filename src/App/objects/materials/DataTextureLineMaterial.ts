@@ -1,7 +1,6 @@
 import {
     Color,
     DataTexture,
-    DoubleSide,
     GLSL3,
     ShaderMaterial,
     ShaderLib,
@@ -63,7 +62,7 @@ void main() {
     vec2 ndcEnd = clipEnd.xy / clipEnd.w;
 
     vec2 dir = normalize(ndcEnd - ndcStart);
-    vec2 normal = vec2(-dir.y, dir.x);
+    vec2 normal = vec2(dir.y, -dir.x);
     vec4 clip = mix(clipStart, clipEnd, along);
     float capSide = along * 2.0 - 1.0;
     float capOffset = step(0.5, capStyle);
@@ -143,10 +142,7 @@ export class DataTextureLineMaterial extends ShaderMaterial {
 
         this.type = "DataTextureLineMaterial"
 
-        this.setValues({
-            side: DoubleSide,
-            ...parameters,
-        })
+        this.setValues(parameters)
         this.capStyle = parameters.capStyle ?? CAP_STYLE.square
     }
 
