@@ -10,7 +10,7 @@ import * as THREE from "three"
  * ```ts
  * const geo = new DataTextureLineSegmentsGeometry(edges)
  * const mat = new DataTextureLineMaterial({
- *     thickness: 10,
+ *     linewidth: 10,
  *     color: 0xff000,
  *     segments: geo.dataTexture,
  * })

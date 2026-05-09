@@ -12,7 +12,7 @@ import {
 } from "three"
 
 export type DataTextureLineMaterialParameters = ShaderMaterialParameters & {
-    thickness?: number
+    linewidth?: number
     resolution?: Vector2
     color?: ColorRepresentation
     segments?: DataTexture | null
@@ -26,11 +26,11 @@ export const CAP_STYLE = {
 } as const
 
 const vertexShader = /* glsl */ `
-uniform float thickness;
+uniform float linewidth;
 uniform vec2 resolution;
 uniform highp sampler2D segments;
 uniform float capStyle;
-
+    
 #ifdef USE_CIRCLE_CAP
 out vec2 vCapCoord;
 out float vCapSize;
@@ -66,13 +66,13 @@ void main() {
     vec4 clip = mix(clipStart, clipEnd, along);
     float capSide = along * 2.0 - 1.0;
     float capOffset = step(0.5, capStyle);
-    vec2 offset = (normal * side + dir * capSide * capOffset) * thickness / resolution.y;
+    vec2 offset = (normal * side + dir * capSide * capOffset) * linewidth / resolution.y;
 
     #ifdef USE_CIRCLE_CAP
     float segmentLength = length((ndcEnd - ndcStart) * resolution.y);
     vCapCoord = vec2(along, side);
     vCapSize = capOffset > 0.0
-        ? min(thickness / max(segmentLength + 2.0 * thickness, 0.0001), 0.5)
+        ? min(linewidth / max(segmentLength + 2.0 * linewidth, 0.0001), 0.5)
         : 0.0;
     #endif
 
@@ -110,7 +110,7 @@ void main() {
 `
 
 ;(UniformsLib as any).dataTextureLine = {
-    thickness: { value: 1 },
+    linewidth: { value: 1 },
     resolution: { value: new Vector2(1, 1) },
     color: { value: new Color(0xffffff) },
     segments: { value: null },
@@ -145,12 +145,13 @@ export class DataTextureLineMaterial extends ShaderMaterial {
         this.capStyle = parameters.capStyle ?? CAP_STYLE.square
     }
 
-    get thickness() {
-        return this.uniforms.thickness.value as number
+    get linewidth() {
+        return this.uniforms.linewidth.value as number
     }
 
-    set thickness(value: number) {
-        this.uniforms.thickness.value = value
+    set linewidth(value: number) {
+        if (!this.uniforms.linewidth) return
+        this.uniforms.linewidth.value = value
     }
 
     get resolution() {
