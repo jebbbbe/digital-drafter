@@ -6,12 +6,25 @@ export type DataTextureLineMaterialParameters =
         resolution?: THREE.Vector2
         color?: THREE.ColorRepresentation
         segments?: THREE.DataTexture | null
+        capStyle?: number
     }
+
+export const CAP_STYLE = {
+    none: 0,
+    square: 1,
+    round: 2,
+} as const
 
 const vertexShader = /* glsl */ `
 uniform float uThickness;
 uniform vec2 uResolution;
 uniform highp sampler2D uSegments;
+uniform float uCapStyle;
+
+#ifdef USE_DASH
+out vec2 vCapCoord;
+out float vCapSize;
+#endif
 
 vec3 readPoint(int pointIndex) {
     return texelFetch(uSegments, ivec2(pointIndex, 0), 0).rgb;
@@ -41,7 +54,17 @@ void main() {
     vec2 dir = normalize(ndcEnd - ndcStart);
     vec2 normal = vec2(-dir.y, dir.x);
     vec4 clip = mix(clipStart, clipEnd, along);
-    vec2 offset = normal * side * uThickness / uResolution.y;
+    float capSide = along * 2.0 - 1.0;
+    float capOffset = step(0.5, uCapStyle);
+    vec2 offset = (normal * side + dir * capSide * capOffset) * uThickness / uResolution.y;
+
+    #ifdef USE_DASH
+    float segmentLength = length((ndcEnd - ndcStart) * uResolution.y);
+    vCapCoord = vec2(along, side);
+    vCapSize = capOffset > 0.0
+        ? min(uThickness / max(segmentLength + 2.0 * uThickness, 0.0001), 0.5)
+        : 0.0;
+    #endif
 
     clip.xy += offset * clip.w;
     gl_Position = clip;
@@ -50,10 +73,28 @@ void main() {
 
 const fragmentShader = /* glsl */ `
 uniform vec3 uColor;
+uniform float uCapStyle;
+
+#ifdef USE_DASH
+in vec2 vCapCoord;
+in float vCapSize;
+#endif
 
 out vec4 outColor;
 
 void main() {
+    #ifdef USE_DASH
+    if (uCapStyle > 1.5 && vCapSize > 0.0) {
+        if (vCapCoord.x < vCapSize) {
+            vec2 startCapUv = vec2((vCapCoord.x - vCapSize) / vCapSize, vCapCoord.y);
+            if (dot(startCapUv, startCapUv) > 1.0) discard;
+        } else if (vCapCoord.x > 1.0 - vCapSize) {
+            vec2 endCapUv = vec2((vCapCoord.x - (1.0 - vCapSize)) / vCapSize, vCapCoord.y);
+            if (dot(endCapUv, endCapUv) > 1.0) discard;
+        }
+    }
+    #endif
+
     outColor = vec4(uColor, 1.0);
 }
 `
@@ -65,11 +106,13 @@ export class DataTextureLineMaterial extends THREE.ShaderMaterial {
             resolution = new THREE.Vector2(1, 1),
             color = 0xffffff,
             segments = null,
+            capStyle = CAP_STYLE.square,
             uniforms,
             ...shaderParameters
         } = parameters
 
         super({
+            // type: 'DataTextureLineMaterial',
             glslVersion: THREE.GLSL3,
             vertexShader,
             fragmentShader,
@@ -80,9 +123,12 @@ export class DataTextureLineMaterial extends THREE.ShaderMaterial {
                 uResolution: { value: resolution.clone() },
                 uColor: { value: new THREE.Color(color) },
                 uSegments: { value: segments },
+                uCapStyle: { value: capStyle },
                 ...uniforms,
             },
         })
+
+        this.dashed = capStyle === CAP_STYLE.round
     }
 
     get thickness() {
@@ -115,5 +161,30 @@ export class DataTextureLineMaterial extends THREE.ShaderMaterial {
 
     set segments(value: THREE.DataTexture | null) {
         this.uniforms.uSegments.value = value
+    }
+
+    get dashed() {
+        return "USE_DASH" in this.defines
+    }
+
+    set dashed(value) {
+        if ((value === true) !== this.dashed) {
+            this.needsUpdate = true
+        }
+
+        if (value === true) {
+            this.defines.USE_DASH = ""
+        } else {
+            delete this.defines.USE_DASH
+        }
+    }
+
+    get capStyle() {
+        return this.uniforms.uCapStyle.value as number
+    }
+
+    set capStyle(value: number) {
+        this.uniforms.uCapStyle.value = value
+        this.dashed = value === CAP_STYLE.round
     }
 }
