@@ -1,13 +1,24 @@
-import * as THREE from "three"
+import {
+    Color,
+    DataTexture,
+    DoubleSide,
+    GLSL3,
+    ShaderMaterial,
+    ShaderLib,
+    UniformsLib,
+    UniformsUtils,
+    Vector2,
+    type ColorRepresentation,
+    type ShaderMaterialParameters,
+} from "three"
 
-export type DataTextureLineMaterialParameters =
-    THREE.ShaderMaterialParameters & {
-        thickness?: number
-        resolution?: THREE.Vector2
-        color?: THREE.ColorRepresentation
-        segments?: THREE.DataTexture | null
-        capStyle?: number
-    }
+export type DataTextureLineMaterialParameters = ShaderMaterialParameters & {
+    thickness?: number
+    resolution?: Vector2
+    color?: ColorRepresentation
+    segments?: DataTexture | null
+    capStyle?: number
+}
 
 export const CAP_STYLE = {
     none: 0,
@@ -16,10 +27,10 @@ export const CAP_STYLE = {
 } as const
 
 const vertexShader = /* glsl */ `
-uniform float uThickness;
-uniform vec2 uResolution;
-uniform highp sampler2D uSegments;
-uniform float uCapStyle;
+uniform float thickness;
+uniform vec2 resolution;
+uniform highp sampler2D segments;
+uniform float capStyle;
 
 #ifdef USE_DASH
 out vec2 vCapCoord;
@@ -27,7 +38,7 @@ out float vCapSize;
 #endif
 
 vec3 readPoint(int pointIndex) {
-    return texelFetch(uSegments, ivec2(pointIndex, 0), 0).rgb;
+    return texelFetch(segments, ivec2(pointIndex, 0), 0).rgb;
 }
 
 void main() {
@@ -55,14 +66,14 @@ void main() {
     vec2 normal = vec2(-dir.y, dir.x);
     vec4 clip = mix(clipStart, clipEnd, along);
     float capSide = along * 2.0 - 1.0;
-    float capOffset = step(0.5, uCapStyle);
-    vec2 offset = (normal * side + dir * capSide * capOffset) * uThickness / uResolution.y;
+    float capOffset = step(0.5, capStyle);
+    vec2 offset = (normal * side + dir * capSide * capOffset) * thickness / resolution.y;
 
     #ifdef USE_DASH
-    float segmentLength = length((ndcEnd - ndcStart) * uResolution.y);
+    float segmentLength = length((ndcEnd - ndcStart) * resolution.y);
     vCapCoord = vec2(along, side);
     vCapSize = capOffset > 0.0
-        ? min(uThickness / max(segmentLength + 2.0 * uThickness, 0.0001), 0.5)
+        ? min(thickness / max(segmentLength + 2.0 * thickness, 0.0001), 0.5)
         : 0.0;
     #endif
 
@@ -72,8 +83,8 @@ void main() {
 `
 
 const fragmentShader = /* glsl */ `
-uniform vec3 uColor;
-uniform float uCapStyle;
+uniform vec3 color;
+uniform float capStyle;
 
 #ifdef USE_DASH
 in vec2 vCapCoord;
@@ -84,7 +95,7 @@ out vec4 outColor;
 
 void main() {
     #ifdef USE_DASH
-    if (uCapStyle > 1.5 && vCapSize > 0.0) {
+    if (capStyle > 1.5 && vCapSize > 0.0) {
         if (vCapCoord.x < vCapSize) {
             vec2 startCapUv = vec2((vCapCoord.x - vCapSize) / vCapSize, vCapCoord.y);
             if (dot(startCapUv, startCapUv) > 1.0) discard;
@@ -95,72 +106,80 @@ void main() {
     }
     #endif
 
-    outColor = vec4(uColor, 1.0);
+    outColor = vec4(color, 1.0);
 }
 `
 
-export class DataTextureLineMaterial extends THREE.ShaderMaterial {
-    constructor(parameters: DataTextureLineMaterialParameters = {}) {
-        const {
-            thickness = 1,
-            resolution = new THREE.Vector2(1, 1),
-            color = 0xffffff,
-            segments = null,
-            capStyle = CAP_STYLE.square,
-            uniforms,
-            ...shaderParameters
-        } = parameters
+const uniformsLib = UniformsLib as any
+;(UniformsLib as any).dataTextureLine = {
+    thickness: { value: 1 },
+    resolution: { value: new Vector2(1, 1) },
+    color: { value: new Color(0xffffff) },
+    segments: { value: null },
+    capStyle: { value: CAP_STYLE.square },
+}
 
+ShaderLib["dataTextureLine"] = {
+    uniforms: UniformsUtils.merge([
+        UniformsLib.common,
+        UniformsLib.fog,
+        uniformsLib.dataTextureLine,
+    ]),
+    vertexShader,
+    fragmentShader,
+}
+
+export class DataTextureLineMaterial extends ShaderMaterial {
+    constructor(parameters: DataTextureLineMaterialParameters = {}) {
         super({
-            // type: 'DataTextureLineMaterial',
-            glslVersion: THREE.GLSL3,
-            vertexShader,
-            fragmentShader,
-            side: THREE.DoubleSide,
-            ...shaderParameters,
-            uniforms: {
-                uThickness: { value: thickness },
-                uResolution: { value: resolution.clone() },
-                uColor: { value: new THREE.Color(color) },
-                uSegments: { value: segments },
-                uCapStyle: { value: capStyle },
-                ...uniforms,
-            },
+            glslVersion: GLSL3,
+            uniforms: UniformsUtils.clone(
+                ShaderLib["dataTextureLine"].uniforms
+            ),
+            vertexShader: ShaderLib["dataTextureLine"].vertexShader,
+            fragmentShader: ShaderLib["dataTextureLine"].fragmentShader,
+            clipping: true,
         })
 
-        this.dashed = capStyle === CAP_STYLE.round
+        this.type = "DataTextureLineMaterial"
+
+        this.setValues({
+            side: DoubleSide,
+            ...parameters,
+        })
+        this.capStyle = parameters.capStyle ?? CAP_STYLE.square
     }
 
     get thickness() {
-        return this.uniforms.uThickness.value as number
+        return this.uniforms.thickness.value as number
     }
 
     set thickness(value: number) {
-        this.uniforms.uThickness.value = value
+        this.uniforms.thickness.value = value
     }
 
     get resolution() {
-        return this.uniforms.uResolution.value as THREE.Vector2
+        return this.uniforms.resolution.value as Vector2
     }
 
-    set resolution(value: THREE.Vector2) {
-        this.uniforms.uResolution.value.copy(value)
+    set resolution(value: Vector2) {
+        this.uniforms.resolution.value.copy(value)
     }
 
     get color() {
-        return this.uniforms.uColor.value as THREE.Color
+        return this.uniforms.color.value as Color
     }
 
-    set color(value: THREE.ColorRepresentation) {
-        this.uniforms.uColor.value.set(value)
+    set color(value: ColorRepresentation) {
+        this.uniforms.color.value.set(value)
     }
 
     get segments() {
-        return this.uniforms.uSegments.value as THREE.DataTexture | null
+        return this.uniforms.segments.value as DataTexture | null
     }
 
-    set segments(value: THREE.DataTexture | null) {
-        this.uniforms.uSegments.value = value
+    set segments(value: DataTexture | null) {
+        this.uniforms.segments.value = value
     }
 
     get dashed() {
@@ -180,11 +199,11 @@ export class DataTextureLineMaterial extends THREE.ShaderMaterial {
     }
 
     get capStyle() {
-        return this.uniforms.uCapStyle.value as number
+        return this.uniforms.capStyle.value as number
     }
 
     set capStyle(value: number) {
-        this.uniforms.uCapStyle.value = value
+        this.uniforms.capStyle.value = value
         this.dashed = value === CAP_STYLE.round
     }
 }
