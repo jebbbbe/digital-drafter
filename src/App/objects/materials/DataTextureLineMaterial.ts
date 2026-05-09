@@ -109,7 +109,6 @@ void main() {
 }
 `
 
-const uniformsLib = UniformsLib as any
 ;(UniformsLib as any).dataTextureLine = {
     thickness: { value: 1 },
     resolution: { value: new Vector2(1, 1) },
@@ -122,7 +121,7 @@ ShaderLib["dataTextureLine"] = {
     uniforms: UniformsUtils.merge([
         UniformsLib.common,
         UniformsLib.fog,
-        uniformsLib.dataTextureLine,
+        (UniformsLib as any).dataTextureLine,
     ]),
     vertexShader,
     fragmentShader,
