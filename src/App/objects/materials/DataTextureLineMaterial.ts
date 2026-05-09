@@ -31,7 +31,7 @@ uniform vec2 resolution;
 uniform highp sampler2D segments;
 uniform float capStyle;
 
-#ifdef USE_DASH
+#ifdef USE_CIRCLE_CAP
 out vec2 vCapCoord;
 out float vCapSize;
 #endif
@@ -68,7 +68,7 @@ void main() {
     float capOffset = step(0.5, capStyle);
     vec2 offset = (normal * side + dir * capSide * capOffset) * thickness / resolution.y;
 
-    #ifdef USE_DASH
+    #ifdef USE_CIRCLE_CAP
     float segmentLength = length((ndcEnd - ndcStart) * resolution.y);
     vCapCoord = vec2(along, side);
     vCapSize = capOffset > 0.0
@@ -85,7 +85,7 @@ const fragmentShader = /* glsl */ `
 uniform vec3 color;
 uniform float capStyle;
 
-#ifdef USE_DASH
+#ifdef USE_CIRCLE_CAP
 in vec2 vCapCoord;
 in float vCapSize;
 #endif
@@ -93,7 +93,7 @@ in float vCapSize;
 out vec4 outColor;
 
 void main() {
-    #ifdef USE_DASH
+    #ifdef USE_CIRCLE_CAP
     if (capStyle > 1.5 && vCapSize > 0.0) {
         if (vCapCoord.x < vCapSize) {
             vec2 startCapUv = vec2((vCapCoord.x - vCapSize) / vCapSize, vCapCoord.y);
@@ -193,12 +193,28 @@ export class DataTextureLineMaterial extends ShaderMaterial {
         }
     }
 
+    private get circleCap() {
+        return "USE_CIRCLE_CAP" in this.defines
+    }
+
+    private set circleCap(value) {
+        if ((value === true) !== this.circleCap) {
+            this.needsUpdate = true
+        }
+
+        if (value === true) {
+            this.defines.USE_CIRCLE_CAP = ""
+        } else {
+            delete this.defines.USE_CIRCLE_CAP
+        }
+    }
+
     get capStyle() {
         return this.uniforms.capStyle.value as number
     }
 
     set capStyle(value: number) {
         this.uniforms.capStyle.value = value
-        this.dashed = value === CAP_STYLE.round
+        this.circleCap = value === CAP_STYLE.round
     }
 }
