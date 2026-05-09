@@ -20,12 +20,44 @@ export function setMeshVisible(value: boolean): void {
 
 export function setLineColor(value: string): void {
     if (!isAppReady) return
+    // @ts-ignore
     drafter.materials.line.color.set(value)
+    const len = drafter.instanceItems.length
+    for (let i = 0; i < len; i++) {
+        const instanceItem = drafter.instanceItems[i]
+        if (!instanceItem) continue
+        // @ts-ignore
+        instanceItem.instances.line.material.color.set(value)
+    }
 }
 
 export function setLineVisible(value: boolean): void {
     if (!isAppReady) return
     drafter.materials.line.visible = value
+
+    const len = drafter.instanceItems.length
+    for (let i = 0; i < len; i++) {
+        const instanceItem = drafter.instanceItems[i]
+        if (!instanceItem) continue
+        // @ts-ignore
+        instanceItem.instances.line.material.visible = value
+    }
+}
+
+export function setLineWidth(value: number): void {
+    if (!isAppReady) return
+
+    //set base material
+    drafter.materials.line.linewidth = value
+
+    //set clone materials
+    const len = drafter.instanceItems.length
+    for (let i = 0; i < len; i++) {
+        const instanceItem = drafter.instanceItems[i]
+        if (!instanceItem) continue
+        // @ts-ignore
+        instanceItem.instances.line.material.linewidth = value
+    }
 }
 
 export function setDashColor(value: string): void {

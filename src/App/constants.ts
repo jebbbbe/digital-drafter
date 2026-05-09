@@ -13,6 +13,7 @@ export const constants = {
         line: {
             color: "#000000",
             visible: true,
+            lineWidth:1.5,
         },
         dash: {
             color: "#a7a7a7",

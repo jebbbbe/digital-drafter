@@ -1,6 +1,7 @@
 import * as THREE from "three"
 import { InstancedLineSegments } from "../objects/meshes/InstancedLineSegments"
 import { InstancedProjectionMaterial } from "../objects/materials/InstancedProjectionMaterial"
+import { DataTextureLineMaterial } from "../objects/materials/DataTextureLineMaterial"
 import { InstanceCount } from "./capacity"
 import { brushCleaner } from "../objects/geometries/brushCleaner"
 import {
@@ -9,6 +10,8 @@ import {
     setUintAttributeAt,
     updateBufferRanges,
 } from "../objects/buffers/buffers"
+import { DataTextureLineSegmentsGeometry } from "../objects/geometries/DataTextureLineSegmentsGeometry"
+import { activeMaterialLib } from "./materialManager"
 
 export type InstanceItem = {
     // brush:any for CSG later...
@@ -22,7 +25,7 @@ export type InstanceItem = {
     group: THREE.Group
     instances: {
         mesh: THREE.InstancedMesh
-        line: InstancedLineSegments<THREE.LineBasicMaterial>
+        line: InstancedLineSegments<THREE.LineBasicMaterial> | THREE.InstancedMesh 
         proj: InstancedLineSegments<InstancedProjectionMaterial>
         dash: InstancedLineSegments<THREE.LineDashedMaterial>
     }
@@ -46,12 +49,27 @@ export function createInstanceItem(
     )
     mesh.renderOrder = 0
 
-    const line = new InstancedLineSegments<THREE.LineBasicMaterial>(
-        geometries.lineGeometry,
-        materials.line,
-        capacity
-    )
-    line.renderOrder = 2
+    let line
+    if (activeMaterialLib === "gl_Line") {
+        line = new InstancedLineSegments<THREE.LineBasicMaterial>(
+            geometries.lineGeometry,
+            materials.line,
+            capacity
+        )
+        line.renderOrder = 2
+    } else {
+        const lineMaterial = materials.line.clone() as DataTextureLineMaterial
+        const lineGeometry = new DataTextureLineSegmentsGeometry(
+            geometries.lineGeometry
+        )
+        line = new THREE.InstancedMesh(lineGeometry, lineMaterial, capacity)
+        line.renderOrder = 2
+        lineMaterial.segments = lineGeometry.dataTexture
+        lineMaterial.resolution.set(window.innerWidth, window.innerHeight)
+        line.onBeforeRender = () => {
+            lineMaterial.resolution.set(window.innerWidth, window.innerHeight)
+        }
+    }
 
     const dash = new InstancedLineSegments<THREE.LineDashedMaterial>(
         geometries.lineGeometry,

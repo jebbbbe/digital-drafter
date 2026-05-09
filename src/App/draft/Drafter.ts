@@ -1,5 +1,4 @@
 import * as THREE from "three"
-import { constants } from "../constants"
 import { TransformTree } from "./TransformTree"
 import { createTransformNode, type TransformNode } from "./TransformNode"
 import {
@@ -9,8 +8,6 @@ import {
 } from "../objects/buffers/buffers"
 import { FreeList } from "../objects/FreeList"
 import { calculateProjectionMatrix } from "./matrix"
-import { InstancedProjectionMaterial } from "../objects/materials/InstancedProjectionMaterial"
-import { Line2 } from "three/examples/jsm/Addons.js"
 import type { InstanceItem } from "./InstanceItem"
 import {
     createInstanceItem,
@@ -21,37 +18,15 @@ import {
 import type { NodeLocation } from "./TransformTree"
 import { walkSubtree } from "./recursive"
 
+import { matlib } from "./materialManager"
+
 export class Drafter {
     tree!: TransformTree
     scene!: THREE.Scene
     instanceItems: FreeList<InstanceItem>
     interactivObjects: THREE.Object3D[] = []
     materials = {
-        line: new THREE.LineBasicMaterial({
-            color: constants.display.line.color,
-            visible: constants.display.line.visible,
-            // depthTest: true,
-        }),
-        dash: new THREE.LineDashedMaterial({
-            color: constants.display.dash.color,
-            visible: constants.display.dash.visible,
-            dashSize: 0.05,
-            gapSize: 0.01,
-            depthTest: false,
-        }),
-        mesh: new THREE.MeshBasicMaterial({
-            color: constants.display.mesh.color,
-            visible: constants.display.mesh.visible,
-            polygonOffset: true,
-            polygonOffsetFactor: 1,
-            polygonOffsetUnits: 1,
-            // depthWrite: true,
-        }),
-        // this one needs to be cloned everytime
-        projection: new InstancedProjectionMaterial({
-            color: constants.display.projection.color,
-            visible: constants.display.projection.visible,
-        }),
+        ...matlib,
         debugLine: new THREE.LineBasicMaterial({
             color: 0xffff00,
         }),

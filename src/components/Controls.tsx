@@ -79,6 +79,14 @@ function Controls() {
                     value: constants.display.line.visible,
                     onChange: controls.setLineVisible,
                 },
+                lineLinewidth: {
+                    label: "Line Width",
+                    value: constants.display.line.lineWidth,
+                    min:0,
+                    max:10,
+                    step:0.001,
+                    onChange: controls.setLineWidth,
+                },
             }),
             Dash: folder({
                 dashColor: {
