@@ -32,9 +32,9 @@
 - [ ] how to deal with recursive children in diff buckets...?
 - [ ] how to deal with recursive children in diff buckets...?
 ### v0.2.0
-- [ ] pref compare instanve v non instanced lw material in threetools
-- [ ] instanceable lineweight material
-- [ ] instanceable screenspace lineweight material
+- [s] pref compare instanve v non instanced lw material in threetools
+- [s] instanceable lineweight material
+- [s] instanceable screenspace lineweight material
 - [x] vercel deployment 
 - [x] dashed lines 
 - [x] themes 

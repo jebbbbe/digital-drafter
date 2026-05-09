@@ -1,5 +1,5 @@
 import { controls } from "../App/index"
-import { button, folder, Leva, useControls } from "leva"
+import { button, buttonGroup, folder, Leva, useControls } from "leva"
 import { constants } from "../App/constants"
 
 function Controls() {
@@ -146,6 +146,7 @@ function Controls() {
     )
 
     const Stub = folder({
+        Import: button(() => {}, { disabled: false }),
         position: {
             value: {
                 x: 0,
@@ -164,11 +165,20 @@ function Controls() {
             value: 0,
             disabled: true,
         },
-        Hide: button(() => {}, { disabled: true }),
-        Delete: button(() => {}, { disabled: true }),
-        Add: button(() => {}, { disabled: true }),
-        Cut: button(() => {}, { disabled: true }),
-        Intersect: button(() => {}, { disabled: true }),
+        buttonGroup: buttonGroup({
+            label: "",
+            opts: {
+                Add: () => {},
+                Delete: () => {},
+                Cut: () => {},
+                // Intersect: () => {},
+            },
+        }),
+        // Hide: button(() => {}, { disabled: true }),
+        // Delete: button(() => {}, { disabled: true }),
+        // Add: button(() => {}, { disabled: true }),
+        // Cut: button(() => {}, { disabled: true }),
+        // Intersect: button(() => {}, { disabled: true }),
     })
 
     useControls({
