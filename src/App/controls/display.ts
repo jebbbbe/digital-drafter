@@ -15,7 +15,12 @@ export function setMeshColor(value: string): void {
 
 export function setMeshVisible(value: boolean): void {
     if (!isAppReady) return
-    drafter.materials.mesh.visible = value
+    const len = drafter.instanceItems.length
+    for (let i = 0; i < len; i++) {
+        const instanceItem = drafter.instanceItems[i]
+        if (!instanceItem) continue
+        instanceItem.instances.mesh.visible = value
+    }
 }
 
 export function setLineColor(value: string): void {
@@ -33,14 +38,12 @@ export function setLineColor(value: string): void {
 
 export function setLineVisible(value: boolean): void {
     if (!isAppReady) return
-    drafter.materials.line.visible = value
 
     const len = drafter.instanceItems.length
     for (let i = 0; i < len; i++) {
         const instanceItem = drafter.instanceItems[i]
         if (!instanceItem) continue
-        // @ts-ignore
-        instanceItem.instances.line.material.visible = value
+        instanceItem.instances.line.visible = value
     }
 }
 
@@ -71,15 +74,12 @@ export function setDashColor(value: string): void {
 }
 
 export function setDashVisible(value: boolean): void {
-    // todo
-    // we should set visible on mesh, not material.
-    // not implemented with settings
     if (!isAppReady) return
     const len = drafter.instanceItems.length
     for (let i = 0; i < len; i++) {
         const instanceItem = drafter.instanceItems[i]
         if (!instanceItem) continue
-        instanceItem.instances.dash.material.visible = value
+        instanceItem.instances.dash.visible = value
     }
 }
 
@@ -94,15 +94,12 @@ export function setProjectionColor(value: string): void {
 }
 
 export function setProjectionVisible(value: boolean): void {
-    // todo
-    // we should set visible on mesh, not material.
-    // not implemented with settings
     if (!isAppReady) return
     const len = drafter.instanceItems.length
     for (let i = 0; i < len; i++) {
         const instanceItem = drafter.instanceItems[i]
         if (!instanceItem) continue
-        instanceItem.instances.proj.material.visible = value
+        instanceItem.instances.proj.visible = value
     }
 }
 

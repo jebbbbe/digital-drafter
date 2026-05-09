@@ -12,6 +12,7 @@ import {
 } from "../objects/buffers/buffers"
 import { DataTextureLineSegmentsGeometry } from "../objects/geometries/DataTextureLineSegmentsGeometry"
 import { activeMaterialLib } from "./materialManager"
+import { constants } from "../constants"
 
 export type InstanceItem = {
     // brush:any for CSG later...
@@ -111,6 +112,12 @@ export function createInstanceItem(
     line.userData = mesh.userData
     dash.userData = mesh.userData
     proj.userData = mesh.userData
+
+    // set visible
+    mesh.visible = constants.display.mesh.visible
+    line.visible = constants.display.line.visible
+    dash.visible = constants.display.dash.visible
+    proj.visible = constants.display.projection.visible
 
     const group = new THREE.Group()
     group.add(mesh, line, proj, dash)

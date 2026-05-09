@@ -10,19 +10,16 @@ const MaterialsLib = {
     gl_Line: {
         line: new THREE.LineBasicMaterial({
             color: constants.display.line.color,
-            visible: constants.display.line.visible,
             // depthTest: true,
         }),
         dash: new THREE.LineDashedMaterial({
             color: constants.display.dash.color,
-            visible: constants.display.dash.visible,
             dashSize: 0.05,
             gapSize: 0.01,
             depthTest: false,
         }),
         mesh: new THREE.MeshBasicMaterial({
             color: constants.display.mesh.color,
-            visible: constants.display.mesh.visible,
             polygonOffset: true,
             polygonOffsetFactor: 1,
             polygonOffsetUnits: 1,
@@ -31,7 +28,6 @@ const MaterialsLib = {
         // this one needs to be cloned everytime
         projection: new InstancedProjectionMaterial({
             color: constants.display.projection.color,
-            visible: constants.display.projection.visible,
         }),
     },
     linewidth: {
@@ -39,19 +35,16 @@ const MaterialsLib = {
             color: constants.display.line.color,
             linewidth: 1,
             capStyle: 2,
-            visible: constants.display.line.visible,
             depthWrite: false, // ?
         }),
         dash: new THREE.LineDashedMaterial({
             color: constants.display.dash.color,
-            visible: constants.display.dash.visible,
             dashSize: 0.05,
             gapSize: 0.01,
             depthTest: false,
         }),
         mesh: new THREE.MeshBasicMaterial({
             color: constants.display.mesh.color,
-            visible: constants.display.mesh.visible,
             polygonOffset: true,
             polygonOffsetFactor: 3,
             polygonOffsetUnits: 3,
@@ -60,7 +53,6 @@ const MaterialsLib = {
         // this one needs to be cloned everytime
         projection: new InstancedProjectionMaterial({
             color: constants.display.projection.color,
-            visible: constants.display.projection.visible,
         }),
     },
 }
