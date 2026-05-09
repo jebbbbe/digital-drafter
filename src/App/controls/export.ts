@@ -1,7 +1,7 @@
 import * as THREE from "three"
 import { getMaxRenderTargetSize } from "../utils/capabilities"
 import { downloadBlob, saveAsGlb, saveAsGltf } from "../utils/loader"
-import { isAppReady, camera, orbitControls, renderer, scene} from "../main"
+import { camera, orbitControls, renderer, scene} from "../main"
 import { cube } from "../main"
 
 export function saveCubeAsGlb(): void {
@@ -16,7 +16,6 @@ export function downloadImage(
     filename = "drawing.png",
     maxRes = 4096 * 2
 ): void {
-    if (!isAppReady) return
 
     const viewportSize = renderer.getSize(new THREE.Vector2())
     const aspect = viewportSize.x / viewportSize.y

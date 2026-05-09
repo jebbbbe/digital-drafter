@@ -1,9 +1,8 @@
 import * as THREE from "three"
 import { constants } from "../constants"
-import { isAppReady, camera, orbitControls } from "../main"
+import { camera, orbitControls } from "../main"
 
 export function resetCamera(): void {
-    if (!isAppReady) return
     camera.zoom = constants.camera.zoom
     camera.position.set(...constants.camera.position)
     camera.lookAt(0, 0, 0)
@@ -22,10 +21,6 @@ export function toggleCameraRotation(): void {
 }
 
 function syncCameraRotationBindings(enableRotate: boolean): void {
-    if (!isAppReady) {
-        return
-    }
-
     orbitControls.enableRotate = enableRotate
     orbitControls.mouseButtons.LEFT = enableRotate
         ? THREE.MOUSE.ROTATE

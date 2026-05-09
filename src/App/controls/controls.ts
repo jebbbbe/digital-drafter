@@ -1,58 +1,47 @@
-import * as THREE from "three"
-import * as rand from "../utils/random"
 import {
     panelPaths,
     setLevaControlDisabled,
 } from "../../components/Leva/LevaStore"
 
-import type { TransformNode } from "../draft/TransformNode"
-import { isAppReady, drafter } from "../main"
+import { isAppReady } from "../main"
 
-// updates by category
-export * from "./display.ts"
-export * from "./camera.ts"
-export * from "./export.ts"
-export * from "./debug.ts"
-// main update funcitons:
+import * as display from "./display.ts"
+import * as camera from "./camera.ts"
+import * as nodes from "./nodes.ts"
+import * as save from "./export.ts"
+import * as debug from "./debug.ts"
 
-const _matrixPosition = new THREE.Vector3()
-const _matrixQuaternion = new THREE.Quaternion()
-const _matrixScale = new THREE.Vector3()
+// this file automatically generates a guard on each imput for isAppReady
 
-function setMatrixUniformScale(matrix: THREE.Matrix4, value: number): void {
-    matrix.decompose(_matrixPosition, _matrixQuaternion, _matrixScale)
-    _matrixScale.set(value, value, value)
-    matrix.compose(_matrixPosition, _matrixQuaternion, _matrixScale)
+type AnyFn = (...args: any[]) => any
+type ControlModule = Record<string, AnyFn>
+type Controls = typeof display &
+    typeof camera &
+    typeof nodes &
+    typeof save &
+    typeof debug
+
+const controls = {} as Controls
+
+function guardImport(incoming: ControlModule) {
+    for (const [name, fn] of Object.entries(incoming)) {
+        let impl: typeof fn = ((...args: Parameters<typeof fn>) => {
+            if (!isAppReady) return undefined as ReturnType<typeof fn>
+
+            impl = fn
+            return fn(...args)
+        }) as typeof fn
+
+        ;(controls as ControlModule)[name] = ((
+            ...args: Parameters<typeof fn>
+        ) => impl(...args)) as typeof fn
+    }
 }
 
-export function addTestNode(x: number = 10, z: number = 5): void {
-    if (!isAppReady) return
-    const instance = drafter.instanceItems[0]
-    if (!instance) return
-    const max = instance.count - 1
-    drafter.addLeafNode(
-        {
-            position: new THREE.Vector3(
-                rand.random(-x, x),
-                0,
-                rand.random(-z, z)
-            ),
-        },
-        { id: 0, index: rand.randomInt(0, max) }
-    )
-}
+guardImport(display as ControlModule)
+guardImport(camera as ControlModule)
+guardImport(nodes as ControlModule)
+guardImport(save as ControlModule)
+guardImport(debug as ControlModule)
 
-export function setRootScaleMatrix(value: number): void {
-    if (!isAppReady) return
-
-    const instanceItem = drafter.instanceItems[0]
-    const rootNode = drafter.tree.findNode({ id: 0, index: 0 }) as
-        | TransformNode
-        | undefined
-    if (!instanceItem || !rootNode) return
-
-    setMatrixUniformScale(instanceItem.localTransform, value)
-
-    rootNode.compoundMatrix.copy(instanceItem.localTransform)
-    drafter.updatePatchedNode(rootNode)
-}
+export { controls }

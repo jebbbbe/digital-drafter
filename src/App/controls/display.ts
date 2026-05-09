@@ -1,20 +1,17 @@
 import * as THREE from "three"
-import { isAppReady, drafter, scene, interactionManager } from "../main"
+import { drafter, scene, interactionManager } from "../main"
 import { constants } from "../constants"
 import { syncLevaDisplayControls } from "../../components/Leva/LevaStore"
 
 export function setSceneColor(value: string): void {
-    if (!isAppReady) return
     ;(scene.background as THREE.Color).set(value)
 }
 
 export function setMeshColor(value: string): void {
-    if (!isAppReady) return
     drafter.materials.mesh.color.set(value)
 }
 
 export function setMeshVisible(value: boolean): void {
-    if (!isAppReady) return
     const len = drafter.instanceItems.length
     for (let i = 0; i < len; i++) {
         const instanceItem = drafter.instanceItems[i]
@@ -24,7 +21,6 @@ export function setMeshVisible(value: boolean): void {
 }
 
 export function setLineColor(value: string): void {
-    if (!isAppReady) return
     // @ts-ignore
     drafter.materials.line.color.set(value)
     const len = drafter.instanceItems.length
@@ -37,8 +33,6 @@ export function setLineColor(value: string): void {
 }
 
 export function setLineVisible(value: boolean): void {
-    if (!isAppReady) return
-
     const len = drafter.instanceItems.length
     for (let i = 0; i < len; i++) {
         const instanceItem = drafter.instanceItems[i]
@@ -48,8 +42,6 @@ export function setLineVisible(value: boolean): void {
 }
 
 export function setLineWidth(value: number): void {
-    if (!isAppReady) return
-
     //set base material
     drafter.materials.line.linewidth = value
 
@@ -64,7 +56,6 @@ export function setLineWidth(value: number): void {
 }
 
 export function setDashColor(value: string): void {
-    if (!isAppReady) return
     const len = drafter.instanceItems.length
     for (let i = 0; i < len; i++) {
         const instanceItem = drafter.instanceItems[i]
@@ -74,7 +65,6 @@ export function setDashColor(value: string): void {
 }
 
 export function setDashVisible(value: boolean): void {
-    if (!isAppReady) return
     const len = drafter.instanceItems.length
     for (let i = 0; i < len; i++) {
         const instanceItem = drafter.instanceItems[i]
@@ -84,7 +74,6 @@ export function setDashVisible(value: boolean): void {
 }
 
 export function setProjectionColor(value: string): void {
-    if (!isAppReady) return
     const len = drafter.instanceItems.length
     for (let i = 0; i < len; i++) {
         const instanceItem = drafter.instanceItems[i]
@@ -94,7 +83,6 @@ export function setProjectionColor(value: string): void {
 }
 
 export function setProjectionVisible(value: boolean): void {
-    if (!isAppReady) return
     const len = drafter.instanceItems.length
     for (let i = 0; i < len; i++) {
         const instanceItem = drafter.instanceItems[i]
@@ -109,7 +97,6 @@ export function setGizmoColors(colors: {
     zAxis: string
     active: string
 }): void {
-    if (!isAppReady) return
     interactionManager.transformControls.setColors(
         colors.xAxis,
         colors.yAxis,
@@ -119,7 +106,6 @@ export function setGizmoColors(colors: {
 }
 
 export function randomizeMeshColor(): void {
-    if (!isAppReady) return
     const color = new THREE.Color().setHSL(
         Math.random(),
         Math.random(),

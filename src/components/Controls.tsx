@@ -1,7 +1,7 @@
 import { controls } from "../App/index"
 import { button, folder, Leva, useControls } from "leva"
 import { constants } from "../App/constants"
-import { rotate } from "three/tsl"
+
 function Controls() {
     const Export = folder(
         {
@@ -82,9 +82,9 @@ function Controls() {
                 lineLinewidth: {
                     label: "Line Width",
                     value: constants.display.line.lineWidth,
-                    min:0,
-                    max:10,
-                    step:0.001,
+                    min: 0,
+                    max: 10,
+                    step: 0.001,
                     onChange: controls.setLineWidth,
                 },
             }),
