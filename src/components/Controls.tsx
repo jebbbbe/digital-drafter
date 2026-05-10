@@ -146,24 +146,30 @@ function Controls() {
     )
 
     const Stub = folder({
-        Import: button(() => {}, { disabled: false }),
         position: {
             value: {
                 x: 0,
-                y: 0,
+                z: 0,
             },
-            disabled: true,
+            min: -100,
+            max: 100,
+            step: 0.01,
+            disabled: !true,
         },
         rotate: {
             value: {
                 x: 0,
                 y: 0,
             },
-            disabled: true,
+            min: 0,
+            max: 2 * Math.PI,
+            disabled: !true,
         },
         scale: {
-            value: 0,
-            disabled: true,
+            value: 1,
+            min: 0.01,
+            max: 5,
+            disabled: !true,
         },
         buttonGroup: buttonGroup({
             label: "",
@@ -188,6 +194,7 @@ function Controls() {
         "Reset Camera": button(controls.resetCamera),
         "Download Image": button(() => controls.downloadImage()),
         Settings,
+        Import: button(() => {}, { disabled: false }),
         Stub,
     })
 
