@@ -107,6 +107,9 @@ export class InteractionManager {
     handlePointerDown = (e: PointerEvent): void => {
         console.log("handlePointerDown")
 
+        // exit early for multiple touchs on mobile
+        if (e.pointerType === "touch" && !e.isPrimary) return
+
         if (
             this.transformControlsEnabled &&
             this.activeEvents.transformObjectChange
