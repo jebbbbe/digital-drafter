@@ -13,6 +13,11 @@ export const panelPaths = {
     dashVisible: "Display.Scene.Dash.dashVisible",
     projectionColor: "Display.Scene.Projection.projectionColor",
     projectionVisible: "Display.Scene.Projection.projectionVisible",
+
+    stubPos: "Stub.position",
+    stubRot: "Stub.rotate",
+    stubScale: "Stub.scale",
+    stubButton: "Stub.buttonGroup", // not able to disable..?
 }
 
 type DisplayTheme = {
@@ -64,3 +69,25 @@ export function syncLevaDisplayControls(display: DisplayTheme): void {
         false
     )
 }
+
+// STUB panel
+export function setStubDisabled(disabled: boolean = true) {
+    levaStore.disableInputAtPath(panelPaths.stubPos, disabled)
+    levaStore.disableInputAtPath(panelPaths.stubRot, disabled)
+    levaStore.disableInputAtPath(panelPaths.stubScale, disabled)
+    // levaStore.disableInputAtPath(panelPaths.stubButton, disabled)
+}
+export const enableStub = () => setStubDisabled(false)
+export const disableStub = () => setStubDisabled(true)
+
+export const enableRootStub = () => setStubDisabled(false)
+export const disableRootStub = () => setStubDisabled(true)
+
+export function setStubLeafDisabled(disabled: boolean = true) {
+    levaStore.disableInputAtPath(panelPaths.stubPos, disabled)
+    levaStore.disableInputAtPath(panelPaths.stubRot, true)
+    levaStore.disableInputAtPath(panelPaths.stubScale, true)
+    // levaStore.disableInputAtPath(panelPaths.stubButton, disabled)
+}
+export const enableLeafStub = () => setStubLeafDisabled(false)
+export const disableLeafStub = () => setStubLeafDisabled(true)

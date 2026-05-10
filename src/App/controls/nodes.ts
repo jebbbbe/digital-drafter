@@ -1,12 +1,13 @@
 import * as THREE from "three"
 import * as rand from "../utils/random"
-import { isAppReady, drafter } from "../main"
+import { isAppReady, drafter, interactionManager } from "../main"
 import type { TransformNode } from "../draft/TransformNode"
 
-// main update funcitons:
+const PI = Math.PI
 const _matrixPosition = new THREE.Vector3()
 const _matrixQuaternion = new THREE.Quaternion()
 const _matrixScale = new THREE.Vector3()
+const _posOffset = new THREE.Vector3()
 
 function setMatrixUniformScale(matrix: THREE.Matrix4, value: number): void {
     matrix.decompose(_matrixPosition, _matrixQuaternion, _matrixScale)
@@ -43,4 +44,70 @@ export function setRootScaleMatrix(value: number): void {
 
     rootNode.compoundMatrix.copy(instanceItem.localTransform)
     drafter.updatePatchedNode(rootNode)
+}
+
+export function addLeafNearbyRandomlyFromSelection() {
+    const selection = interactionManager.selection
+    if (selection.length === 0) return
+    const node = interactionManager.selection[0]
+    if (!node) return
+    addLeafNearbyRandomly(node)
+}
+
+export function addLeafNearbyRandomly(node: TransformNode) {
+    const r = rand.randomItem([2, 4, 6])
+    const t = rand.randomItem([
+        0,
+        PI / 4,
+        PI / 2,
+        (3 * PI) / 4,
+        PI,
+        (5 * PI) / 4,
+        (3 * PI) / 2,
+        (7 * PI) / 4,
+    ])
+    _posOffset.setFromSphericalCoords(r, PI / 2, t)
+    const newNode = {
+        position: new THREE.Vector3().addVectors(node.position, _posOffset),
+    }
+    drafter.addLeafNode(newNode, node.location)
+}
+
+export function pruneNodeFromSelection() {
+    const selection = interactionManager.selection
+    if (selection.length === 0) return
+    const node = interactionManager.selection[0]
+    if (!node) return
+    pruneNode(node)
+}
+
+export function pruneNode(node: TransformNode) {
+    drafter.pruneNode(node)
+    interactionManager.onPruneNode()
+}
+
+export function rotateRootFromSelection(rot: { x: number; y: number }) {
+    console.log(rot)
+}
+export function scaleRootFromSelection(n: number) {
+    console.log(n)
+    return
+    const selection = interactionManager.selection
+    if (selection.length === 0) return
+    const rootNode = interactionManager.selection[0]
+    if (!rootNode) return
+    if (rootNode !== rootNode.parent) return
+
+    const matrix = rootNode.compoundMatrix
+    const position = new THREE.Vector3()
+    const quaternion = new THREE.Quaternion()
+    const scale = new THREE.Vector3()
+
+    matrix.decompose(position, quaternion, scale)
+
+    scale.set(n, n, n)
+
+    matrix.compose(position, quaternion, scale)
+
+    drafter.updatePatchedNode(rootNode) // must update recusive
 }

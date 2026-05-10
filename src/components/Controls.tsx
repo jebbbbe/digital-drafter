@@ -154,7 +154,7 @@ function Controls() {
             min: -100,
             max: 100,
             step: 0.01,
-            disabled: !true,
+            disabled: true,
         },
         rotate: {
             value: {
@@ -163,19 +163,21 @@ function Controls() {
             },
             min: 0,
             max: 2 * Math.PI,
-            disabled: !true,
+            disabled: true,
+            onChange: controls.rotateRootFromSelection,
         },
         scale: {
             value: 1,
             min: 0.01,
             max: 5,
-            disabled: !true,
+            disabled: true,
+            onChange: controls.scaleRootFromSelection,
         },
         buttonGroup: buttonGroup({
             label: "",
             opts: {
-                Add: () => {},
-                Delete: () => {},
+                Add: controls.addLeafNearbyRandomlyFromSelection,
+                Delete: controls.pruneNodeFromSelection,
                 Cut: () => {},
                 // Intersect: () => {},
             },

@@ -14,6 +14,7 @@ import {
     incrementInstanceCount,
     decrementInstanceCount,
     computeBoundingSphere,
+    swapInstance,
 } from "./InstanceItem"
 import type { NodeLocation } from "./TransformTree"
 import { walkSubtree } from "./recursive"
@@ -189,30 +190,49 @@ export class Drafter {
         return node
     }
     pruneNode(target: TransformNode | NodeLocation) {
-        //todo
-        console.warn("not implemented yet", target)
-        return
-        /*
+        //get location
         const location = "location" in target ? target.location : target
         const id = location.id
+        //get instanceItem
         const instanceItem = this.instanceItems[id]
         if (!instanceItem) {
             console.error("couldnt find instanceItem at id", location)
             return
         }
+        //get node
+        const node = this.tree.findNode(location) as TransformNode | undefined
+        if (!node) return
 
-        // delete from instance material
+        //isRoot branch
+        const isRoot = node === node.parent
+        if (isRoot) {
+            console.warn("not implemented yet", target)
+            // delete whole tree
+            return
+        }
 
+        const removedIndex = node.location.index
+        const parentLocation = node.parent.location
+        const parentNode = this.tree.findNode(parentLocation) as TransformNode
+        const lastActiveIndex = instanceItem.count - 1
+        const swappedNode =
+            removedIndex === lastActiveIndex
+                ? undefined
+                : (this.tree.getBucket(id)?.[lastActiveIndex] as
+                      | TransformNode
+                      | undefined)
+
+        // mirror the packed tree's swap-remove in the instance buffers.
+        swapInstance(instanceItem, removedIndex)
         decrementInstanceCount(instanceItem)
 
-        // delete from tree
-        const node = this.tree.findNode(location)
-        if (!node) return
+        // reparent the children
         this.tree.pruneNode(node)
-        // recusive dfs
-
-        // if target is a root, remove from tree,root
-        */
+        if (swappedNode) {
+            // The swapped node's descendants still point at its previous slot.
+            this.updatePatchedNode(swappedNode)
+        }
+        this.updatePatchedNode(parentNode)
     }
     removeNode() {
         // removes node from InstanceItem AND tree
