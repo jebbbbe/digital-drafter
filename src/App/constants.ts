@@ -173,7 +173,7 @@ export const constants = {
                         visible: true,
                     },
                     line: {
-                        color: "#c62222",
+                        color: "#ed4e4e",
                         visible: true,
                     },
                     dash: {
