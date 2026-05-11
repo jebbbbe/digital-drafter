@@ -4,10 +4,12 @@ import { isAppReady, drafter, interactionManager } from "../main"
 import type { TransformNode } from "../draft/TransformNode"
 
 const PI = Math.PI
+const PIo2 = PI / 2
 const _matrixPosition = new THREE.Vector3()
 const _matrixQuaternion = new THREE.Quaternion()
 const _matrixScale = new THREE.Vector3()
 const _posOffset = new THREE.Vector3()
+const _rotateEuler = new THREE.Euler(0, 0, 0, "YXZ")
 
 function setMatrixUniformScale(matrix: THREE.Matrix4, value: number): void {
     matrix.decompose(_matrixPosition, _matrixQuaternion, _matrixScale)
@@ -73,6 +75,53 @@ export function addLeafNearbyRandomly(node: TransformNode) {
     drafter.addLeafNode(newNode, node.location)
 }
 
+export function addLeafNearbyRandomlyNicely(node: TransformNode) {
+    const near = [node.position, node.parent.position]
+    const children = node.children
+    for (let i = 0; i < children.length; i++) {
+        near.push(children[i].position)
+    }
+    const minDist = 2
+    let dist = Infinity
+    const rItems = [2, 4, 6] as const
+    const tItems = [
+        0,
+        PI / 4,
+        PI / 2,
+        (3 * PI) / 4,
+        PI,
+        (5 * PI) / 4,
+        (3 * PI) / 2,
+        (7 * PI) / 4,
+    ] as const
+    let startRandom = rItems.length * tItems.length
+    let cnt = 0
+    while (dist > minDist) {
+        let r, t
+        if (cnt < startRandom) {
+            r = rand.randomItem(rItems)
+            t = rand.randomItem(tItems)
+        } else {
+            r = rand.random()
+            t = rand.random()
+        }
+        _posOffset.setFromSphericalCoords(r, PIo2, t)
+
+        let minDist = Infinity
+        for (let i = 0; i < near.length; i++) {
+            const d = _posOffset.distanceToSquared(near[i])
+            minDist = Math.min(d, minDist)
+        }
+        dist = Math.sqrt(minDist)
+
+        cnt++
+    }
+    const newNode = {
+        position: new THREE.Vector3().addVectors(node.position, _posOffset),
+    }
+    drafter.addLeafNode(newNode, node.location)
+}
+
 export function pruneNodeFromSelection() {
     const selection = interactionManager.selection
     if (selection.length === 0) return
@@ -87,18 +136,36 @@ export function pruneNode(node: TransformNode) {
 }
 
 export function rotateRootFromSelection(rot: { x: number; y: number }) {
-    console.log(rot)
-}
-export function scaleRootFromSelection(n: number) {
-    console.log(n)
-    return
     const selection = interactionManager.selection
     if (selection.length === 0) return
     const rootNode = interactionManager.selection[0]
     if (!rootNode) return
     if (rootNode !== rootNode.parent) return
 
-    const matrix = rootNode.compoundMatrix
+    const matrix = rootNode.baseMatrix
+    matrix.decompose(_matrixPosition, _matrixQuaternion, _matrixScale)
+
+    _rotateEuler.set(
+        THREE.MathUtils.degToRad(rot.x),
+        THREE.MathUtils.degToRad(rot.y),
+        0
+    )
+    _matrixQuaternion.setFromEuler(_rotateEuler)
+    matrix.compose(_matrixPosition, _matrixQuaternion, _matrixScale)
+
+    drafter.updatePatchedNode(rootNode) // must update recusive
+}
+
+export function scaleRootFromSelection(n: number) {
+    // console.log(n)
+    // return
+    const selection = interactionManager.selection
+    if (selection.length === 0) return
+    const rootNode = interactionManager.selection[0]
+    if (!rootNode) return
+    if (rootNode !== rootNode.parent) return
+
+    const matrix = rootNode.baseMatrix
     const position = new THREE.Vector3()
     const quaternion = new THREE.Quaternion()
     const scale = new THREE.Vector3()

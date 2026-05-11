@@ -14,7 +14,6 @@ import {
     incrementInstanceCount,
     decrementInstanceCount,
     computeBoundingSphere,
-    swapInstance,
 } from "./InstanceItem"
 import type { NodeLocation } from "./TransformTree"
 import { walkSubtree } from "./recursive"
@@ -111,7 +110,6 @@ export class Drafter {
     }
 
     addRootNode(rootNode: Partial<TransformNode>) {
-        console.log("addRootNode")
         // get id for insertion
         const id = rootNode?.location?.id
         if (id === undefined) {
@@ -222,14 +220,13 @@ export class Drafter {
                       | TransformNode
                       | undefined)
 
-        // mirror the packed tree's swap-remove in the instance buffers.
-        swapInstance(instanceItem, removedIndex)
-        decrementInstanceCount(instanceItem)
-
         // reparent the children
         this.tree.pruneNode(node)
+        decrementInstanceCount(instanceItem)
+
         if (swappedNode) {
-            // The swapped node's descendants still point at its previous slot.
+            // The packed tree moved this node into the removed slot, so rewrite
+            // its instance data using the node's new location.
             this.updatePatchedNode(swappedNode)
         }
         this.updatePatchedNode(parentNode)
@@ -240,8 +237,16 @@ export class Drafter {
     }
     /* path node props directly before passing, this updates draw geo*/
     updatePatchedNode(patchedNode: TransformNode) {
+        calculateBaseMatrix(patchedNode)
+        //update childrens base matrix as it ddepends on parent pos.
+        const children = patchedNode.children
+        for (let i = 0; i < children.length; i++) {
+            calculateBaseMatrix(children[i])
+        }
         const fn = (node: TransformNode) =>
-            applyNodeMatrixUpdate(node, this.instanceItems)
+            // applyNodeMatrixUpdate(node, this.instanceItems)
+            calculateCompoundMatrix(node, this.instanceItems)
+
         walkSubtree(patchedNode, fn)
         // this wont update childnodes of different id
 
@@ -293,14 +298,54 @@ function applyNodeMatrixUpdate(
     setInstanceBuffersIndex(instanceItem, node)
 }
 
+const _matrixPosition = new THREE.Vector3()
+const _matrixQuaternion = new THREE.Quaternion()
+const _matrixScale = new THREE.Vector3()
+
+function calculateBaseMatrix(node: TransformNode) {
+    const isRoot = node.parent === node
+
+    if (isRoot) {
+        // node.baseMatrix.makeTranslation(node.position)
+        // prettier-ignore
+        node.baseMatrix.decompose(_matrixPosition, _matrixQuaternion, _matrixScale)
+        node.baseMatrix.compose(node.position, _matrixQuaternion, _matrixScale)
+    } else {
+        calculateProjectionMatrix(
+            node.parent.position,
+            node.position,
+            node.baseMatrix
+        )
+    }
+}
+
+function calculateCompoundMatrix(
+    node: TransformNode,
+    instanceItems: FreeList<InstanceItem>
+) {
+    // we must look up the instance here, as child might have other id
+    const instanceItem = instanceItems[node.location.id]
+    if (!instanceItem) {
+        console.error("couldnt find instanceItem at id", node)
+        return
+    }
+    const isRoot = node.parent === node
+
+    if (isRoot) {
+        node.compoundMatrix.copy(node.baseMatrix)
+    } else {
+        node.compoundMatrix
+            .copy(node.baseMatrix)
+            .multiply(node.parent.compoundMatrix)
+    }
+    // update buffers
+    setInstanceBuffersIndex(instanceItem, node)
+}
+
 function setInstanceBuffersIndex(
     instanceItem: InstanceItem,
     node: TransformNode
 ) {
-    if (!instanceItem) {
-        console.error("couldnt find instanceItem at id", instanceItem)
-        return
-    }
     const index = node.location.index
     // update matrix buffer
     setInstanceMatrixAt(

@@ -181,28 +181,3 @@ export function computeBoundingSphere(instanceItem: InstanceItem): void {
     instanceItem.instances.dash.computeBoundingSphere()
     // instanceItem.instances.proj.computeBoundingSphere()
 }
-
-export function swapInstance(instanceItem: InstanceItem, index: number): void {
-    const last = instanceItem.count - 1
-    if (index < 0 || index > last || last < 0) return
-    if (index === last) return
-
-    const { instanceMatrix, parentIDs } = instanceItem.buffers
-    const matrixStart = index * 16
-    const lastMatrixStart = last * 16
-    const matrixArray = instanceMatrix.array as ArrayLike<number>
-    const nextMatrix = new THREE.Matrix4().fromArray(matrixArray, lastMatrixStart)
-    const prevMatrix = new THREE.Matrix4().fromArray(matrixArray, matrixStart)
-
-    setInstanceMatrixAt(instanceMatrix, index, nextMatrix)
-    setInstanceMatrixAt(instanceMatrix, last, prevMatrix)
-
-    const parentArray = parentIDs.array as ArrayLike<number>
-    const nextParent = parentArray[last]
-    const prevParent = parentArray[index]
-    setUintAttributeAt(parentIDs, index, nextParent)
-    setUintAttributeAt(parentIDs, last, prevParent)
-
-    updateBufferRanges(index, instanceItem.buffers)
-    updateBufferRanges(last, instanceItem.buffers)
-}

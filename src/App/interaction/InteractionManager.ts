@@ -42,6 +42,7 @@ export class InteractionManager {
     transformProxy = new THREE.Object3D()
     activeEvents: Partial<Record<string, ActiveEvent>> = {}
     selection: TransformNode[] = []
+    levaStubEnabled = false
     constructor({
         camera,
         scene,
@@ -132,7 +133,10 @@ export class InteractionManager {
         }
 
         //disable leva UI
-        disableStub()
+        if (this.levaStubEnabled) {
+            this.levaStubEnabled = false
+            disableStub()
+        }
 
         //raycast to interacctive objects in the scene
         const intersects = this.raycastHelper.castFromEvent(e)
@@ -169,8 +173,10 @@ export class InteractionManager {
         const isRoot = node === node.parent
         if (isRoot) {
             enableRootStub()
+            this.levaStubEnabled = true
         } else {
             enableLeafStub()
+            this.levaStubEnabled = true
         }
 
         // attach transform controls
@@ -256,21 +262,22 @@ export class InteractionManager {
     }
     attachAddNodeKey() {
         const handleKeyDown = (keyEvent: KeyboardEvent) => {
-            console.log(keyEvent.key)
             if (keyEvent.key !== " ") return
+            if (keyEvent.repeat) return
             controls.addLeafNearbyRandomlyFromSelection()
         }
 
         // prettier-ignore
-        this.addActiveEvent( "deleteNodeKey.keyDown", "keydown", handleKeyDown, window )
+        this.addActiveEvent( "deleteNodeKey.keydown", "keydown", handleKeyDown, window )
     }
     attachDeleteNodeKey() {
         const handleKeyDown = (keyEvent: KeyboardEvent) => {
             if (keyEvent.key !== "Delete") return
+            if (keyEvent.repeat) return
             controls.pruneNodeFromSelection()
         }
         // prettier-ignore
-        this.addActiveEvent( "addNodeKey.keyDown", "keydown", handleKeyDown, window )
+        this.addActiveEvent( "addNodeKey.keydown", "keydown", handleKeyDown, window )
     }
     // now called from controls for external update
     onPruneNode() {

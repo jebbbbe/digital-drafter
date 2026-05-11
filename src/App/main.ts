@@ -223,7 +223,6 @@ export function init(container: HTMLElement): () => void {
     }
     addTrees(drafter, initalTrees)
     ;(globalThis as any).drafter = drafter
-    console.log(drafter)
 
     testNode = drafter.tree.findNode({ id: 0, index: 2 })
 
@@ -310,7 +309,16 @@ function initOrbit(
     return orbitControls
 }
 
-export { isAppReady, renderer, scene, camera, orbitControls, cube, drafter, interactionManager }
+export {
+    isAppReady,
+    renderer,
+    scene,
+    camera,
+    orbitControls,
+    cube,
+    drafter,
+    interactionManager,
+}
 
 function loadAssets(): Promise<[THREE.Object3D]> {
     return Promise.all([loadGlb("/cube.glb")])
