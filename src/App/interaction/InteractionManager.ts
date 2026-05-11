@@ -13,6 +13,7 @@ import {
     enableRootStub,
     disableLeafStub,
     disableRootStub,
+    syncLevaDisplayStub,
 } from "../../components/Leva/LevaStore"
 import { controls } from "../controls/controls"
 
@@ -135,6 +136,11 @@ export class InteractionManager {
         //disable leva UI
         if (this.levaStubEnabled) {
             this.levaStubEnabled = false
+            syncLevaDisplayStub({
+                positionValue: { x: 0, z: 0 },
+                rotateValue: { x: 0, y: 0 },
+                scaleValue: 1.0,
+            })
             disableStub()
         }
 
@@ -171,6 +177,10 @@ export class InteractionManager {
         // enable ui buttons
         // enableStub()
         const isRoot = node === node.parent
+
+        // set leva panel values
+        syncLevaDisplayStub(controls.getNodevalues(node))
+
         if (isRoot) {
             enableRootStub()
             this.levaStubEnabled = true

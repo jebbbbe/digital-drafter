@@ -40,19 +40,6 @@ type DisplayTheme = {
     }
 }
 
-export function setLevaControlDisabled(
-    path: string = panelPaths.test,
-    disabled: boolean = true
-) {
-    console.log("setLevaControlDisabled", {
-        path,
-        disabled,
-        visiblePaths: levaStore.getVisiblePaths(),
-        dataPaths: Object.keys(levaStore.getData()),
-    })
-    levaStore.disableInputAtPath(path, disabled)
-}
-
 export function syncLevaDisplayControls(display: DisplayTheme): void {
     levaStore.set(
         {
@@ -68,6 +55,26 @@ export function syncLevaDisplayControls(display: DisplayTheme): void {
         },
         false
     )
+}
+
+export function syncLevaDisplayStub({
+    positionValue,
+    rotateValue,
+    scaleValue,
+    // }: NodeValues): void {
+}: any): void {
+    const sync = {} as any
+
+    if (positionValue !== undefined) {
+        sync[panelPaths.stubPos] = positionValue
+    }
+    if (rotateValue !== undefined) {
+        sync[panelPaths.stubRot] = rotateValue
+    }
+    if (scaleValue !== undefined) {
+        sync[panelPaths.stubScale] = scaleValue
+    }
+    levaStore.set(sync, false)
 }
 
 // STUB panel

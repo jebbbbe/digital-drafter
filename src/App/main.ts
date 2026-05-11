@@ -77,7 +77,9 @@ export function init(container: HTMLElement): () => void {
 
     // scene
     scene = new THREE.Scene()
-    scene.background = new THREE.Color(0xeef4ff)
+    scene.background = new THREE.Color(
+        constants.themes.objects[constants.theme].display.background
+    )
 
     //camera
     camera = new THREE.OrthographicCamera(...layout.getThreeOrthographicArgs())
@@ -130,7 +132,7 @@ export function init(container: HTMLElement): () => void {
             root: {
                 position: new THREE.Vector3(0, 0, 0),
                 location: { id: 0, index: -1 },
-                baseMatrix: initalTransform,
+                baseMatrix: initalTransform.clone(),
             },
             // prettier-ignore
             leafs: [
@@ -149,7 +151,7 @@ export function init(container: HTMLElement): () => void {
             root: {
                 position: new THREE.Vector3(4, 0, 4),
                 location: { id: 0, index: -1 },
-                baseMatrix: initalTransform,
+                baseMatrix: initalTransform.clone(),
             },
             // prettier-ignore
             leafs: [],
@@ -158,7 +160,7 @@ export function init(container: HTMLElement): () => void {
             root: {
                 position: new THREE.Vector3(-4, 0, 4),
                 location: { id: 0, index: -1 },
-                baseMatrix: initalTransform,
+                baseMatrix: initalTransform.clone(),
             },
             // prettier-ignore
             leafs: [],
@@ -168,7 +170,7 @@ export function init(container: HTMLElement): () => void {
             root: {
                 position: new THREE.Vector3(4, 0, -4),
                 location: { id: 1, index: -1 },
-                baseMatrix: initalTransform,
+                baseMatrix: initalTransform.clone(),
             },
             // prettier-ignore
             leafs: [
@@ -195,7 +197,7 @@ export function init(container: HTMLElement): () => void {
             root: {
                 position: new THREE.Vector3(-6, 0, -4),
                 location: { id: 2, index: -1 },
-                baseMatrix: initalTransform,
+                baseMatrix: initalTransform.clone(),
             },
             // prettier-ignore
             leafs: [

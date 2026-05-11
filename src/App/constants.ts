@@ -13,7 +13,7 @@ export const constants = {
         line: {
             color: "#000000",
             visible: true,
-            lineWidth:1.5,
+            lineWidth: 1.5,
         },
         dash: {
             color: "#a7a7a7",
@@ -24,7 +24,7 @@ export const constants = {
             visible: true,
         },
     },
-    theme: "paper",
+    theme: "light",
     themeOptions: {
         Paper: "paper",
         Light: "light",

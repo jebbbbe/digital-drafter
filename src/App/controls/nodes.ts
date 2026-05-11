@@ -5,16 +5,17 @@ import type { TransformNode } from "../draft/TransformNode"
 
 const PI = Math.PI
 const PIo2 = PI / 2
-const _matrixPosition = new THREE.Vector3()
-const _matrixQuaternion = new THREE.Quaternion()
-const _matrixScale = new THREE.Vector3()
+const _position = new THREE.Vector3()
+const _quaternion = new THREE.Quaternion()
+const _scale = new THREE.Vector3()
 const _posOffset = new THREE.Vector3()
 const _rotateEuler = new THREE.Euler(0, 0, 0, "YXZ")
+const _extractEuler = new THREE.Euler()
 
 function setMatrixUniformScale(matrix: THREE.Matrix4, value: number): void {
-    matrix.decompose(_matrixPosition, _matrixQuaternion, _matrixScale)
-    _matrixScale.set(value, value, value)
-    matrix.compose(_matrixPosition, _matrixQuaternion, _matrixScale)
+    matrix.decompose(_position, _quaternion, _scale)
+    _scale.set(value, value, value)
+    matrix.compose(_position, _quaternion, _scale)
 }
 
 export function addTestNode(x: number = 10, z: number = 5): void {
@@ -135,6 +136,19 @@ export function pruneNode(node: TransformNode) {
     interactionManager.onPruneNode()
 }
 
+export function moveNodeFromSelection(pos: { x: number; z: number }) {
+    console.log(pos)
+    const selection = interactionManager.selection
+    if (selection.length === 0) return
+    const node = interactionManager.selection[0]
+    if (!node) return
+
+    node.position.set(pos.x, 0, pos.z)
+    drafter.updatePatchedNode(node)
+
+    // update gui
+}
+
 export function rotateRootFromSelection(rot: { x: number; y: number }) {
     const selection = interactionManager.selection
     if (selection.length === 0) return
@@ -143,22 +157,19 @@ export function rotateRootFromSelection(rot: { x: number; y: number }) {
     if (rootNode !== rootNode.parent) return
 
     const matrix = rootNode.baseMatrix
-    matrix.decompose(_matrixPosition, _matrixQuaternion, _matrixScale)
-
+    matrix.decompose(_position, _quaternion, _scale)
     _rotateEuler.set(
         THREE.MathUtils.degToRad(rot.x),
-        THREE.MathUtils.degToRad(rot.y),
-        0
+        0,
+        THREE.MathUtils.degToRad(-rot.y)
     )
-    _matrixQuaternion.setFromEuler(_rotateEuler)
-    matrix.compose(_matrixPosition, _matrixQuaternion, _matrixScale)
+    _quaternion.setFromEuler(_rotateEuler)
+    matrix.compose(_position, _quaternion, _scale)
 
-    drafter.updatePatchedNode(rootNode) // must update recusive
+    drafter.updatePatchedNode(rootNode)
 }
 
 export function scaleRootFromSelection(n: number) {
-    // console.log(n)
-    // return
     const selection = interactionManager.selection
     if (selection.length === 0) return
     const rootNode = interactionManager.selection[0]
@@ -166,15 +177,37 @@ export function scaleRootFromSelection(n: number) {
     if (rootNode !== rootNode.parent) return
 
     const matrix = rootNode.baseMatrix
-    const position = new THREE.Vector3()
-    const quaternion = new THREE.Quaternion()
-    const scale = new THREE.Vector3()
 
-    matrix.decompose(position, quaternion, scale)
+    matrix.decompose(_position, _quaternion, _scale)
+    _scale.set(n, n, n)
+    matrix.compose(_position, _quaternion, _scale)
+    drafter.updatePatchedNode(rootNode)
+}
 
-    scale.set(n, n, n)
+// manager -> leva
+export type NodeMatrixValues = {
+    positionValue?: { x: number; z: number } | undefined
+    rotateValue?: { x: number; y: number } | undefined
+    scaleValue?: number | undefined
+}
 
-    matrix.compose(position, quaternion, scale)
+export function getNodevalues(node: TransformNode): NodeMatrixValues {
+    const isRoot = node === node.parent
 
-    drafter.updatePatchedNode(rootNode) // must update recusive
+    const values = {} as NodeMatrixValues
+
+    const matrix = node.baseMatrix
+    matrix.decompose(_position, _quaternion, _scale)
+
+    values.positionValue = { x: _position.x, z: _position.z }
+
+    if (isRoot) {
+        _extractEuler.setFromQuaternion(_quaternion)
+        values.rotateValue = {
+            x: THREE.MathUtils.radToDeg(_extractEuler.x),
+            y: -THREE.MathUtils.radToDeg(_extractEuler.z),
+        }
+        values.scaleValue = _scale.x
+    }
+    return values
 }

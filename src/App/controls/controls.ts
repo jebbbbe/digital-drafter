@@ -1,8 +1,3 @@
-import {
-    panelPaths,
-    setLevaControlDisabled,
-} from "../../components/Leva/LevaStore"
-
 import { isAppReady } from "../main"
 
 import * as display from "./display.ts"

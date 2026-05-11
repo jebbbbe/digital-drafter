@@ -17,10 +17,10 @@ function Controls() {
                         const value = args[0]
                         const path = args[1]
                         const context = args[2]
-                        if (context.initial === true) return
-                        if (context.disabled === true) return
-                        if (context.fromPanel !== true) return
-
+                        if (context?.initial) return
+                        if (context?.disabled) return
+                        if (!context?.fromPanel) return
+                        // console.log({ value, path, context })
                         return fn(value)
                     },
                 ]
@@ -32,8 +32,8 @@ function Controls() {
     const schema = useMemo(() => {
         const Export = folder(
             {
-                saveCubeAsGlb: button(wControls.saveCubeAsGlb),
-                saveCubeAsGltf: button(wControls.saveCubeAsGltf),
+                saveCubeAsGlb: button(controls.saveCubeAsGlb),
+                saveCubeAsGltf: button(controls.saveCubeAsGltf),
             },
             { collapsed: true }
         )
@@ -45,15 +45,7 @@ function Controls() {
                     value: false,
                     onChange: wControls.setStatsVisible,
                 },
-                toggleCameraRotation: button(wControls.toggleCameraRotation),
-                rootScale: {
-                    label: "Root Scale",
-                    value: 1,
-                    min: 0.1,
-                    max: 4,
-                    step: 0.05,
-                    onChange: wControls.setRootScaleMatrix,
-                },
+                toggleCameraRotation: button(controls.toggleCameraRotation),
                 Export,
             },
             { collapsed: false, color: "#d30000" }
@@ -177,6 +169,7 @@ function Controls() {
                 max: 100,
                 step: 0.01,
                 disabled: true,
+                onChange: wControls.moveNodeFromSelection,
             },
             rotate: {
                 value: {
@@ -191,7 +184,7 @@ function Controls() {
             },
             scale: {
                 value: 1,
-                min: 0.01,
+                min: 0.05,
                 max: 5,
                 disabled: true,
                 // onEditEnd: controls.scaleRootFromSelection,
@@ -200,8 +193,8 @@ function Controls() {
             buttonGroup: buttonGroup({
                 label: "",
                 opts: {
-                    Add: wControls.addLeafNearbyRandomlyFromSelection,
-                    Delete: wControls.pruneNodeFromSelection,
+                    Add: controls.addLeafNearbyRandomlyFromSelection,
+                    Delete: controls.pruneNodeFromSelection,
                     Cut: () => {},
                 },
             }),
@@ -211,8 +204,8 @@ function Controls() {
             Debug,
             Actions,
             Display,
-            "Reset Camera": button(wControls.resetCamera),
-            "Download Image": button(() => wControls.downloadImage()),
+            "Reset Camera": button(controls.resetCamera),
+            "Download Image": button(() => controls.downloadImage()),
             Settings,
             Import: button(() => {}, { disabled: false }),
             Stub,

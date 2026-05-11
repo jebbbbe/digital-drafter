@@ -237,27 +237,41 @@ export class Drafter {
     }
     /* path node props directly before passing, this updates draw geo*/
     updatePatchedNode(patchedNode: TransformNode) {
-        calculateBaseMatrix(patchedNode)
-        //update childrens base matrix as it ddepends on parent pos.
-        const children = patchedNode.children
-        for (let i = 0; i < children.length; i++) {
-            calculateBaseMatrix(children[i])
-        }
-        const fn = (node: TransformNode) =>
-            // applyNodeMatrixUpdate(node, this.instanceItems)
-            calculateCompoundMatrix(node, this.instanceItems)
-
-        walkSubtree(patchedNode, fn)
-        // this wont update childnodes of different id
-
+        //
         const instanceItem = this.instanceItems[patchedNode.location.id]
         if (!instanceItem) {
             console.error("couldnt find instanceItem at id", patchedNode)
             return
         }
 
-        // this leaves stale children, we need to update all that have this ...
-        computeBoundingSphere(instanceItem)
+        calculateBaseMatrix(patchedNode)
+        //update childrens base matrix as it depends on parent pos.
+        const children = patchedNode.children
+        for (let i = 0; i < children.length; i++) {
+            calculateBaseMatrix(children[i])
+        }
+
+        const subtree: TransformNode[] = []
+
+        const fn = (n: TransformNode) => calculateCompoundMatrix(n, subtree)
+
+        walkSubtree(patchedNode, fn)
+
+        const sphereUpdate = {} as Record<number, InstanceItem>
+        // update buffers of subtree
+        for (let i = 0; i < subtree.length; i++) {
+            const node = subtree[i]
+            const id = node.location.id
+            const instanceItem = this.instanceItems[id]
+            if (!instanceItem) continue
+            setInstanceBuffersIndex(instanceItem, node)
+            sphereUpdate[id] = instanceItem
+        }
+
+        //  update bounding sphere of seen instanceItems
+        for (const key in sphereUpdate) {
+            computeBoundingSphere(sphereUpdate[key])
+        }
     }
 }
 
@@ -306,7 +320,6 @@ function calculateBaseMatrix(node: TransformNode) {
     const isRoot = node.parent === node
 
     if (isRoot) {
-        // node.baseMatrix.makeTranslation(node.position)
         // prettier-ignore
         node.baseMatrix.decompose(_matrixPosition, _matrixQuaternion, _matrixScale)
         node.baseMatrix.compose(node.position, _matrixQuaternion, _matrixScale)
@@ -321,14 +334,10 @@ function calculateBaseMatrix(node: TransformNode) {
 
 function calculateCompoundMatrix(
     node: TransformNode,
-    instanceItems: FreeList<InstanceItem>
+    subTree: TransformNode[]
 ) {
-    // we must look up the instance here, as child might have other id
-    const instanceItem = instanceItems[node.location.id]
-    if (!instanceItem) {
-        console.error("couldnt find instanceItem at id", node)
-        return
-    }
+    subTree.push(node)
+
     const isRoot = node.parent === node
 
     if (isRoot) {
@@ -338,8 +347,6 @@ function calculateCompoundMatrix(
             .copy(node.baseMatrix)
             .multiply(node.parent.compoundMatrix)
     }
-    // update buffers
-    setInstanceBuffersIndex(instanceItem, node)
 }
 
 function setInstanceBuffersIndex(

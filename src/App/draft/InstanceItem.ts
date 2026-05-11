@@ -26,7 +26,9 @@ export type InstanceItem = {
     group: THREE.Group
     instances: {
         mesh: THREE.InstancedMesh
-        line: InstancedLineSegments<THREE.LineBasicMaterial> | THREE.InstancedMesh 
+        line:
+            | InstancedLineSegments<THREE.LineBasicMaterial>
+            | THREE.InstancedMesh
         proj: InstancedLineSegments<InstancedProjectionMaterial>
         dash: InstancedLineSegments<THREE.LineDashedMaterial>
     }
@@ -114,10 +116,11 @@ export function createInstanceItem(
     proj.userData = mesh.userData
 
     // set visible
-    mesh.visible = constants.display.mesh.visible
-    line.visible = constants.display.line.visible
-    dash.visible = constants.display.dash.visible
-    proj.visible = constants.display.projection.visible
+    const display = constants.themes.objects[constants.theme].display as any
+    mesh.visible = display.mesh.visible
+    line.visible = display.line.visible
+    dash.visible = display.dash.visible
+    proj.visible = display.projection.visible
 
     const group = new THREE.Group()
     group.add(mesh, line, proj, dash)
