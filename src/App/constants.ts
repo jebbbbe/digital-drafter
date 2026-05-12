@@ -76,7 +76,7 @@ export const constants = {
                         visible: true,
                     },
                     projection: {
-                        color: "#a7a7a7",
+                        color: "#dfdfdf",
                         visible: true,
                     },
                 },
@@ -97,7 +97,7 @@ export const constants = {
                         visible: true,
                     },
                     projection: {
-                        color: "#4d4d4d",
+                        color: "#272727",
                         visible: true,
                     },
                 },
