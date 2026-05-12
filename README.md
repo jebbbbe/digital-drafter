@@ -22,17 +22,23 @@
 
 ### v0.4.0
 
+- [ ] three.js specific imports
+- [ ] rm react dynamic import, use module spliting
 - [ ] boolean BVH
-- [ ] section cut bvh
 - [ ] point angle snap
-- [ ] fold line geo
-
-### v0.3.0
-
 - [ ] escape key deselect
 - [ ] second leva panel, interactive
 - [ ] add new root...?
-- [ ] how to deal with recursive children in diff buckets...?
+
+### v0.3.0
+
+- [ ] undo git squash
+- [ ] section cut bvh
+- [ ] fold line geo
+- [ ] global data texture
+- [ ] perf monitor
+- [x] render doc injeciton
+- [s] how to deal with recursive children in diff buckets...?
 - [x] prune/ add node buttons
 - [x] rot/scale root
 - [x] pointerDown mobile disable multi touch points.
