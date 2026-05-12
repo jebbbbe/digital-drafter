@@ -271,14 +271,24 @@ export class InteractionManager {
         this.addActiveEvent("moveNode.pointerUp", "pointerup", handlePointerUp)
     }
     attachAddNodeKey() {
+        // when holding the key, add node up to 20 times
+        const maxHOLD = 20
+        let currHold = 0
         const handleKeyDown = (keyEvent: KeyboardEvent) => {
             if (keyEvent.key !== " ") return
-            if (keyEvent.repeat) return
+            // if (keyEvent.repeat) return
+            if (currHold > maxHOLD) return
+            currHold++
             controls.addLeafNearbyRandomlyFromSelection()
+        }
+        const handleKeyUp = (keyEvent: KeyboardEvent) => {
+            if (keyEvent.key !== " ") return
+            currHold = 0
         }
 
         // prettier-ignore
         this.addActiveEvent( "deleteNodeKey.keydown", "keydown", handleKeyDown, window )
+        this.addActiveEvent("deleteNodeKey.keyup", "keyup", handleKeyUp, window)
     }
     attachDeleteNodeKey() {
         const handleKeyDown = (keyEvent: KeyboardEvent) => {

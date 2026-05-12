@@ -54,7 +54,8 @@ export function addLeafNearbyRandomlyFromSelection() {
     if (selection.length === 0) return
     const node = interactionManager.selection[0]
     if (!node) return
-    addLeafNearbyRandomly(node)
+    // addLeafNearbyRandomly(node)
+    addLeafNearbyRandomlyNicely(node)
 }
 
 export function addLeafNearbyRandomly(node: TransformNode) {
@@ -83,7 +84,6 @@ export function addLeafNearbyRandomlyNicely(node: TransformNode) {
         near.push(children[i].position)
     }
     const minDist = 2
-    let dist = Infinity
     const rItems = [2, 4, 6] as const
     const tItems = [
         0,
@@ -95,32 +95,45 @@ export function addLeafNearbyRandomlyNicely(node: TransformNode) {
         (3 * PI) / 2,
         (7 * PI) / 4,
     ] as const
-    let startRandom = rItems.length * tItems.length
-    let cnt = 0
-    while (dist > minDist) {
+    const startRandom = rItems.length * tItems.length
+    const maxTries = 100
+    for (let cnt = 0; cnt < maxTries + 1; cnt++) {
         let r, t
         if (cnt < startRandom) {
             r = rand.randomItem(rItems)
             t = rand.randomItem(tItems)
+        } else if (cnt >= maxTries) {
+            r = 1.5
+            t = rand.random(0, PI * 2)
         } else {
-            r = rand.random()
-            t = rand.random()
+            r = rand.random(1, 6)
+            t = rand.random(0, PI * 2)
         }
+
         _posOffset.setFromSphericalCoords(r, PIo2, t)
+        const candidatePosition = new THREE.Vector3().addVectors(
+            node.position,
+            _posOffset
+        )
 
-        let minDist = Infinity
+        let nearestDist = Infinity
         for (let i = 0; i < near.length; i++) {
-            const d = _posOffset.distanceToSquared(near[i])
-            minDist = Math.min(d, minDist)
+            const d = candidatePosition.distanceToSquared(near[i])
+            nearestDist = Math.min(d, nearestDist)
         }
-        dist = Math.sqrt(minDist)
 
-        cnt++
+        if (cnt >= maxTries) {
+            nearestDist = minDist * minDist + 1
+        }
+
+        if (Math.sqrt(nearestDist) >= minDist) {
+            const newNode = {
+                position: candidatePosition,
+            }
+            drafter.addLeafNode(newNode, node.location)
+            return
+        }
     }
-    const newNode = {
-        position: new THREE.Vector3().addVectors(node.position, _posOffset),
-    }
-    drafter.addLeafNode(newNode, node.location)
 }
 
 export function pruneNodeFromSelection() {

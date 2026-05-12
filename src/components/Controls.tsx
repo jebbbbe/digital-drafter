@@ -169,6 +169,7 @@ function Controls() {
                 max: 100,
                 step: 0.01,
                 disabled: true,
+                lock: true,
                 onChange: wControls.moveNodeFromSelection,
             },
             rotate: {
