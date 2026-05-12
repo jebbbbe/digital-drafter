@@ -1,2 +1,2 @@
 export { init } from "./main"
-export * as controls from "./controls"
+export { controls } from "./controls/controls";

@@ -1,5 +1,4 @@
 import * as THREE from "three"
-import { settings } from "../settings"
 import { TransformTree } from "./TransformTree"
 import { createTransformNode, type TransformNode } from "./TransformNode"
 import {
@@ -9,8 +8,6 @@ import {
 } from "../objects/buffers/buffers"
 import { FreeList } from "../objects/FreeList"
 import { calculateProjectionMatrix } from "./matrix"
-import { InstancedProjectionMaterial } from "../objects/materials/InstancedProjectionMaterial"
-import { Line2 } from "three/examples/jsm/Addons.js"
 import type { InstanceItem } from "./InstanceItem"
 import {
     createInstanceItem,
@@ -21,33 +18,15 @@ import {
 import type { NodeLocation } from "./TransformTree"
 import { walkSubtree } from "./recursive"
 
+import { matlib } from "./materialManager"
+
 export class Drafter {
     tree!: TransformTree
     scene!: THREE.Scene
-    instanceItems: FreeList<InstanceItem> // InstanceItem[] = []
+    instanceItems: FreeList<InstanceItem>
     interactivObjects: THREE.Object3D[] = []
     materials = {
-        line: new THREE.LineBasicMaterial({
-            color: settings.display.line.color,
-            depthTest: true,
-            visible: settings.display.line.visible,
-        }),
-        wireframe: new THREE.MeshBasicMaterial({
-            color: 0x000000,
-            wireframe: true,
-        }),
-        mesh: new THREE.MeshBasicMaterial({
-            color: settings.display.mesh.color,
-            polygonOffset: true,
-            polygonOffsetFactor: 1,
-            polygonOffsetUnits: 1,
-            visible: settings.display.mesh.visible,
-        }),
-        // this one needs to be cloned everytime
-        projection: new InstancedProjectionMaterial({
-            color: settings.display.projection.color,
-            visible: settings.display.projection.visible,
-        }),
+        ...matlib,
         debugLine: new THREE.LineBasicMaterial({
             color: 0xffff00,
         }),
@@ -131,7 +110,6 @@ export class Drafter {
     }
 
     addRootNode(rootNode: Partial<TransformNode>) {
-        console.log("addRootNode")
         // get id for insertion
         const id = rootNode?.location?.id
         if (id === undefined) {
@@ -210,30 +188,48 @@ export class Drafter {
         return node
     }
     pruneNode(target: TransformNode | NodeLocation) {
-        //todo
-        console.warn("not implemented yet", target)
-        return
-        /*
+        //get location
         const location = "location" in target ? target.location : target
         const id = location.id
+        //get instanceItem
         const instanceItem = this.instanceItems[id]
         if (!instanceItem) {
             console.error("couldnt find instanceItem at id", location)
             return
         }
+        //get node
+        const node = this.tree.findNode(location) as TransformNode | undefined
+        if (!node) return
 
-        // delete from instance material
+        //isRoot branch
+        const isRoot = node === node.parent
+        if (isRoot) {
+            console.warn("not implemented yet", target)
+            // delete whole tree
+            return
+        }
 
+        const removedIndex = node.location.index
+        const parentLocation = node.parent.location
+        const parentNode = this.tree.findNode(parentLocation) as TransformNode
+        const lastActiveIndex = instanceItem.count - 1
+        const swappedNode =
+            removedIndex === lastActiveIndex
+                ? undefined
+                : (this.tree.getBucket(id)?.[lastActiveIndex] as
+                      | TransformNode
+                      | undefined)
+
+        // reparent the children
+        this.tree.pruneNode(node)
         decrementInstanceCount(instanceItem)
 
-        // delete from tree
-        const node = this.tree.findNode(location)
-        if (!node) return
-        this.tree.pruneNode(node)
-        // recusive dfs
-
-        // if target is a root, remove from tree,root
-        */
+        if (swappedNode) {
+            // The packed tree moved this node into the removed slot, so rewrite
+            // its instance data using the node's new location.
+            this.updatePatchedNode(swappedNode)
+        }
+        this.updatePatchedNode(parentNode)
     }
     removeNode() {
         // removes node from InstanceItem AND tree
@@ -241,19 +237,41 @@ export class Drafter {
     }
     /* path node props directly before passing, this updates draw geo*/
     updatePatchedNode(patchedNode: TransformNode) {
-        const fn = (node: TransformNode) =>
-            applyNodeMatrixUpdate(node, this.instanceItems)
-        walkSubtree(patchedNode, fn)
-        // this wont update childnodes of different id
-
+        //
         const instanceItem = this.instanceItems[patchedNode.location.id]
         if (!instanceItem) {
             console.error("couldnt find instanceItem at id", patchedNode)
             return
         }
 
-        // this leaves stale children, we need to update all that have this ...
-        computeBoundingSphere(instanceItem)
+        calculateBaseMatrix(patchedNode)
+        //update childrens base matrix as it depends on parent pos.
+        const children = patchedNode.children
+        for (let i = 0; i < children.length; i++) {
+            calculateBaseMatrix(children[i])
+        }
+
+        const subtree: TransformNode[] = []
+
+        const fn = (n: TransformNode) => calculateCompoundMatrix(n, subtree)
+
+        walkSubtree(patchedNode, fn)
+
+        const sphereUpdate = {} as Record<number, InstanceItem>
+        // update buffers of subtree
+        for (let i = 0; i < subtree.length; i++) {
+            const node = subtree[i]
+            const id = node.location.id
+            const instanceItem = this.instanceItems[id]
+            if (!instanceItem) continue
+            setInstanceBuffersIndex(instanceItem, node)
+            sphereUpdate[id] = instanceItem
+        }
+
+        //  update bounding sphere of seen instanceItems
+        for (const key in sphereUpdate) {
+            computeBoundingSphere(sphereUpdate[key])
+        }
     }
 }
 
@@ -294,14 +312,47 @@ function applyNodeMatrixUpdate(
     setInstanceBuffersIndex(instanceItem, node)
 }
 
+const _matrixPosition = new THREE.Vector3()
+const _matrixQuaternion = new THREE.Quaternion()
+const _matrixScale = new THREE.Vector3()
+
+function calculateBaseMatrix(node: TransformNode) {
+    const isRoot = node.parent === node
+
+    if (isRoot) {
+        // prettier-ignore
+        node.baseMatrix.decompose(_matrixPosition, _matrixQuaternion, _matrixScale)
+        node.baseMatrix.compose(node.position, _matrixQuaternion, _matrixScale)
+    } else {
+        calculateProjectionMatrix(
+            node.parent.position,
+            node.position,
+            node.baseMatrix
+        )
+    }
+}
+
+function calculateCompoundMatrix(
+    node: TransformNode,
+    subTree: TransformNode[]
+) {
+    subTree.push(node)
+
+    const isRoot = node.parent === node
+
+    if (isRoot) {
+        node.compoundMatrix.copy(node.baseMatrix)
+    } else {
+        node.compoundMatrix
+            .copy(node.baseMatrix)
+            .multiply(node.parent.compoundMatrix)
+    }
+}
+
 function setInstanceBuffersIndex(
     instanceItem: InstanceItem,
     node: TransformNode
 ) {
-    if (!instanceItem) {
-        console.error("couldnt find instanceItem at id", instanceItem)
-        return
-    }
     const index = node.location.index
     // update matrix buffer
     setInstanceMatrixAt(

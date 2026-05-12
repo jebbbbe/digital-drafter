@@ -6,7 +6,16 @@ import type { TransformNode } from "../draft/TransformNode"
 import type { NodeLocation } from "../draft/TransformTree"
 import { createsCycle } from "../draft/recursive"
 import { RaycastHelper } from "./RaycastHelper"
-import * as rand from "../utils/random"
+import {
+    enableStub,
+    disableStub,
+    enableLeafStub,
+    enableRootStub,
+    disableLeafStub,
+    disableRootStub,
+    syncLevaDisplayStub,
+} from "../../components/Leva/LevaStore"
+import { controls } from "../controls/controls"
 
 type InteractionManagerArgs = {
     camera: THREE.Camera
@@ -18,7 +27,7 @@ type InteractionManagerArgs = {
 }
 
 type ActiveEvent = {
-    target: HTMLCanvasElement | TransformControls
+    target: HTMLCanvasElement | TransformControls | Window
     type: string
     listener: Function
 }
@@ -33,7 +42,8 @@ export class InteractionManager {
     transformControlsEnabled = true
     transformProxy = new THREE.Object3D()
     activeEvents: Partial<Record<string, ActiveEvent>> = {}
-
+    selection: TransformNode[] = []
+    levaStubEnabled = false
     constructor({
         camera,
         scene,
@@ -82,7 +92,7 @@ export class InteractionManager {
         name: string,
         type: string,
         listener: Function,
-        target: HTMLCanvasElement | TransformControls = this.domElement
+        target: HTMLCanvasElement | TransformControls | Window = this.domElement
     ) {
         this.removeActiveEvent(name)
         ;(target as any).addEventListener(type, listener)
@@ -105,8 +115,10 @@ export class InteractionManager {
     }
 
     handlePointerDown = (e: PointerEvent): void => {
-        console.log("handlePointerDown")
+        // exit early for multiple touchs on mobile
+        if (e.pointerType === "touch" && !e.isPrimary) return
 
+        // if we clicked the gizmo, exit early so we can use it
         if (
             this.transformControlsEnabled &&
             this.activeEvents.transformObjectChange
@@ -121,7 +133,21 @@ export class InteractionManager {
             }
         }
 
+        //disable leva UI
+        if (this.levaStubEnabled) {
+            this.levaStubEnabled = false
+            syncLevaDisplayStub({
+                positionValue: { x: 0, z: 0 },
+                rotateValue: { x: 0, y: 0 },
+                scaleValue: 1.0,
+            })
+            disableStub()
+        }
+
+        //raycast to interacctive objects in the scene
         const intersects = this.raycastHelper.castFromEvent(e)
+
+        // detach transform controls unles in use
         if (intersects.length === 0) {
             if (
                 !this.transformControlsEnabled ||
@@ -130,52 +156,64 @@ export class InteractionManager {
             ) {
                 this.detachTransformControls()
             }
+            // remove previous seleciton
+            this.selection.length = 0
             return
         }
-        // dont need early returns if we use drafter.interactiveObjects
+
+        // find node from raycast
         const int = intersects[0]
         const id = int.object.userData.id
         const index = int.instanceId
         const location = { id, index } as NodeLocation
-        const node = this.drafter.tree.findNode(location) as
-            | TransformNode
-            | undefined
+        // prettier-ignore
+        const node = this.drafter.tree.findNode(location) as  TransformNode | undefined
         if (!node) return
 
-        if (this.transformControlsEnabled) {
-            this.attachTransformControls(node)
-            // return
+        // add new selection
+        this.selection.length = 0
+        this.selection.push(node)
+
+        // enable ui buttons
+        // enableStub()
+        const isRoot = node === node.parent
+
+        // set leva panel values
+        syncLevaDisplayStub(controls.getNodevalues(node))
+
+        if (isRoot) {
+            enableRootStub()
+            this.levaStubEnabled = true
+        } else {
+            enableLeafStub()
+            this.levaStubEnabled = true
         }
 
-        console.log(intersects)
+        // attach transform controls
+        if (this.transformControlsEnabled) {
+            this.attachTransformControls(node)
+        }
+
+        // console.log(intersects)
         // console.log(int)
         // console.log(location)
         // console.log(node)
 
+        //raycast to plane
         const startHit = this.raycastHelper.castFromEventToPlane(e)
         const moveOffset = startHit
             ? new THREE.Vector3().subVectors(node.position, startHit)
             : new THREE.Vector3()
 
-        const isRoot = node === node.parent
-        if (isRoot) {
-            // aval root fns
-            // this.randomMoveNode(node)
-            this.moveNode(node, moveOffset)
-        } else {
-            // non root fns
-            // this.randomChangeNodeParent(node, location)
-            this.moveNode(node, moveOffset)
-        }
-
-        // this.randomMoveNode(node)
-        // this.randomChangeNodeParent(node, location)
+        // attach events
+        this.attachNodeMove(moveOffset)
+        this.attachAddNodeKey()
+        this.attachDeleteNodeKey()
     }
 
     handleTransformDraggingChanged = (e: { value: unknown }) => {
         this.orbitControls.enabled = !Boolean(e.value)
     }
-
     attachTransformControls(node: TransformNode) {
         this.removeActiveEvent("transformObjectChange")
 
@@ -195,14 +233,15 @@ export class InteractionManager {
         )
         this.transformControls.attach(this.transformProxy)
     }
-
     detachTransformControls() {
         this.removeActiveEvent("transformObjectChange")
+        this.removeActiveEvent("deleteKey.keyDown")
         this.transformControls.detach()
         this.orbitControls.enabled = true
     }
 
-    moveNode(node: TransformNode, startOffset: THREE.Vector3) {
+    attachNodeMove(startOffset: THREE.Vector3) {
+        const node = this.selection[0]
         this.orbitControls.enabled = false
         const prevEnableTransform = this.transformControls.enabled
         this.transformControls.enabled = false
@@ -227,43 +266,49 @@ export class InteractionManager {
             this.transformControls.enabled = prevEnableTransform
         }
 
-        this.addActiveEvent(
-            "moveNode.pointerMove",
-            "pointermove",
-            handlePointerMove
-        )
+        // prettier-ignore
+        this.addActiveEvent("moveNode.pointerMove", "pointermove", handlePointerMove)
         this.addActiveEvent("moveNode.pointerUp", "pointerup", handlePointerUp)
     }
-
-    randomMoveNode(node: TransformNode) {
-        const s = 6
-        node.position.copy(
-            new THREE.Vector3(
-                rand.random(-s, s),
-                rand.random(-s, s),
-                rand.random(-s, s)
-            )
-        )
-        this.drafter.updatePatchedNode(node)
-    }
-
-    randomChangeNodeParent(node: TransformNode, location: NodeLocation) {
-        const currParent = node.parent.children.indexOf(node)
-        if (currParent !== -1) {
-            node.parent.children.splice(currParent, 1)
+    attachAddNodeKey() {
+        // when holding the key, add node up to 20 times
+        const maxHOLD = 20
+        let currHold = 0
+        const handleKeyDown = (keyEvent: KeyboardEvent) => {
+            if (keyEvent.key !== " ") return
+            // if (keyEvent.repeat) return
+            if (currHold > maxHOLD) return
+            currHold++
+            controls.addLeafNearbyRandomlyFromSelection()
+        }
+        const handleKeyUp = (keyEvent: KeyboardEvent) => {
+            if (keyEvent.key !== " ") return
+            currHold = 0
         }
 
-        const bucket = this.drafter.tree.getBucket(location.id)
-        if (bucket === undefined) return
-        let newIdx = rand.randomInt(0, bucket.count - 1)
-        if (newIdx === node.location.index) newIdx = 0
-        if (newIdx === node.location.index) newIdx = 1
-        const nextParent = bucket[newIdx] as TransformNode | undefined
-        if (!nextParent || nextParent === node) return
-        if (createsCycle(node, nextParent)) return
-
-        node.parent = nextParent
-        node.parent.children.push(node)
-        this.drafter.updatePatchedNode(node)
+        // prettier-ignore
+        this.addActiveEvent( "deleteNodeKey.keydown", "keydown", handleKeyDown, window )
+        this.addActiveEvent("deleteNodeKey.keyup", "keyup", handleKeyUp, window)
+    }
+    attachDeleteNodeKey() {
+        const handleKeyDown = (keyEvent: KeyboardEvent) => {
+            if (keyEvent.key !== "Delete") return
+            if (keyEvent.repeat) return
+            controls.pruneNodeFromSelection()
+        }
+        // prettier-ignore
+        this.addActiveEvent( "addNodeKey.keydown", "keydown", handleKeyDown, window )
+    }
+    // now called from controls for external update
+    onPruneNode() {
+        // as method so can be called from LEVA on delete.
+        // call handlePointerUp
+        this.activeEvents["moveNode.pointerUp"]?.listener()
+        // cremove this listneer
+        this.removeActiveEvent("deleteKey.keyDown")
+        // detach transform from seleccted
+        this.detachTransformControls()
+        // remove selected
+        this.selection.length = 0
     }
 }

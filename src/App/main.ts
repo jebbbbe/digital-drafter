@@ -1,4 +1,5 @@
 import * as THREE from "three"
+import { constants } from "./constants"
 import * as shape from "./objects/geometries/geometry"
 import { OrbitControls } from "three/examples/jsm/Addons.js"
 import Stats from "three/examples/jsm/libs/stats.module.js"
@@ -76,12 +77,14 @@ export function init(container: HTMLElement): () => void {
 
     // scene
     scene = new THREE.Scene()
-    scene.background = new THREE.Color(0xeef4ff)
+    scene.background = new THREE.Color(
+        constants.themes.objects[constants.theme].display.background
+    )
 
     //camera
     camera = new THREE.OrthographicCamera(...layout.getThreeOrthographicArgs())
-    camera.zoom = 0.175
-    camera.position.set(0, 100, 0)
+    camera.zoom = constants.camera.zoom
+    camera.position.set(...constants.camera.position)
     camera.lookAt(0, 0, 0)
 
     //orbitControls
@@ -129,7 +132,7 @@ export function init(container: HTMLElement): () => void {
             root: {
                 position: new THREE.Vector3(0, 0, 0),
                 location: { id: 0, index: -1 },
-                baseMatrix: initalTransform,
+                baseMatrix: initalTransform.clone(),
             },
             // prettier-ignore
             leafs: [
@@ -148,7 +151,7 @@ export function init(container: HTMLElement): () => void {
             root: {
                 position: new THREE.Vector3(4, 0, 4),
                 location: { id: 0, index: -1 },
-                baseMatrix: initalTransform,
+                baseMatrix: initalTransform.clone(),
             },
             // prettier-ignore
             leafs: [],
@@ -157,7 +160,7 @@ export function init(container: HTMLElement): () => void {
             root: {
                 position: new THREE.Vector3(-4, 0, 4),
                 location: { id: 0, index: -1 },
-                baseMatrix: initalTransform,
+                baseMatrix: initalTransform.clone(),
             },
             // prettier-ignore
             leafs: [],
@@ -167,7 +170,7 @@ export function init(container: HTMLElement): () => void {
             root: {
                 position: new THREE.Vector3(4, 0, -4),
                 location: { id: 1, index: -1 },
-                baseMatrix: initalTransform,
+                baseMatrix: initalTransform.clone(),
             },
             // prettier-ignore
             leafs: [
@@ -194,7 +197,7 @@ export function init(container: HTMLElement): () => void {
             root: {
                 position: new THREE.Vector3(-6, 0, -4),
                 location: { id: 2, index: -1 },
-                baseMatrix: initalTransform,
+                baseMatrix: initalTransform.clone(),
             },
             // prettier-ignore
             leafs: [
@@ -222,7 +225,6 @@ export function init(container: HTMLElement): () => void {
     }
     addTrees(drafter, initalTrees)
     ;(globalThis as any).drafter = drafter
-    console.log(drafter)
 
     testNode = drafter.tree.findNode({ id: 0, index: 2 })
 
@@ -309,7 +311,16 @@ function initOrbit(
     return orbitControls
 }
 
-export { isAppReady, renderer, scene, camera, orbitControls, cube, drafter }
+export {
+    isAppReady,
+    renderer,
+    scene,
+    camera,
+    orbitControls,
+    cube,
+    drafter,
+    interactionManager,
+}
 
 function loadAssets(): Promise<[THREE.Object3D]> {
     return Promise.all([loadGlb("/cube.glb")])

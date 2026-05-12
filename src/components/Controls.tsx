@@ -1,103 +1,219 @@
+import { useMemo } from "react"
 import { controls } from "../App/index"
-import { button, folder, Leva, useControls } from "leva"
-import { settings } from "../App/settings"
+import { button, buttonGroup, folder, Leva, useControls } from "leva"
+import { constants } from "../App/constants"
+
 function Controls() {
-    const Actions = folder({
-        "Add Test Node": button(() => controls.addTestNode()),
-        "Add Many Test Nodes": button(() => {
-            for (let i = 0; i < 20; i++) {
-                controls.addTestNode(100, 100)
-            }
-        }),
-    })
+    function wrapControls<T extends Record<string, any>>(obj: T): T {
+        return Object.fromEntries(
+            Object.entries(obj).map(([key, fn]) => {
+                if (typeof fn !== "function") {
+                    return [key, fn]
+                }
 
-    const Display = folder({
-        Background: {
-            label: "color",
-            value: settings.display.background,
-            onChange: controls.setSceneColor,
-        },
-        Mesh: folder({
-            meshColor: {
-                label: "color",
-                value: settings.display.mesh.color,
-                onChange: controls.setMeshColor,
-            },
-            meshVisible: {
-                label: "visible",
-                value: settings.display.mesh.visible,
-                onChange: controls.setMeshVisible,
-            },
-        }),
-        Line: folder({
-            lineColor: {
-                label: "color",
-                value: settings.display.line.color,
-                onChange: controls.setLineColor,
-            },
-            lineVisible: {
-                label: "visible",
-                value: settings.display.line.visible,
-                onChange: controls.setLineVisible,
-            },
-        }),
-        Projection: folder({
-            projectionColor: {
-                label: "color",
-                value: settings.display.projection.color,
-                onChange: controls.setProjectionColor,
-            },
-            projectionVisible: {
-                label: "visible",
-                value: settings.display.projection.visible,
-                onChange: controls.setProjectionVisible,
-            },
-        }),
-    })
+                return [
+                    key,
+                    (...args: any[]) => {
+                        const value = args[0]
+                        const path = args[1]
+                        const context = args[2]
+                        if (context?.initial) return
+                        if (context?.disabled) return
+                        if (!context?.fromPanel) return
+                        // console.log({ value, path, context })
+                        return fn(value)
+                    },
+                ]
+            })
+        ) as T
+    }
+    const wControls = wrapControls(controls)
 
-    const Camera = folder(
-        {
-            resetCamera: button(controls.resetCamera),
-            toggleCameraRotation: button(controls.toggleCameraRotation),
-        },
-        { collapsed: false }
-    )
-
-    const Export = folder(
-        {
-            saveCubeAsGlb: button(controls.saveCubeAsGlb),
-            saveCubeAsGltf: button(controls.saveCubeAsGltf),
-        },
-        { collapsed: true }
-    )
-
-    const Debug = folder(
-        {
-            showStats: {
-                label: "Show Stats",
-                value: false,
-                onChange: controls.setStatsVisible,
+    const schema = useMemo(() => {
+        const Export = folder(
+            {
+                saveCubeAsGlb: button(controls.saveCubeAsGlb),
+                saveCubeAsGltf: button(controls.saveCubeAsGltf),
             },
-            rootScale: {
-                label: "Root Scale",
+            { collapsed: true }
+        )
+
+        const Debug = folder(
+            {
+                showStats: {
+                    label: "Show Stats",
+                    value: false,
+                    onChange: wControls.setStatsVisible,
+                },
+                toggleCameraRotation: button(controls.toggleCameraRotation),
+                Export,
+            },
+            { collapsed: false, color: "#d30000" }
+        )
+
+        const Actions = folder({
+            "Add Test Node": button(() => controls.addTestNode()),
+            "Add Many Test Nodes": button(() => {
+                for (let i = 0; i < 20; i++) {
+                    controls.addTestNode(100, 100)
+                }
+            }),
+        })
+
+        const Scene = folder(
+            {
+                Background: {
+                    label: "Background",
+                    value: constants.display.background,
+                    onChange: wControls.setSceneColor,
+                },
+                Mesh: folder(
+                    {
+                        meshColor: {
+                            label: "Color",
+                            value: constants.display.mesh.color,
+                            onChange: wControls.setMeshColor,
+                        },
+                        meshVisible: {
+                            label: "Visible",
+                            value: constants.display.mesh.visible,
+                            onChange: wControls.setMeshVisible,
+                        },
+                    },
+                    {}
+                ),
+                Line: folder({
+                    lineColor: {
+                        label: "Color",
+                        value: constants.display.line.color,
+                        onChange: wControls.setLineColor,
+                    },
+                    lineVisible: {
+                        label: "Visible",
+                        value: constants.display.line.visible,
+                        onChange: wControls.setLineVisible,
+                    },
+                    lineLinewidth: {
+                        label: "Line Width",
+                        value: constants.display.line.lineWidth,
+                        min: 0,
+                        max: 10,
+                        step: 0.001,
+                        onChange: wControls.setLineWidth,
+                    },
+                }),
+                Dash: folder({
+                    dashColor: {
+                        label: "Color",
+                        value: constants.display.dash.color,
+                        onChange: wControls.setDashColor,
+                    },
+                    dashVisible: {
+                        label: "Visible",
+                        value: constants.display.dash.visible,
+                        onChange: wControls.setDashVisible,
+                    },
+                }),
+                Projection: folder({
+                    projectionColor: {
+                        label: "Color",
+                        value: constants.display.projection.color,
+                        onChange: wControls.setProjectionColor,
+                    },
+                    projectionVisible: {
+                        label: "Visible",
+                        value: constants.display.projection.visible,
+                        onChange: wControls.setProjectionVisible,
+                    },
+                }),
+            },
+            { collapsed: true }
+        )
+
+        const Display = folder({
+            theme: {
+                label: "Theme",
+                value: constants.theme,
+                options: constants.themeOptions,
+                onChange: wControls.themeSelect,
+            },
+            Scene,
+        })
+
+        const Settings = folder(
+            {
+                controlScheme: {
+                    label: "Control Scheme",
+                    value: "default",
+                    options: {
+                        default: "default",
+                    },
+                    disabled: true,
+                },
+                snap: {
+                    label: "Snap",
+                    value: true,
+                    disabled: true,
+                },
+            },
+            { collapsed: true }
+        )
+
+        const Stub = folder({
+            position: {
+                value: {
+                    x: 0,
+                    z: 0,
+                },
+                min: -100,
+                max: 100,
+                step: 0.01,
+                disabled: true,
+                lock: true,
+                onChange: wControls.moveNodeFromSelection,
+            },
+            rotate: {
+                value: {
+                    y: 0,
+                    x: 0,
+                },
+                min: -180,
+                max: 180,
+                step: 0.5,
+                disabled: true,
+                onChange: wControls.rotateRootFromSelection,
+            },
+            scale: {
                 value: 1,
-                min: 0.1,
-                max: 4,
-                step: 0.05,
-                onChange: controls.setRootScaleMatrix,
+                min: 0.05,
+                max: 5,
+                disabled: true,
+                // onEditEnd: controls.scaleRootFromSelection,
+                onChange: wControls.scaleRootFromSelection,
             },
-        },
-        { collapsed: true }
-    )
+            buttonGroup: buttonGroup({
+                label: "",
+                opts: {
+                    Add: controls.addLeafNearbyRandomlyFromSelection,
+                    Delete: controls.pruneNodeFromSelection,
+                    Cut: () => {},
+                },
+            }),
+        })
 
-    useControls({
-        Actions,
-        Display,
-        Camera,
-        Export,
-        Debug,
-        "Download Image": button(() => controls.downloadImage()),
-    })
+        return {
+            Debug,
+            Actions,
+            Display,
+            "Reset Camera": button(controls.resetCamera),
+            "Download Image": button(() => controls.downloadImage()),
+            Settings,
+            Import: button(() => {}, { disabled: false }),
+            Stub,
+        }
+    }, [])
+
+    useControls(schema)
 
     return (
         <>
