@@ -22,6 +22,7 @@ export type InstanceItem = {
         instanceMatrix: THREE.InstancedBufferAttribute
         dataTexture: THREE.DataTexture
         parentIDs: THREE.InstancedBufferAttribute
+        nodeSlot: THREE.InstancedBufferAttribute
     }
     group: THREE.Group
     instances: {
@@ -45,22 +46,36 @@ export function createInstanceItem(
     const geometries = brushCleaner(geometry)
     const localTransform = geometries.localTransform
 
-    const mesh = new THREE.InstancedMesh(
-        geometries.meshGeometry,
-        materials.mesh,
-        capacity
+    // slot lookup
+    const nodeSlot = new THREE.InstancedBufferAttribute(
+        new Float32Array(capacity),
+        1
     )
-    mesh.renderOrder = 0
 
-    let line
+    let mesh, line
+
     if (activeMaterialLib === "gl_Line") {
+        mesh = new THREE.InstancedMesh(
+            geometries.meshGeometry,
+            materials.mesh,
+            capacity
+        )
+        mesh.renderOrder = 0
+
         line = new InstancedLineSegments<THREE.LineBasicMaterial>(
             geometries.lineGeometry,
             materials.line,
             capacity
         )
         line.renderOrder = 2
-    } else {
+    } else if (activeMaterialLib === "linewidth") {
+        mesh = new THREE.InstancedMesh(
+            geometries.meshGeometry,
+            materials.mesh,
+            capacity
+        )
+        mesh.renderOrder = 0
+
         const lineMaterial = materials.line.clone() as DataTextureLineMaterial
         const lineGeometry = new DataTextureLineSegmentsGeometry(
             geometries.lineGeometry
@@ -72,6 +87,22 @@ export function createInstanceItem(
         line.onBeforeRender = () => {
             lineMaterial.resolution.set(window.innerWidth, window.innerHeight)
         }
+    } else {
+        //globalNode
+        mesh = new THREE.InstancedMesh(
+            geometries.meshGeometry,
+            materials.mesh,
+            capacity
+        )
+        mesh.geometry.setAttribute("nodeSlot", nodeSlot)
+        mesh.renderOrder = 0
+
+        line = new InstancedLineSegments<THREE.LineBasicMaterial>(
+            geometries.lineGeometry,
+            materials.line,
+            capacity
+        )
+        line.renderOrder = 2
     }
 
     const dash = new InstancedLineSegments<THREE.LineDashedMaterial>(
@@ -132,6 +163,7 @@ export function createInstanceItem(
             instanceMatrix,
             dataTexture,
             parentIDs,
+            nodeSlot,
         },
         group,
         instances: {

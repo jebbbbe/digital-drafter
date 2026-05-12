@@ -70,10 +70,12 @@ export function updateBufferRanges(
         instanceMatrix,
         dataTexture,
         parentIDs,
+        nodeSlot,
     }: {
         instanceMatrix: THREE.InstancedBufferAttribute
         dataTexture: THREE.DataTexture
         parentIDs: THREE.InstancedBufferAttribute
+        nodeSlot: THREE.InstancedBufferAttribute
     }
 ) {
     if (instanceMatrix.updateRanges.length >= maxUpdateRanges) {
@@ -90,6 +92,8 @@ export function updateBufferRanges(
     instanceMatrix.needsUpdate = true
     dataTexture.needsUpdate = true
     parentIDs.needsUpdate = true
+
+    nodeSlot.needsUpdate = true
 }
 
 /**

@@ -57,6 +57,10 @@ export function setStatsEnabled(value: boolean): void {
 export function init(container: HTMLElement): () => void {
     // const assetsLoader = loadAssets()x
 
+    if (import.meta.env.DEV) {
+        console.log("DEV")
+    }
+
     dispose()
 
     //layout
@@ -257,7 +261,7 @@ function render(): void {
     }
     orbitControls.update()
     renderer.render(scene, camera)
-    if (testNode) {
+    if (testNode && false) {
         testNode.position.x += testNodeVelocityX
         if (testNode.position.x >= 2.75 || testNode.position.x <= 1.25) {
             testNodeVelocityX *= -1

@@ -43,7 +43,7 @@ export const constants = {
                 display: {
                     background: "#fffcee",
                     mesh: {
-                        color: "#fffdf6",
+                        color: "#f9fff6",
                         visible: true,
                     },
                     line: {
@@ -64,7 +64,7 @@ export const constants = {
                 display: {
                     background: "#ffffff",
                     mesh: {
-                        color: "#ffffff",
+                        color: "#49cf6f",
                         visible: true,
                     },
                     line: {

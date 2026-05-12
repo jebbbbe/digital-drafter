@@ -17,14 +17,15 @@ import {
 } from "./InstanceItem"
 import type { NodeLocation } from "./TransformTree"
 import { walkSubtree } from "./recursive"
-
+import { GlobalNodeTexture } from "../objects/textures/GlobalNodeTexture"
 import { matlib } from "./materialManager"
 
 export class Drafter {
-    tree!: TransformTree
-    scene!: THREE.Scene
-    instanceItems: FreeList<InstanceItem>
+    tree = new TransformTree()
+    instanceItems: FreeList<InstanceItem> = new FreeList()
     interactivObjects: THREE.Object3D[] = []
+    scene!: THREE.Scene
+    globalNodeTexture = new GlobalNodeTexture({})
     materials = {
         ...matlib,
         debugLine: new THREE.LineBasicMaterial({
@@ -44,9 +45,15 @@ export class Drafter {
 
     constructor(scene: THREE.Scene, debug: boolean = false) {
         this.scene = scene
-        this.instanceItems = new FreeList()
-        this.tree = new TransformTree()
+        this.assignTexture()
         if (debug) this.setUpDebug()
+    }
+    assignTexture() {
+        try {
+            this.materials.mesh.nodeData = this.globalNodeTexture.texture
+            this.materials.mesh.nodeDataSize =
+                this.globalNodeTexture.textureSize
+        } catch {}
     }
 
     setUpDebug() {
@@ -58,6 +65,9 @@ export class Drafter {
     newInstance(geometry: THREE.BufferGeometry): InstanceItem {
         // get next avaliable index from freelist
         const id = this.instanceItems.nextIndex()
+        //reserve space
+        const grew = this.globalNodeTexture.incBlockCount()
+        if (grew) this.assignTexture()
         // create new InstanceItem
         const newInstanceItem = createInstanceItem(geometry, this.materials, id)
         // add Geo to the Scene
@@ -97,6 +107,7 @@ export class Drafter {
         // remove from both freelists,
         this.instanceItems.remove(id)
         this.tree.removeBucket(id)
+        this.globalNodeTexture.decBlockCount()
         // todo
         // we will need to remove all node children located in another freelist id,
         // we can implement when we atart to have this with geo csg brush
@@ -137,8 +148,16 @@ export class Drafter {
 
         // increment count
         incrementInstanceCount(instanceItem)
-        //  this should correctly set the root matrix?
-        applyNodeMatrixUpdate(node, this.instanceItems)
+
+        // this should be wrong
+        node.baseMatrix.makeTranslation(node.position)
+        node.compoundMatrix
+            .copy(node.baseMatrix)
+            .multiply(instanceItem.localTransform)
+
+        const slot = this.setNodeTextureAt(node)
+        setInstanceBuffersIndex(instanceItem, node, slot)
+
         // update matrix
         computeBoundingSphere(instanceItem)
     }
@@ -178,7 +197,12 @@ export class Drafter {
         this.tree.addNode(node, parent)
 
         incrementInstanceCount(instanceItem)
-        applyNodeMatrixUpdate(node, this.instanceItems)
+        // applyNodeMatrixUpdate(node, this.instanceItems)
+        calculateBaseMatrix(node)
+        calculateCompoundMatrix(node)
+
+        const slot = this.setNodeTextureAt(node)
+        setInstanceBuffersIndex(instanceItem, node, slot)
         computeBoundingSphere(instanceItem)
 
         // console.log("addLeafNode")
@@ -246,10 +270,6 @@ export class Drafter {
 
         calculateBaseMatrix(patchedNode)
         //update childrens base matrix as it depends on parent pos.
-        const children = patchedNode.children
-        for (let i = 0; i < children.length; i++) {
-            calculateBaseMatrix(children[i])
-        }
 
         const subtree: TransformNode[] = []
 
@@ -264,7 +284,8 @@ export class Drafter {
             const id = node.location.id
             const instanceItem = this.instanceItems[id]
             if (!instanceItem) continue
-            setInstanceBuffersIndex(instanceItem, node)
+            const slot = this.setNodeTextureAt(node)
+            setInstanceBuffersIndex(instanceItem, node, slot)
             sphereUpdate[id] = instanceItem
         }
 
@@ -273,43 +294,19 @@ export class Drafter {
             computeBoundingSphere(sphereUpdate[key])
         }
     }
-}
-
-/*
-applies tree based update to TransformNode
-updates instances buffers to be draw to screen
-*/
-function applyNodeMatrixUpdate(
-    node: TransformNode,
-    instanceItems: FreeList<InstanceItem>
-) {
-    // we must look up the instance here, as child might have other id
-    const instanceItem = instanceItems[node.location.id]
-    if (!instanceItem) {
-        console.error("couldnt find instanceItem at id", node)
-        return
+    setNodeTextureAt(node: TransformNode) {
+        const slot = this.globalNodeTexture.getSlot(node.location)
+        const parentSlot = this.globalNodeTexture.getSlot(node.parent.location)
+        const update = [
+            ...node.compoundMatrix.elements,
+            parentSlot,
+            0, // not in use yet
+            0,
+            0,
+        ] as any // 20 elem list...
+        this.globalNodeTexture.writeMatrix(slot, update)
+        return slot
     }
-
-    const isRoot = node.parent === node
-
-    if (!isRoot) {
-        calculateProjectionMatrix(
-            node.parent.position,
-            node.position,
-            node.baseMatrix
-        )
-        node.compoundMatrix
-            .copy(node.baseMatrix)
-            .multiply(node.parent.compoundMatrix)
-    } else {
-        node.baseMatrix.makeTranslation(node.position)
-        node.compoundMatrix
-            .copy(node.baseMatrix)
-            .multiply(instanceItem.localTransform)
-    }
-
-    // update buffers
-    setInstanceBuffersIndex(instanceItem, node)
 }
 
 const _matrixPosition = new THREE.Vector3()
@@ -330,11 +327,25 @@ function calculateBaseMatrix(node: TransformNode) {
             node.baseMatrix
         )
     }
+    //update direct childrens base matrix as it depends on parent pos.
+    const children = node.children
+    for (let i = 0; i < children.length; i++) {
+        calculateBaseMatrixChild(children[i])
+    }
+}
+
+function calculateBaseMatrixChild(node: TransformNode) {
+    // cant be a root by definition
+    calculateProjectionMatrix(
+        node.parent.position,
+        node.position,
+        node.baseMatrix
+    )
 }
 
 function calculateCompoundMatrix(
     node: TransformNode,
-    subTree: TransformNode[]
+    subTree: TransformNode[] = []
 ) {
     subTree.push(node)
 
@@ -351,7 +362,8 @@ function calculateCompoundMatrix(
 
 function setInstanceBuffersIndex(
     instanceItem: InstanceItem,
-    node: TransformNode
+    node: TransformNode,
+    slot: number
 ) {
     const index = node.location.index
     // update matrix buffer
@@ -368,6 +380,9 @@ function setInstanceBuffersIndex(
     )
     // set updateRanges for faster gpu patch
     updateBufferRanges(index, instanceItem.buffers)
+
+    // update instance slot
+    setUintAttributeAt(instanceItem.buffers.nodeSlot, index, slot)
 }
 
 /*
