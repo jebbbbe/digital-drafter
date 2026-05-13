@@ -38,7 +38,7 @@ const defaultSlot: SlotData = [
 /**
  * Stores per-instance slot data in a growable square float texture for shader lookup.
  */
-export class GlobalNodeTexture {
+export class GlobalTreeTexture {
     stride = 16 + 4 // 16 matrix + 4 metadata floats
     texelsPerSlot = this.stride / 4
     blockCount = 0

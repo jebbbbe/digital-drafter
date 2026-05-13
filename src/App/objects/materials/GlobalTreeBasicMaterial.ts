@@ -1,49 +1,49 @@
 import * as THREE from "three"
 import { glslChunks } from "../textures/glsl"
 
-type GlobalNodeBasicParameters = THREE.MeshBasicMaterialParameters & {
-    nodeData?: THREE.DataTexture | null
-    nodeDataSize?: number
+type GlobalTreeBasicParameters = THREE.MeshBasicMaterialParameters & {
+    treeData?: THREE.DataTexture | null
+    treeDataSize?: number
 }
 
-export class GlobalNodeBasicMaterial extends THREE.MeshBasicMaterial {
+export class GlobalTreeBasicMaterial extends THREE.MeshBasicMaterial {
     shader?: THREE.WebGLProgramParametersWithUniforms
     customUniforms: {
-        nodeData: { value: THREE.DataTexture | null }
-        nodeDataSize: { value: number }
+        treeData: { value: THREE.DataTexture | null }
+        treeDataSize: { value: number }
     }
 
-    constructor(parameters: GlobalNodeBasicParameters = {}) {
+    constructor(parameters: GlobalTreeBasicParameters = {}) {
         const params = { ...parameters }
-        delete params.nodeData
-        delete params.nodeDataSize
+        delete params.treeData
+        delete params.treeDataSize
         super(params)
 
         this.customUniforms = {
-            nodeData: {
-                value: parameters.nodeData ?? null,
+            treeData: {
+                value: parameters.treeData ?? null,
             },
-            nodeDataSize: {
-                value: parameters.nodeDataSize ?? 1,
+            treeDataSize: {
+                value: parameters.treeDataSize ?? 1,
             },
         }
 
-        Object.defineProperty(this, "nodeData", {
-            get: () => this.customUniforms.nodeData.value,
+        Object.defineProperty(this, "treeData", {
+            get: () => this.customUniforms.treeData.value,
             set: (value: THREE.DataTexture | null) => {
-                this.customUniforms.nodeData.value = value
+                this.customUniforms.treeData.value = value
                 if (this.shader) {
-                    this.shader.uniforms.nodeData.value = value
+                    this.shader.uniforms.treeData.value = value
                 }
             },
         })
 
-        Object.defineProperty(this, "nodeDataSize", {
-            get: () => this.customUniforms.nodeDataSize.value,
+        Object.defineProperty(this, "treeDataSize", {
+            get: () => this.customUniforms.treeDataSize.value,
             set: (value: number) => {
-                this.customUniforms.nodeDataSize.value = value
+                this.customUniforms.treeDataSize.value = value
                 if (this.shader) {
-                    this.shader.uniforms.nodeDataSize.value = value
+                    this.shader.uniforms.treeDataSize.value = value
                 }
             },
         })
@@ -62,10 +62,10 @@ export class GlobalNodeBasicMaterial extends THREE.MeshBasicMaterial {
                 ${glslChunks.attribute}
                 ${glslChunks.read}
 
-                mat4 loadGlobalNodeBasicMatrix() {
+                mat4 loadGlobalTreeBasicMatrix() {
                     mat4 matrix;
                     vec4 metadata;
-                    readNodeData(int(nodeSlot), matrix, metadata);
+                    readTreeData(int(nodeSlot), matrix, metadata);
                     return matrix;
                 }
                 `
@@ -77,7 +77,7 @@ export class GlobalNodeBasicMaterial extends THREE.MeshBasicMaterial {
                 #include <begin_vertex>
 
                 #ifdef USE_INSTANCING
-                    transformed = (loadGlobalNodeBasicMatrix() * vec4(transformed, 1.0)).xyz;
+                    transformed = (loadGlobalTreeBasicMatrix() * vec4(transformed, 1.0)).xyz;
                 #endif
                 `
             )
@@ -89,7 +89,7 @@ export class GlobalNodeBasicMaterial extends THREE.MeshBasicMaterial {
 
 declare module "three" {
     interface MeshBasicMaterial {
-        nodeData?: THREE.DataTexture | null
-        nodeDataSize?: number
+        treeData?: THREE.DataTexture | null
+        treeDataSize?: number
     }
 }

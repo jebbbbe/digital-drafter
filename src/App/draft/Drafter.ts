@@ -17,7 +17,7 @@ import {
 } from "./InstanceItem"
 import type { NodeLocation } from "./TransformTree"
 import { walkSubtree } from "./recursive"
-import { GlobalNodeTexture } from "../objects/textures/GlobalNodeTexture"
+import { GlobalTreeTexture } from "../objects/textures/GlobalTreeTexture"
 import { matlib } from "./materialManager"
 
 export class Drafter {
@@ -25,7 +25,7 @@ export class Drafter {
     instanceItems: FreeList<InstanceItem> = new FreeList()
     interactivObjects: THREE.Object3D[] = []
     scene!: THREE.Scene
-    globalNodeTexture = new GlobalNodeTexture({})
+    globalTreeTexture = new GlobalTreeTexture({})
     materials = {
         ...matlib,
         debugLine: new THREE.LineBasicMaterial({
@@ -50,9 +50,9 @@ export class Drafter {
     }
     assignTexture() {
         try {
-            this.materials.mesh.nodeData = this.globalNodeTexture.texture
-            this.materials.mesh.nodeDataSize =
-                this.globalNodeTexture.textureSize
+            this.materials.mesh.treeData = this.globalTreeTexture.texture
+            this.materials.mesh.treeDataSize =
+                this.globalTreeTexture.textureSize
         } catch {}
     }
 
@@ -66,7 +66,7 @@ export class Drafter {
         // get next avaliable index from freelist
         const id = this.instanceItems.nextIndex()
         //reserve space
-        const grew = this.globalNodeTexture.incBlockCount()
+        const grew = this.globalTreeTexture.incBlockCount()
         if (grew) this.assignTexture()
         // create new InstanceItem
         const newInstanceItem = createInstanceItem(geometry, this.materials, id)
@@ -107,7 +107,7 @@ export class Drafter {
         // remove from both freelists,
         this.instanceItems.remove(id)
         this.tree.removeBucket(id)
-        this.globalNodeTexture.decBlockCount()
+        this.globalTreeTexture.decBlockCount()
         // todo
         // we will need to remove all node children located in another freelist id,
         // we can implement when we atart to have this with geo csg brush
@@ -295,8 +295,8 @@ export class Drafter {
         }
     }
     setNodeTextureAt(node: TransformNode) {
-        const slot = this.globalNodeTexture.getSlot(node.location)
-        const parentSlot = this.globalNodeTexture.getSlot(node.parent.location)
+        const slot = this.globalTreeTexture.getSlot(node.location)
+        const parentSlot = this.globalTreeTexture.getSlot(node.parent.location)
         const update = [
             ...node.compoundMatrix.elements,
             parentSlot,
@@ -304,7 +304,7 @@ export class Drafter {
             0,
             0,
         ] as any // 20 elem list...
-        this.globalNodeTexture.writeMatrix(slot, update)
+        this.globalTreeTexture.writeMatrix(slot, update)
         return slot
     }
 }

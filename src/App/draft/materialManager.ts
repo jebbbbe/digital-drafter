@@ -2,7 +2,7 @@ import * as THREE from "three"
 import { constants } from "../constants"
 import { DataTextureLineMaterial } from "../objects/materials/DataTextureLineMaterial"
 import { InstancedProjectionMaterial } from "../objects/materials/InstancedProjectionMaterial"
-import { GlobalNodeBasicMaterial } from "../objects/materials/GlobalNodeBasicMaterial"
+import { GlobalTreeBasicMaterial } from "../objects/materials/GlobalTreeBasicMaterial"
 0
 type ActiveMaterialLib = "gl_Line" | "linewidth" | "globalNode"
 const activeMaterialLib: ActiveMaterialLib = "globalNode"
@@ -69,7 +69,7 @@ const MaterialsLib = {
             gapSize: 0.01,
             depthTest: false,
         }),
-        mesh: new GlobalNodeBasicMaterial({
+        mesh: new GlobalTreeBasicMaterial({
             color: display.mesh.color,
             polygonOffset: true,
             polygonOffsetFactor: 1,
