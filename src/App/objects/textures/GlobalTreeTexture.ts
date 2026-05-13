@@ -98,6 +98,8 @@ export class GlobalTreeTexture {
 
         padded.set(this.array)
 
+        this.array = padded
+
         const texture = new THREE.DataTexture(
             padded,
             this.textureSize,

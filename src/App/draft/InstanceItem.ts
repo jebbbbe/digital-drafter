@@ -127,7 +127,8 @@ export function createInstanceItem(
     proj.frustumCulled = false // it doesnt use its matrix buffer, so bounding sphere doesnt update correctly...
 
     //match shared instanceMatrix
-    const instanceMatrix = mesh.instanceMatrix
+    // const instanceMatrix = mesh.instanceMatrix
+    const instanceMatrix = line.instanceMatrix
     line.instanceMatrix = instanceMatrix
     dash.instanceMatrix = instanceMatrix
 

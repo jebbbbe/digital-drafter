@@ -378,11 +378,10 @@ function setInstanceBuffersIndex(
         index,
         node.parent.location.index
     )
-    // set updateRanges for faster gpu patch
-    updateBufferRanges(index, instanceItem.buffers)
-
     // update instance slot
     setUintAttributeAt(instanceItem.buffers.nodeSlot, index, slot)
+    // set updateRanges for faster gpu patch
+    updateBufferRanges(index, instanceItem.buffers)
 }
 
 /*

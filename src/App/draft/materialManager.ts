@@ -3,11 +3,16 @@ import { constants } from "../constants"
 import { DataTextureLineMaterial } from "../objects/materials/DataTextureLineMaterial"
 import { InstancedProjectionMaterial } from "../objects/materials/InstancedProjectionMaterial"
 import { GlobalTreeBasicMaterial } from "../objects/materials/GlobalTreeBasicMaterial"
-0
+import { wrapInstancedWithGlobalTreeTexture } from "../objects/materials/wrapInstancedWithGlobalTreeTexture"
+
 type ActiveMaterialLib = "gl_Line" | "linewidth" | "globalNode"
 const activeMaterialLib: ActiveMaterialLib = "globalNode"
 
 const display = constants.themes.objects[constants.theme].display as any
+
+const CustomMeshBasicMaterial = wrapInstancedWithGlobalTreeTexture(
+    THREE.MeshBasicMaterial
+)
 
 const MaterialsLib = {
     gl_Line: {
@@ -69,13 +74,21 @@ const MaterialsLib = {
             gapSize: 0.01,
             depthTest: false,
         }),
-        mesh: new GlobalTreeBasicMaterial({
+        // mesh: new GlobalTreeBasicMaterial({
+        //     color: display.mesh.color,
+        //     polygonOffset: true,
+        //     polygonOffsetFactor: 1,
+        //     polygonOffsetUnits: 1,
+        //     // depthWrite: true,
+        // }),
+        mesh: new CustomMeshBasicMaterial({
             color: display.mesh.color,
             polygonOffset: true,
             polygonOffsetFactor: 1,
             polygonOffsetUnits: 1,
             // depthWrite: true,
         }),
+
         // this one needs to be cloned everytime
         projection: new InstancedProjectionMaterial({
             color: display.projection.color,
