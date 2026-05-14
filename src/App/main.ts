@@ -111,13 +111,22 @@ export function init(container: HTMLElement): () => void {
     drafter = new Drafter(scene)
 
     // const initalGeo = shape.makeCustomMergeShape()
-    const initalGeo0 = shape.makeCustomBVHShape()
+    let initalGeo0 = shape.makeCustomBVHShape()
     // const initalGeo = shape.makeCustomBVHHierarchyShape()
-    const initalGeo = shape.makeAsterix(0.1)
-    const initalGeo1 = shape.makeAsterix(30)
+    let initalGeo = shape.makeAsterix(0.1)
+    let initalGeo1 = shape.makeAsterix(10)
     // const initalGeo = shape.makeBadSphere(0.95)
     // const initalGeo = shape.createWeirdSphereoid(2)
     // const initalGeo = shape.createMengerSpongeGeometry(2)
+    const r = Math.random()
+    if (r < 1 / 3) {
+        // prettier-ignore
+        ;[initalGeo0, initalGeo, initalGeo1] = [initalGeo1, initalGeo0, initalGeo]
+    } else if (r < 2 / 3) {
+        // prettier-ignore
+        ;[initalGeo0, initalGeo, initalGeo1] = [initalGeo, initalGeo1, initalGeo0]
+    }
+
     drafter.newInstance(initalGeo)
     drafter.newInstance(initalGeo0)
     drafter.newInstance(initalGeo1)

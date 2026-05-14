@@ -98,6 +98,24 @@ export function setDashGapSize(value: number): void {
     drafter.materials.dash.gapSize = value
 }
 
+export function setFoldColor(value: string): void {
+    drafter.materials.fold.color.set(value)
+}
+export function setFoldVisible(value: boolean): void {
+    const len = drafter.instanceItems.length
+    for (let i = 0; i < len; i++) {
+        const instanceItem = drafter.instanceItems[i]
+        if (!instanceItem) continue
+        instanceItem.instances.fold.visible = value
+    }
+}
+export function setFoldDistance(value: number): void {
+    drafter.materials.fold.foldDistance = value
+}
+export function setFoldSize(value: number): void {
+    drafter.materials.fold.foldSize = value
+}
+
 export function setGizmoColors(colors: {
     xAxis: string
     yAxis: string
@@ -136,8 +154,14 @@ export function themeSelect(theme: string): boolean {
         setLineVisible(newTheme.line.visible)
         setDashColor(newTheme.dash.color)
         setDashVisible(newTheme.dash.visible)
+        setDashDashSize(newTheme.dash.dashSize)
+        setDashGapSize(newTheme.dash.gapSize)
         setProjectionColor(newTheme.projection.color)
         setProjectionVisible(newTheme.projection.visible)
+        setFoldColor(newTheme.fold.color)
+        setFoldVisible(newTheme.fold.visible)
+        setFoldDistance(newTheme.fold.foldDistance)
+        setFoldSize(newTheme.fold.foldSize)
 
         syncLevaDisplayControls(newTheme)
     }

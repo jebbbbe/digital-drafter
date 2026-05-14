@@ -142,6 +142,34 @@ function Controls() {
                         onChange: wControls.setProjectionVisible,
                     },
                 }),
+                Fold: folder({
+                    foldColor: {
+                        label: "Color",
+                        value: constants.display.fold.color,
+                        onChange: wControls.setFoldColor,
+                    },
+                    foldVisible: {
+                        label: "Visible",
+                        value: constants.display.fold.visible,
+                        onChange: wControls.setFoldVisible,
+                    },
+                    foldDistance: {
+                        label: "Distance",
+                        min: 0,
+                        max: 5,
+                        step: 0.01,
+                        value: constants.display.fold.foldDistance,
+                        onChange: wControls.setFoldDistance,
+                    },
+                    foldSize: {
+                        label: "Size",
+                        min: 0,
+                        max: 5,
+                        step: 0.01,
+                        value: constants.display.fold.foldSize,
+                        onChange: wControls.setFoldSize,
+                    },
+                }),
             },
             { collapsed: true }
         )

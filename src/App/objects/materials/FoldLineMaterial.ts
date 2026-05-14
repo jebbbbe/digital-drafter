@@ -4,6 +4,8 @@ type InstancedProjectionMaterialParameters =
     THREE.LineBasicMaterialParameters & {
         treeData?: THREE.DataTexture | null
         treeDataSize?: number
+        foldDistance?: number
+        foldSize?: number
     }
 
 export class FoldLineMaterial extends THREE.LineBasicMaterial {
@@ -11,6 +13,8 @@ export class FoldLineMaterial extends THREE.LineBasicMaterial {
     customUniforms: {
         treeData: { value: THREE.DataTexture | null }
         treeDataSize: { value: number }
+        foldDistance: { value: number }
+        foldSize: { value: number }
     }
 
     constructor(parameters: InstancedProjectionMaterialParameters = {}) {
@@ -25,6 +29,12 @@ export class FoldLineMaterial extends THREE.LineBasicMaterial {
             },
             treeDataSize: {
                 value: parameters.treeDataSize ?? 1,
+            },
+            foldDistance: {
+                value: parameters.foldDistance ?? 1.1,
+            },
+            foldSize: {
+                value: parameters.foldSize ?? 1.1,
             },
         }
 
@@ -48,6 +58,26 @@ export class FoldLineMaterial extends THREE.LineBasicMaterial {
             },
         })
 
+        Object.defineProperty(this, "foldDistance", {
+            get: () => this.customUniforms.foldDistance.value,
+            set: (value: number) => {
+                this.customUniforms.foldDistance.value = value
+                if (this.shader) {
+                    this.shader.uniforms.foldDistance.value = value
+                }
+            },
+        })
+
+        Object.defineProperty(this, "foldSize", {
+            get: () => this.customUniforms.foldSize.value,
+            set: (value: number) => {
+                this.customUniforms.foldSize.value = value
+                if (this.shader) {
+                    this.shader.uniforms.foldSize.value = value
+                }
+            },
+        })
+
         this.onBeforeCompile = (shader) => {
             shader.uniforms = {
                 ...shader.uniforms,
@@ -56,7 +86,8 @@ export class FoldLineMaterial extends THREE.LineBasicMaterial {
 
             shader.vertexShader = shader.vertexShader.replace(
                 "#include <common>",
-                "#include <common>\n#include <tree_attribute>\n#include <tree_funcitons>"
+                "#include <common>\n#include <tree_attribute>\n#include <tree_funcitons>" +
+                    `uniform float foldSize;\nuniform float foldDistance;`
             )
             shader.vertexShader = shader.vertexShader.replace(
                 "void main() {",
@@ -83,8 +114,10 @@ export class FoldLineMaterial extends THREE.LineBasicMaterial {
                 // dont draw lines
                 // (length(dir) < scale*scaleBy) 
                 float dist = scaleBy/2.0;
-                dir*= dist;
-                norm*= dist;
+                // dir*= dist;
+                // norm*= dist;
+                dir *= foldDistance/2.0;
+                norm *= foldSize/2.0;
 
                 if(id == 0){
                     transformed.xz = childPos + dir + norm;
@@ -116,5 +149,7 @@ declare module "three" {
     interface LineBasicMaterial {
         treeData?: THREE.DataTexture | null
         treeDataSize?: number
+        foldDistance?: number
+        foldSize?: number
     }
 }

@@ -32,7 +32,9 @@ const matlib = {
         depthWrite: false,
     }),
     fold: new FoldLineMaterial({
-        color: display.projection.color,
+        color: display.fold.color,
+        foldDistance: display.fold.foldDistance,
+        foldSize: display.fold.foldSize,
         depthTest: true,
         depthWrite: false,
     }),

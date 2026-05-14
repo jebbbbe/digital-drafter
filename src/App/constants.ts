@@ -26,6 +26,12 @@ export const constants = {
             color: "#a7a7a7",
             visible: true,
         },
+        fold: {
+            color: "#a7a7a7",
+            visible: true,
+            foldDistance: 1.75,
+            foldSize: 1.75,
+        },
     },
     theme: "light",
     themeOptions: {
@@ -63,6 +69,12 @@ export const constants = {
                         color: "#a7a7a7",
                         visible: true,
                     },
+                    fold: {
+                        color: "#a7a7a7",
+                        visible: true,
+                        foldDistance: 1.75,
+                        foldSize: 1.75,
+                    },
                 },
             },
             light: {
@@ -85,6 +97,12 @@ export const constants = {
                     projection: {
                         color: "#dfdfdf",
                         visible: true,
+                    },
+                    fold: {
+                        color: "#a7a7a7",
+                        visible: true,
+                        foldDistance: 1.75,
+                        foldSize: 1.75,
                     },
                 },
             },
@@ -109,6 +127,12 @@ export const constants = {
                         color: "#272727",
                         visible: true,
                     },
+                    fold: {
+                        color: "#272727",
+                        visible: true,
+                        foldDistance: 1.75,
+                        foldSize: 1.75,
+                    },
                 },
             },
             horn: {
@@ -131,6 +155,12 @@ export const constants = {
                     projection: {
                         color: "#A0A0A0",
                         visible: true,
+                    },
+                    fold: {
+                        color: "#000000",
+                        visible: true,
+                        foldDistance: 1.75,
+                        foldSize: 1.75,
                     },
                 },
             },
@@ -155,6 +185,12 @@ export const constants = {
                         color: "#787878",
                         visible: true,
                     },
+                    fold: {
+                        color: "#787878",
+                        visible: true,
+                        foldDistance: 1.75,
+                        foldSize: 1.75,
+                    },
                 },
             },
             cab: {
@@ -177,6 +213,12 @@ export const constants = {
                     projection: {
                         color: "#6E6E6E",
                         visible: true,
+                    },
+                    fold: {
+                        color: "#6E6E6E",
+                        visible: true,
+                        foldDistance: 1.75,
+                        foldSize: 1.75,
                     },
                 },
             },
@@ -201,6 +243,12 @@ export const constants = {
                         color: "#ffabab",
                         visible: true,
                     },
+                    fold: {
+                        color: "#ffabab",
+                        visible: true,
+                        foldDistance: 1.75,
+                        foldSize: 1.75,
+                    },
                 },
             },
             orchid: {
@@ -224,35 +272,59 @@ export const constants = {
                         color: "#819720",
                         visible: true,
                     },
+                    fold: {
+                        color: "#819720",
+                        visible: true,
+                        foldDistance: 1.75,
+                        foldSize: 1.75,
+                    },
                 },
             },
             monaki: {
+                /*
+                black background 272822
+                white text F8F8F2
+                orange args FD971F
+                green function A6E22E
+                magenta f92672
+                purple AE81FF
+                red F92672
+                blue 66D9EF
+                yellow E6DB74
+                grey comment 75715E
+                */
                 display: {
-                    background: "#272822", // background
+                    background: "#272822",
                     mesh: {
-                        color: "#272822", // background
+                        color: "#272822",
                         visible: true,
                     },
                     line: {
-                        color: "#F8F8F2", // text
+                        color: "#F8F8F2",
                         visible: true,
                     },
                     dash: {
-                        color: "#FD971F", // args
+                        color: "#FD971F",
                         visible: true,
                         dashSize: 0.05,
                         gapSize: 0.01,
                     },
                     projection: {
-                        color: "#75715E", // comment  // "#AE81FF ", // numbers
+                        color: "#75715E",
                         visible: true,
+                    },
+                    fold: {
+                        color: "#A6E22E",
+                        visible: true,
+                        foldDistance: 1.75,
+                        foldSize: 1.75,
                     },
                 },
                 gizmo: {
-                    xAxis: "#F92672", //new
-                    yAxis: "#A6E22E", // function
-                    zAxis: "#66D9EF", // const
-                    active: "#E6DB74", // string
+                    xAxis: "#F92672",
+                    yAxis: "#A6E22E",
+                    zAxis: "#66D9EF",
+                    active: "#E6DB74",
                 },
             },
             neon: {
@@ -275,6 +347,12 @@ export const constants = {
                     projection: {
                         color: "#5fdbeb",
                         visible: true,
+                    },
+                    fold: {
+                        color: "#5fdbeb",
+                        visible: true,
+                        foldDistance: 1.75,
+                        foldSize: 1.75,
                     },
                 },
             },

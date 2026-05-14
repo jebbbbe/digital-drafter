@@ -11,8 +11,14 @@ export const panelPaths = {
     lineVisible: "Display.Scene.Line.lineVisible",
     dashColor: "Display.Scene.Dash.dashColor",
     dashVisible: "Display.Scene.Dash.dashVisible",
+    dashSize: "Display.Scene.Dash.dashSize",
+    gapSize: "Display.Scene.Dash.gapSize",
     projectionColor: "Display.Scene.Projection.projectionColor",
     projectionVisible: "Display.Scene.Projection.projectionVisible",
+    foldColor: "Display.Scene.Fold.foldColor",
+    foldVisible: "Display.Scene.Fold.foldVisible",
+    foldDistance: "Display.Scene.Fold.foldDistance",
+    foldSize: "Display.Scene.Fold.foldSize",
 
     stubPos: "Stub.position",
     stubRot: "Stub.rotate",
@@ -33,10 +39,18 @@ type DisplayTheme = {
     dash: {
         color: string
         visible: boolean
+        dashSize: number
+        gapSize: number
     }
     projection: {
         color: string
         visible: boolean
+    }
+    fold: {
+        color: string
+        visible: boolean
+        foldDistance: number
+        foldSize: number
     }
 }
 
@@ -50,8 +64,14 @@ export function syncLevaDisplayControls(display: DisplayTheme): void {
             [panelPaths.lineVisible]: display.line.visible,
             [panelPaths.dashColor]: display.dash.color,
             [panelPaths.dashVisible]: display.dash.visible,
+            [panelPaths.dashSize]: display.dash.dashSize,
+            [panelPaths.gapSize]: display.dash.gapSize,
             [panelPaths.projectionColor]: display.projection.color,
             [panelPaths.projectionVisible]: display.projection.visible,
+            [panelPaths.foldColor]: display.fold.color,
+            [panelPaths.foldVisible]: display.fold.visible,
+            [panelPaths.foldDistance]: display.fold.foldDistance,
+            [panelPaths.foldSize]: display.fold.foldSize,
         },
         false
     )

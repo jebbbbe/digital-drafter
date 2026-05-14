@@ -135,6 +135,7 @@ export function createInstanceItem(
     line.visible = display.line.visible
     dash.visible = display.dash.visible
     proj.visible = display.projection.visible
+    fold.visible = display.fold.visible
 
     const group = new THREE.Group()
     group.add(mesh, line, proj, dash, fold)
