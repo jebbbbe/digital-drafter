@@ -1,100 +1,76 @@
 import * as THREE from "three"
-import { extendMaterialInstance, extendMaterialClass } from "./wrapper"
+import { extendMaterialClass, extendMaterialInstance } from "./wrapper"
 import type {
-    MaterialWithShader,
-    UniformMap,
-    MaterialExtension,
+    ExtendedMaterial,
+    ExtendedMaterialClass,
     MaterialClass,
+    MaterialExtension,
 } from "./wrapper"
 import { replaceShader } from "./treeShaderChunk"
 
-type GlobalNodeMaterialParameters = {
+type GlobalNodeMaterial = {
     treeData?: THREE.DataTexture | null
     treeDataSize?: number
-}
-
-type GlobalNodeUniforms = {
-    treeData: { value: THREE.DataTexture | null }
-    treeDataSize: { value: number }
-}
-
-type GlobalNodeMaterialInstance = {
-    shader?: THREE.WebGLProgramParametersWithUniforms
-    customUniforms: GlobalNodeUniforms
-    treeData?: THREE.DataTexture | null
-    treeDataSize?: number
-}
-
-function defineUniformProperty(
-    material: MaterialWithShader,
-    uniforms: UniformMap,
-    key: keyof UniformMap
-) {
-    Object.defineProperty(material, key, {
-        configurable: true,
-        get: () => uniforms[key].value,
-        set: (value) => {
-            uniforms[key].value = value
-            if (material.shader) {
-                material.shader.uniforms[key].value = value
-            }
-        },
-    })
 }
 
 const nodeMatrixExtension: MaterialExtension = {
-    parameterKeys: ["treeData", "treeDataSize"],
-    createUniforms: (parameters) => ({
-        treeData: {
-            value: parameters.treeData ?? null,
-        },
-        treeDataSize: {
-            value: parameters.treeDataSize ?? 1,
-        },
-    }),
-    installProperties: (material, uniforms) => {
-        defineUniformProperty(material, uniforms, "treeData")
-        defineUniformProperty(material, uniforms, "treeDataSize")
+    customUniforms: {
+        treeData: null,
+        treeDataSize: 1,
     },
-    vertex: (source) => {
-        let vertexShader = source.replace(
+    onBeforeCompile: (shader) => {
+        shader.vertexShader = shader.vertexShader.replace(
             "#include <common>",
             "#include <common>\n#include <tree_attribute>\n#include <tree_funcitons>"
         )
-        vertexShader = vertexShader.replace(
+        shader.vertexShader = shader.vertexShader.replace(
             "void main() {",
             "void main() {\n\t#include <tree_main>"
         )
-        return replaceShader(vertexShader)
+        shader.vertexShader = replaceShader(shader.vertexShader)
     },
 }
 
 export function patchNodeMatrix<TMaterial extends THREE.Material>(
-    material: TMaterial,
-    parameters: GlobalNodeMaterialParameters = {}
+    material: TMaterial
 ) {
-    return extendMaterialInstance(
-        material,
-        nodeMatrixExtension,
-        parameters
-    ) as TMaterial & GlobalNodeMaterialInstance
+    return extendMaterialInstance(nodeMatrixExtension, material) as TMaterial &
+        ExtendedMaterial<GlobalNodeMaterial>
 }
 
 export function patchNodeMatrixClass<TBase extends MaterialClass>(
     BaseMaterial: TBase
 ) {
-    type Parameters = ConstructorParameters<TBase>[0] &
-        GlobalNodeMaterialParameters
-    type MaterialInstance = InstanceType<TBase> & GlobalNodeMaterialInstance
-
     return extendMaterialClass(
-        BaseMaterial,
-        nodeMatrixExtension
-    ) as unknown as new (parameters?: Parameters) => MaterialInstance
+        nodeMatrixExtension,
+        BaseMaterial
+    ) as ExtendedMaterialClass<TBase, GlobalNodeMaterial>
 }
 
-const str = ""
-str.replace(
-    `vLineDistance = scale * lineDistance;`,
-    `vec3 _scale = length(vec3(treeMatrix[0]));\n\tvLineDistance = _scale * lineDistance;`
-)
+const dashedLineExtension: MaterialExtension = {
+    // make scale read from treeMatrix isntead of from the uniform.
+    // this lets us use only 1 material isntead of per instance material with different scales.
+    onBeforeCompile: (shader) => {
+        shader.vertexShader = shader.vertexShader.replace(
+            `vLineDistance = scale * lineDistance;`,
+            `float _scale = length(treeMatrix[0].xyz);\n\tvLineDistance = _scale * lineDistance;`
+        )
+        console.log(shader.vertexShader)
+    },
+}
+
+export function patchDashedLine<TMaterial extends THREE.Material>(
+    material: TMaterial
+) {
+    return extendMaterialInstance(dashedLineExtension, material) as TMaterial &
+        ExtendedMaterial<GlobalNodeMaterial>
+}
+
+export function patchDashedLineClass<TBase extends MaterialClass>(
+    BaseMaterial: TBase
+) {
+    return extendMaterialClass(
+        dashedLineExtension,
+        BaseMaterial
+    ) as ExtendedMaterialClass<TBase, GlobalNodeMaterial>
+}

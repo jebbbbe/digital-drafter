@@ -2,85 +2,90 @@ import * as THREE from "three"
 
 export type MaterialClass = new (parameters?: any) => THREE.Material
 
-export type UniformMap = Record<string, { value: any }>
+type UniformMap = Record<string, { value: any }>
 
-export type MaterialWithShader = THREE.Material & {
-    shader?: THREE.WebGLProgramParametersWithUniforms
+type ExtendedBaseMaterial = THREE.Material & {
+    customUniforms?: UniformMap
 }
+
+export type ExtendedMaterial<T extends Record<string, any>> = T & {
+    customUniforms: { [K in keyof T]-?: { value: T[K] } }
+}
+
+export type ExtendedMaterialClass<
+    TBase extends MaterialClass,
+    T extends Record<string, any>,
+> = new (
+    parameters?: ConstructorParameters<TBase>[0] & T
+) => InstanceType<TBase> & ExtendedMaterial<T>
 
 export type MaterialExtension = {
-    parameterKeys?: readonly string[]
-    createUniforms?: (parameters: Record<string, any>) => UniformMap
-    installProperties?: (
-        material: MaterialWithShader,
-        uniforms: UniformMap,
-        parameters: Record<string, any>
+    customUniforms?: Record<string, any>
+    onBeforeCompile?: (
+        shader: THREE.WebGLProgramParametersWithUniforms,
+        material: ExtendedBaseMaterial,
+        renderer: THREE.WebGLRenderer
     ) => void
-    vertex?: (
-        source: string,
-        shader: THREE.WebGLProgramParametersWithUniforms
-    ) => string
-    fragment?: (
-        source: string,
-        shader: THREE.WebGLProgramParametersWithUniforms
-    ) => string
 }
 
-function stripExtensionParameters(
-    parameters: Record<string, any>,
-    keys: readonly string[] = []
-) {
-    const baseParameters = { ...parameters }
-    for (const key of keys) {
-        delete baseParameters[key]
-    }
-    return baseParameters
-}
-
-export function extendMaterialInstance<TMaterial extends THREE.Material>(
-    material: TMaterial,
+function applyMaterialExtension(
     extension: MaterialExtension,
+    material: ExtendedBaseMaterial,
     parameters: Record<string, any> = {}
 ) {
-    const uniforms = extension.createUniforms?.(parameters) ?? {}
-    extension.installProperties?.(
-        material as MaterialWithShader,
-        uniforms,
-        parameters
-    )
+    const customUniforms = material.customUniforms ?? {}
+    const uniformKeys = Object.keys(extension.customUniforms ?? {})
+
+    material.customUniforms = customUniforms
+
+    for (const key of uniformKeys) {
+        if (!(key in customUniforms)) {
+            customUniforms[key] = {
+                value: parameters[key] ?? extension.customUniforms?.[key],
+            }
+        }
+
+        Object.defineProperty(material, key, {
+            configurable: true,
+            get: () => customUniforms[key].value,
+            set: (value) => {
+                customUniforms[key].value = value
+            },
+        })
+    }
 
     const previousOnBeforeCompile = material.onBeforeCompile
 
     material.onBeforeCompile = function (shader, renderer) {
+        if (uniformKeys.length > 0) {
+            shader.uniforms = {
+                ...shader.uniforms,
+                ...customUniforms,
+            }
+        }
+
         previousOnBeforeCompile?.call(this, shader, renderer)
-
-        shader.uniforms = {
-            ...shader.uniforms,
-            ...uniforms,
-        }
-
-        if (extension.vertex) {
-            shader.vertexShader = extension.vertex(shader.vertexShader, shader)
-        }
-
-        if (extension.fragment) {
-            shader.fragmentShader = extension.fragment(
-                shader.fragmentShader,
-                shader
-            )
-        }
-
-        ;(this as MaterialWithShader).shader = shader
-        this.userData.shader = shader
+        extension.onBeforeCompile?.(
+            shader,
+            this as ExtendedBaseMaterial,
+            renderer
+        )
     }
 
     material.needsUpdate = true
-    return material as TMaterial & MaterialWithShader
+    return material
+}
+
+export const extendMaterialInstance = <TMaterial extends THREE.Material>(
+    extension: MaterialExtension,
+    material: TMaterial
+) => {
+    return applyMaterialExtension(extension, material as ExtendedBaseMaterial)
 }
 
 export function extendMaterialClass<TBase extends MaterialClass>(
-    BaseMaterial: TBase,
-    extension: MaterialExtension
+    extension: MaterialExtension,
+    BaseMaterial: TBase
 ) {
     type BaseParameters = ConstructorParameters<TBase>[0]
     type Parameters = BaseParameters & Record<string, any>
@@ -91,16 +96,19 @@ export function extendMaterialClass<TBase extends MaterialClass>(
     return class ExtendedMaterial extends WrappedBaseMaterial {
         constructor(...args: any[]) {
             const parameters = (args[0] ?? {}) as Parameters
-            const baseParameters = stripExtensionParameters(
-                parameters,
-                extension.parameterKeys ?? []
-            )
+            const baseParameters = { ...parameters }
+
+            for (const key of Object.keys(extension.customUniforms ?? {})) {
+                delete baseParameters[key]
+            }
 
             super(baseParameters as BaseParameters)
 
-            extendMaterialInstance(this, extension, parameters)
+            applyMaterialExtension(
+                extension,
+                this as ExtendedBaseMaterial,
+                parameters
+            )
         }
-    } as unknown as new (
-        parameters?: Parameters
-    ) => InstanceType<TBase> & MaterialWithShader
+    } as unknown as ExtendedMaterialClass<TBase, Record<string, any>>
 }
