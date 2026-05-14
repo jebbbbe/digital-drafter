@@ -9,6 +9,8 @@ const evaluator = new Evaluator()
 evaluator.attributes = ["position"]
 evaluator.useGroups = false
 
+const RESULT_INSTANCE_COUNT = 20
+
 function evaluateBrushes(
     originalBrush: Brush,
     cutterBrush: Brush,
@@ -20,7 +22,7 @@ function evaluateBrushes(
 export function createBvhBooleanTest(
     scene: THREE.Scene,
     geom: THREE.BufferGeometry,
-    origin: THREE.Vector3 = new THREE.Vector3(0, 5, 0)
+    origin: THREE.Vector3 = new THREE.Vector3(0, 15, 0)
 ): BvhBooleanTest {
     const sourceGeometry = geom.clone()
     sourceGeometry.computeBoundingBox()
@@ -50,10 +52,23 @@ export function createBvhBooleanTest(
     const originalMesh = new THREE.Mesh(sourceGeometry, originalMaterial)
     const cutterMesh = new THREE.Mesh(cutterGeometry, cutterMaterial)
     const resultBrush = new Brush(sourceGeometry.clone())
-    const resultMesh = new THREE.Mesh(resultBrush.geometry, resultMaterial)
+    const resultMesh = new THREE.InstancedMesh(
+        resultBrush.geometry,
+        resultMaterial,
+        RESULT_INSTANCE_COUNT
+    )
 
     const originalBrush = new Brush(sourceGeometry)
     const cutterBrush = new Brush(cutterGeometry)
+
+    for (let i = 0; i < RESULT_INSTANCE_COUNT; i++) {
+        resultMesh.setMatrixAt(i, new THREE.Matrix4().makeTranslation(0, i * 3, 0))
+    }
+    resultMesh.count = RESULT_INSTANCE_COUNT
+    resultMesh.instanceMatrix.needsUpdate = true
+
+    originalBrush.prepareGeometry()
+    cutterBrush.prepareGeometry()
 
     originalMesh.frustumCulled = false
     cutterMesh.frustumCulled = false
@@ -88,6 +103,7 @@ export function createBvhBooleanTest(
 
     function rebuildResult(): void {
         evaluateBrushes(originalBrush, cutterBrush, resultBrush)
+        resultMesh.geometry = resultBrush.geometry
 
         resultMesh.position.copy(resultBrush.position)
         resultMesh.quaternion.copy(resultBrush.quaternion)
