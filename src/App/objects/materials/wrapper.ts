@@ -72,6 +72,30 @@ function applyMaterialExtension(
         )
     }
 
+    const prevCopy = material.copy
+    material.copy = function (source: THREE.Material): ExtendedBaseMaterial {
+        const copied = prevCopy.call(this, source) as ExtendedBaseMaterial
+        applyMaterialExtension(
+            extension,
+            copied,
+            source as Record<string, any>
+        )
+
+        for (const [key, uniform] of Object.entries(
+            (source as ExtendedBaseMaterial).customUniforms ?? {}
+        )) {
+            ;(copied as Record<string, any>)[key] = uniform.value
+        }
+
+        return copied
+    }
+
+    material.clone = function (): ExtendedBaseMaterial {
+        const MaterialConstructor = this.constructor as MaterialClass
+        const cloned = new MaterialConstructor() as ExtendedBaseMaterial
+        return this.copy.call(cloned, this as THREE.Material)
+    }
+
     material.needsUpdate = true
     return material
 }

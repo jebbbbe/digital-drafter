@@ -6,7 +6,7 @@ import type {
     MaterialClass,
     MaterialExtension,
 } from "./wrapper"
-import { replaceShader } from "./treeShaderChunk"
+import { replaceShader, replaceShaderVariables } from "./treeShaderChunk"
 
 type GlobalNodeMaterial = {
     treeData?: THREE.DataTexture | null
@@ -28,6 +28,7 @@ const nodeMatrixExtension: MaterialExtension = {
             "void main() {\n\t#include <tree_main>"
         )
         shader.vertexShader = replaceShader(shader.vertexShader)
+        shader.vertexShader = replaceShaderVariables(shader.vertexShader)
     },
 }
 
@@ -55,7 +56,6 @@ const dashedLineExtension: MaterialExtension = {
             `vLineDistance = scale * lineDistance;`,
             `float _scale = length(treeMatrix[0].xyz);\n\tvLineDistance = _scale * lineDistance;`
         )
-        console.log(shader.vertexShader)
     },
 }
 

@@ -25,6 +25,8 @@ export function replaceShader(
     }
     return replaced
 }
+export const replaceShaderVariables = (s: string) =>
+    replaceShader(s, replaceGLSL)
 
 // patch into shader chunk
 const shaderChunks = THREE.ShaderChunk as Record<string, string>
