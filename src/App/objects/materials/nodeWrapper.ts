@@ -49,12 +49,12 @@ export function patchNodeMatrixClass<TBase extends MaterialClass>(
 }
 
 const dashedLineExtension: MaterialExtension = {
-    // make scale read from treeMatrix isntead of from the uniform.
+    // make scale read from nodeMatrix isntead of from the uniform.
     // this lets us use only 1 material isntead of per instance material with different scales.
     onBeforeCompile: (shader) => {
         shader.vertexShader = shader.vertexShader.replace(
             `vLineDistance = scale * lineDistance;`,
-            `float _scale = length(treeMatrix[0].xyz);\n\tvLineDistance = _scale * lineDistance;`
+            `float _scale = length(nodeMatrix[0].xyz);\n\tvLineDistance = _scale * lineDistance;`
         )
     },
 }

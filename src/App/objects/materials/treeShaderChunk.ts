@@ -5,7 +5,7 @@ import treeMain from "./glsl/treeMain.glsl?raw"
 
 const replaceGLSL = {
     // oldString:newString
-    instanceMatrix: "treeMatrix",
+    instanceMatrix: "nodeMatrix",
 }
 
 const replaceIncludes = {
