@@ -25,7 +25,9 @@ export const CAP_STYLE = {
     round: 2,
 } as const
 
-const vertexShader = /* glsl */ `
+const vertexShader =
+    "#include <common>\n" +
+    /* glsl */ `
 uniform float linewidth;
 uniform vec2 resolution;
 uniform highp sampler2D segments;

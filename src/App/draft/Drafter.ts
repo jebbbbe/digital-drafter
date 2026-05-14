@@ -50,9 +50,26 @@ export class Drafter {
     }
     assignTexture() {
         try {
-            this.materials.mesh.treeData = this.globalTreeTexture.texture
-            this.materials.mesh.treeDataSize =
-                this.globalTreeTexture.textureSize
+            const text = this.globalTreeTexture.texture
+            const size = this.globalTreeTexture.textureSize
+            this.materials.mesh.treeData = text
+            this.materials.line.treeData = text
+            this.materials.dash.treeData = text
+            // @ts-ignore
+            this.materials.projection.treeData = text
+            this.materials.mesh.treeDataSize = size
+            this.materials.line.treeDataSize = size
+            this.materials.dash.treeDataSize = size
+            // @ts-ignore
+            this.materials.projection.treeDataSize = size
+            for (let i = 0; i < this.instanceItems.length; i++) {
+                const instanceItem = this.instanceItems[i]
+                if (!instanceItem) continue
+                // @ts-ignore
+                instanceItem.instances.line.material.treeData = text
+                // @ts-ignore
+                instanceItem.instances.line.material.treeDataSize = size
+            }
         } catch {}
     }
 

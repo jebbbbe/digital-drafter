@@ -52,93 +52,72 @@ export function createInstanceItem(
         1
     )
 
-    let mesh, line
+    let mesh = new THREE.InstancedMesh(
+        geometries.meshGeometry,
+        materials.mesh,
+        capacity
+    )
+    mesh.renderOrder = 0
+    mesh.frustumCulled = false
+    mesh.geometry.setAttribute("nodeSlot", nodeSlot)
+
+    let line
 
     if (activeMaterialLib === "gl_Line") {
-        mesh = new THREE.InstancedMesh(
-            geometries.meshGeometry,
-            materials.mesh,
-            capacity
-        )
-        mesh.renderOrder = 0
-
         line = new InstancedLineSegments<THREE.LineBasicMaterial>(
             geometries.lineGeometry,
             materials.line,
             capacity
         )
         line.renderOrder = 2
-    } else if (activeMaterialLib === "linewidth") {
-        mesh = new THREE.InstancedMesh(
-            geometries.meshGeometry,
-            materials.mesh,
-            capacity
-        )
-        mesh.renderOrder = 0
-
+        line.geometry.setAttribute("nodeSlot", nodeSlot)
+        line.frustumCulled = false
+    } else {
         const lineMaterial = materials.line.clone() as DataTextureLineMaterial
         const lineGeometry = new DataTextureLineSegmentsGeometry(
             geometries.lineGeometry
         )
         line = new THREE.InstancedMesh(lineGeometry, lineMaterial, capacity)
         line.renderOrder = 2
+        line.geometry.setAttribute("nodeSlot", nodeSlot)
+        line.frustumCulled = false
+
         lineMaterial.segments = lineGeometry.dataTexture
         lineMaterial.resolution.set(window.innerWidth, window.innerHeight)
         line.onBeforeRender = () => {
             lineMaterial.resolution.set(window.innerWidth, window.innerHeight)
         }
-    } else {
-        //globalNode
-        mesh = new THREE.InstancedMesh(
-            geometries.meshGeometry,
-            materials.mesh,
-            capacity
-        )
-        mesh.geometry.setAttribute("nodeSlot", nodeSlot)
-        mesh.renderOrder = 0
-
-        line = new InstancedLineSegments<THREE.LineBasicMaterial>(
-            geometries.lineGeometry,
-            materials.line,
-            capacity
-        )
-        line.renderOrder = 2
     }
 
     const dash = new InstancedLineSegments<THREE.LineDashedMaterial>(
         geometries.lineGeometry,
-        materials.dash.clone(), // set scale here manualy...
+        materials.dash,
         capacity
-    )
+    ) as any
     dash.computeLineDistances()
-    // if we use a root with differenct transform, this will be stale...
-    // wuold need new material inside of the InstancceItem...
-    // hopefully line 2 can fix with screen sapce dashed materials
-    const scale = new THREE.Vector3()
-    localTransform.decompose(new THREE.Vector3(), new THREE.Quaternion(), scale)
-    dash.material.scale = scale.x
     dash.renderOrder = 1
+    dash.geometry.setAttribute("nodeSlot", nodeSlot)
+    dash.frustumCulled = false
 
     const proj = new InstancedLineSegments<InstancedProjectionMaterial>(
         geometries.projGeometry,
-        materials.projection.clone(),
+        // materials.projection.clone(),
+        materials.projection,
         capacity
     )
-    proj.frustumCulled = false // it doesnt use its matrix buffer, so bounding sphere doesnt update correctly...
+    proj.geometry.setAttribute("nodeSlot", nodeSlot)
+    proj.frustumCulled = false
 
-    //match shared instanceMatrix
-    // const instanceMatrix = mesh.instanceMatrix
-    const instanceMatrix = line.instanceMatrix
-    line.instanceMatrix = instanceMatrix
-    dash.instanceMatrix = instanceMatrix
+    // need this for raycat..
+    const instanceMatrix = mesh.instanceMatrix
 
     const parentIDs = new THREE.InstancedBufferAttribute(
         new Int8Array(capacity),
         1
     )
-    proj.geometry.setAttribute("lookupIndex", parentIDs)
+    // proj.geometry.setAttribute("lookupIndex", parentIDs)
     const dataTexture = createLinkedInstanceMatrixTexture(instanceMatrix)
-    proj.material.instanceMatrixTexture = dataTexture
+    // proj.material.instanceMatrixTexture = dataTexture
 
     // userdata for raycast lookups
     // copy all info to isntancces.
