@@ -91,6 +91,13 @@ export function setProjectionVisible(value: boolean): void {
     }
 }
 
+export function setDashDashSize(value: number): void {
+    drafter.materials.dash.dashSize = value
+}
+export function setDashGapSize(value: number): void {
+    drafter.materials.dash.gapSize = value
+}
+
 export function setGizmoColors(colors: {
     xAxis: string
     yAxis: string

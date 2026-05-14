@@ -113,6 +113,22 @@ function Controls() {
                         value: constants.display.dash.visible,
                         onChange: wControls.setDashVisible,
                     },
+                    dashSize: {
+                        label: "Dash",
+                        min: 0,
+                        max: 0.25,
+                        step: 0.001,
+                        value: constants.display.dash.dashSize,
+                        onChange: wControls.setDashDashSize,
+                    },
+                    gapSize: {
+                        label: "Gap",
+                        min: 0,
+                        max: 0.25,
+                        step: 0.001,
+                        value: constants.display.dash.gapSize,
+                        onChange: wControls.setDashGapSize,
+                    },
                 }),
                 Projection: folder({
                     projectionColor: {

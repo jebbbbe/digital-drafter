@@ -24,8 +24,8 @@ const MaterialsLib = {
             patchNodeMatrix(
                 new THREE.LineDashedMaterial({
                     color: display.dash.color,
-                    dashSize: 0.05,
-                    gapSize: 0.01,
+                    dashSize: display.dash.dashSize,
+                    gapSize: display.dash.gapSize,
                     depthTest: false,
                 })
             )
@@ -56,8 +56,8 @@ const MaterialsLib = {
             patchNodeMatrix(
                 new THREE.LineDashedMaterial({
                     color: display.dash.color,
-                    dashSize: 0.05,
-                    gapSize: 0.01,
+                    dashSize: display.dash.dashSize,
+                    gapSize: display.dash.gapSize,
                     depthTest: false,
                 })
             )

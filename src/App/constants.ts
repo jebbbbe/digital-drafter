@@ -19,6 +19,8 @@ export const constants = {
         dash: {
             color: "#a7a7a7",
             visible: false,
+            dashSize: 0.05,
+            gapSize: 0.01,
         },
         projection: {
             color: "#a7a7a7",
@@ -54,6 +56,8 @@ export const constants = {
                     dash: {
                         color: "#a7a7a7",
                         visible: false,
+                        dashSize: 0.05,
+                        gapSize: 0.01,
                     },
                     projection: {
                         color: "#a7a7a7",
@@ -75,6 +79,8 @@ export const constants = {
                     dash: {
                         color: "#a7a7a7",
                         visible: true,
+                        dashSize: 0.05,
+                        gapSize: 0.01,
                     },
                     projection: {
                         color: "#dfdfdf",
@@ -96,6 +102,8 @@ export const constants = {
                     dash: {
                         color: "#bcbcbc",
                         visible: true,
+                        dashSize: 0.05,
+                        gapSize: 0.01,
                     },
                     projection: {
                         color: "#272727",
@@ -117,6 +125,8 @@ export const constants = {
                     dash: {
                         color: "#000000",
                         visible: true,
+                        dashSize: 0.05,
+                        gapSize: 0.01,
                     },
                     projection: {
                         color: "#A0A0A0",
@@ -138,6 +148,8 @@ export const constants = {
                     dash: {
                         color: "#5E5E5E",
                         visible: true,
+                        dashSize: 0.05,
+                        gapSize: 0.01,
                     },
                     projection: {
                         color: "#787878",
@@ -159,6 +171,8 @@ export const constants = {
                     dash: {
                         color: "#9A9A9A",
                         visible: true,
+                        dashSize: 0.05,
+                        gapSize: 0.01,
                     },
                     projection: {
                         color: "#6E6E6E",
@@ -180,6 +194,8 @@ export const constants = {
                     dash: {
                         color: "#f49c9c",
                         visible: true,
+                        dashSize: 0.05,
+                        gapSize: 0.01,
                     },
                     projection: {
                         color: "#ffabab",
@@ -201,6 +217,8 @@ export const constants = {
                     dash: {
                         color: "#f9519f",
                         visible: true,
+                        dashSize: 0.05,
+                        gapSize: 0.01,
                     },
                     projection: {
                         color: "#819720",
@@ -222,6 +240,8 @@ export const constants = {
                     dash: {
                         color: "#FD971F", // args
                         visible: true,
+                        dashSize: 0.05,
+                        gapSize: 0.01,
                     },
                     projection: {
                         color: "#75715E", // comment  // "#AE81FF ", // numbers
@@ -249,6 +269,8 @@ export const constants = {
                     dash: {
                         color: "#ff00b7",
                         visible: true,
+                        dashSize: 0.05,
+                        gapSize: 0.01,
                     },
                     projection: {
                         color: "#5fdbeb",
