@@ -46,20 +46,11 @@ export function createInstanceItem(
     const geometries = brushCleaner(geometry)
     const localTransform = geometries.localTransform
 
-    // slot lookup
-    const nodeSlot = new THREE.InstancedBufferAttribute(
-        new Float32Array(capacity),
-        1
-    )
-
     let mesh = new THREE.InstancedMesh(
         geometries.meshGeometry,
         materials.mesh,
         capacity
     )
-    mesh.renderOrder = 0
-    mesh.frustumCulled = false
-    mesh.geometry.setAttribute("nodeSlot", nodeSlot)
 
     let line
 
@@ -69,18 +60,12 @@ export function createInstanceItem(
             materials.line,
             capacity
         )
-        line.renderOrder = 2
-        line.geometry.setAttribute("nodeSlot", nodeSlot)
-        line.frustumCulled = false
     } else {
         const lineMaterial = materials.line.clone() as DataTextureLineMaterial
         const lineGeometry = new DataTextureLineSegmentsGeometry(
             geometries.lineGeometry
         )
         line = new THREE.InstancedMesh(lineGeometry, lineMaterial, capacity)
-        line.renderOrder = 2
-        line.geometry.setAttribute("nodeSlot", nodeSlot)
-        line.frustumCulled = false
 
         lineMaterial.segments = lineGeometry.dataTexture
         lineMaterial.resolution.set(window.innerWidth, window.innerHeight)
@@ -95,24 +80,42 @@ export function createInstanceItem(
         capacity
     ) as any
     dash.computeLineDistances()
-    dash.renderOrder = 1
-    dash.geometry.setAttribute("nodeSlot", nodeSlot)
-    dash.frustumCulled = false
 
     const proj = new InstancedLineSegments<InstancedProjectionMaterial>(
         geometries.projGeometry,
         materials.projection,
         capacity
     )
-    proj.geometry.setAttribute("nodeSlot", nodeSlot)
-    proj.frustumCulled = false
 
     const fold = new InstancedLineSegments<InstancedProjectionMaterial>(
         newFoldLineGeometry(),
         materials.fold,
         capacity
     )
+
+    //render order
+    mesh.renderOrder = 0
+    line.renderOrder = 2
+    dash.renderOrder = 1
+    proj.renderOrder = 1
+    fold.renderOrder = 1
+
+    // slot lookup
+    const nodeSlot = new THREE.InstancedBufferAttribute(
+        new Float32Array(capacity),
+        1
+    )
+    mesh.geometry.setAttribute("nodeSlot", nodeSlot)
+    line.geometry.setAttribute("nodeSlot", nodeSlot)
+    dash.geometry.setAttribute("nodeSlot", nodeSlot)
+    proj.geometry.setAttribute("nodeSlot", nodeSlot)
     fold.geometry.setAttribute("nodeSlot", nodeSlot)
+
+    // set frustumCulled
+    mesh.frustumCulled = false
+    line.frustumCulled = false
+    dash.frustumCulled = false
+    proj.frustumCulled = false
     fold.frustumCulled = false
 
     // need this for raycast
@@ -174,7 +177,7 @@ export function setInstanceCount(instance: InstanceItem, count?: number): void {
     instance.instances.line.count = instance.count
     instance.instances.dash.count = instance.count
     instance.instances.proj.count = instance.count
-    instance.instances.dash.count = instance.count
+    instance.instances.fold.count = instance.count
 }
 
 export function updateSharedBuffers(

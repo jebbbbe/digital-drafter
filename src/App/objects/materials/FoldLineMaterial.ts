@@ -104,7 +104,7 @@ export class FoldLineMaterial extends THREE.LineBasicMaterial {
                 // } else {
                 //     transformed = (parentNodeMatrix * vec4(transformed, 1.0)).xyz;
                 // }
-                transformed.y = 2.5;
+                transformed.y = 10.0;
                 `
             )
             this.shader = shader

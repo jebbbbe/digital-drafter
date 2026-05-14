@@ -22,14 +22,19 @@ const matlib = {
                 dashSize: display.dash.dashSize,
                 gapSize: display.dash.gapSize,
                 depthTest: false,
+                depthWrite: false,
             })
         )
     ),
     projection: new InstancedProjectionMaterial({
         color: display.projection.color,
+        depthTest: true,
+        depthWrite: false,
     }),
     fold: new FoldLineMaterial({
         color: display.projection.color,
+        depthTest: true,
+        depthWrite: false,
     }),
 } as any
 
@@ -38,7 +43,7 @@ if (activeMaterialLib === "gl_Line") {
     matlib.line = patchNodeMatrix(
         new THREE.LineBasicMaterial({
             color: display.line.color,
-            // depthTest: true,
+            depthWrite: false,
         })
     )
     matlib.mesh = patchNodeMatrix(
@@ -47,7 +52,6 @@ if (activeMaterialLib === "gl_Line") {
             polygonOffset: true,
             polygonOffsetFactor: 1,
             polygonOffsetUnits: 1,
-            // depthWrite: true,
         })
     )
 } else {
@@ -56,7 +60,7 @@ if (activeMaterialLib === "gl_Line") {
             color: display.line.color,
             linewidth: 1,
             capStyle: 2,
-            depthWrite: false, // ?
+            depthWrite: false,
         })
     )
     matlib.mesh = patchNodeMatrix(
@@ -65,7 +69,6 @@ if (activeMaterialLib === "gl_Line") {
             polygonOffset: true,
             polygonOffsetFactor: 3,
             polygonOffsetUnits: 3,
-            // depthWrite: true,
         })
     )
 }

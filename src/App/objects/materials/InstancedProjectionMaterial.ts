@@ -70,13 +70,19 @@ export class InstancedProjectionMaterial extends THREE.LineBasicMaterial {
                 vec4 parentMetadata = vec4(0.);
                 mat4 parentNodeMatrix = mat4(1.0);
                 readTreeData(parentSlot, parentNodeMatrix, parentMetadata);
+                vec3 childTransformed = (nodeMatrix * vec4(transformed, 1.0)).xyz;
+                vec3 parentTransformed = (parentNodeMatrix * vec4(transformed, 1.0)).xyz;
 
                 if ( gl_VertexID % 2 == 0) {
-                    transformed = (nodeMatrix * vec4(transformed, 1.0)).xyz;
+                    transformed = childTransformed;
                 } else {
-                    transformed = (parentNodeMatrix * vec4(transformed, 1.0)).xyz;
+                    transformed = parentTransformed;
                 }
-                transformed.y = -5.0;
+                if(childTransformed.y > 0.0 && parentTransformed.y>0.0 ){
+                    // transformed.y = 5.0;
+                }else{
+                    transformed.y = -5.0;
+                }
                 `
             )
             this.shader = shader
