@@ -1,5 +1,5 @@
 import * as THREE from "three"
-import { InstanceCount } from "../../draft/capacity"
+import { InstanceCount } from "../../constants"
 
 type Pow2 =
     | 1
@@ -122,7 +122,7 @@ export class GlobalTreeTexture {
         this.blockCount--
     }
 
-    incBlockCount(): boolean {
+    incBlockCount(): number {
         this.blockCount++
 
         if (this.blockCount * this.blockSize > this.capacity) {
@@ -131,14 +131,14 @@ export class GlobalTreeTexture {
                     `Texture size ${this.textureSize} reached max ${this.maxTextureSize}`
                 )
                 this.blockCount--
-                return false
+                return -1
             }
 
             this.grow()
-            return true
+            return 1
         }
 
-        return false
+        return 0
     }
 
     /**

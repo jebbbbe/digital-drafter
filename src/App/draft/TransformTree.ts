@@ -1,4 +1,4 @@
-import { InstanceCount, increaseCapacity, nearestCapacity } from "./capacity"
+import { InstanceCount } from "../constants"
 import { FreeList } from "../objects/FreeList"
 import { PackedArray } from "../objects/PackedArray"
 
@@ -83,7 +83,8 @@ export class TransformTree {
         }
 
         if (array.count === array.length) {
-            this.resizeBucket(id)
+            console.error("arry is full, call resize()", node)
+            return
         }
 
         const idx = array.push(node)
@@ -190,7 +191,7 @@ export class TransformTree {
      */
     loadBucket(nodes: Node[]) {
         const id = this.freelist.nextIndex()
-        const capacity = nearestCapacity(nodes.length)
+        const capacity = InstanceCount
         const array = new PackedArray<Node>(capacity)
 
         for (let i = 0; i < nodes.length; i++) {
@@ -231,13 +232,12 @@ export class TransformTree {
      *
      * @param target - Bucket object or bucket id.
      */
-    resizeBucket(id: number) {
+    resizeBucket(id: number, newCapacity: number) {
         const array = this.freelist[id]
         if (!array) {
             console.error("Could not find array to resize, ", id)
             return
         }
-        const newCapacity = increaseCapacity(array.count)
         array.resize(newCapacity)
     }
 }

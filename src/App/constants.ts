@@ -1,3 +1,4 @@
+export const InstanceCount = 32 as const
 export const constants = {
     camera: {
         rotationEnabled: false,

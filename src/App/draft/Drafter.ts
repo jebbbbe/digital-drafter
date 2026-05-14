@@ -55,12 +55,10 @@ export class Drafter {
             this.materials.mesh.treeData = text
             this.materials.line.treeData = text
             this.materials.dash.treeData = text
-            // @ts-ignore
             this.materials.projection.treeData = text
             this.materials.mesh.treeDataSize = size
             this.materials.line.treeDataSize = size
             this.materials.dash.treeDataSize = size
-            // @ts-ignore
             this.materials.projection.treeDataSize = size
             for (let i = 0; i < this.instanceItems.length; i++) {
                 const instanceItem = this.instanceItems[i]
@@ -79,11 +77,15 @@ export class Drafter {
         this.debug.objects.point.material = this.materials.debugPoint
     }
 
-    newInstance(geometry: THREE.BufferGeometry): InstanceItem {
+    newInstance(geometry: THREE.BufferGeometry): InstanceItem | undefined {
         // get next avaliable index from freelist
         const id = this.instanceItems.nextIndex()
         //reserve space
         const grew = this.globalTreeTexture.incBlockCount()
+        if (grew === -1) {
+            console.error("reached max Instances")
+            return
+        }
         if (grew) this.assignTexture()
         // create new InstanceItem
         const newInstanceItem = createInstanceItem(geometry, this.materials, id)
@@ -108,8 +110,31 @@ export class Drafter {
         // not sure best interface yet.
     }
 
+    findReusableInstance(
+        geometry: THREE.BufferGeometry,
+        preferredId?: number
+    ): { id: number; instanceItem: InstanceItem } | undefined {
+        if (preferredId !== undefined) {
+            const preferred = this.instanceItems[preferredId]
+            if (
+                preferred &&
+                preferred.geometry === geometry &&
+                preferred.count < preferred.maxCount
+            ) {
+                return { id: preferredId, instanceItem: preferred }
+            }
+        }
+
+        for (let id = 0; id < this.instanceItems.length; id++) {
+            const instanceItem = this.instanceItems[id]
+            if (!instanceItem) continue
+            if (instanceItem.geometry !== geometry) continue
+            if (instanceItem.count >= instanceItem.maxCount) continue
+            return { id, instanceItem }
+        }
+    }
+
     removeInstance(id: number) {
-        console.warn("not implemented")
         // get item
         const instanceItem = this.instanceItems[id]
         // nothign to delete
@@ -130,30 +155,33 @@ export class Drafter {
         // we can implement when we atart to have this with geo csg brush
     }
 
-    resizeInstance(instance: InstanceItem) {
-        // todo
-        // implement is this
-        // better to reasign geo or adjust it?
-        console.warn("resizeInstance not implemented", instance)
-    }
-
     addRootNode(rootNode: Partial<TransformNode>) {
         // get id for insertion
         const id = rootNode?.location?.id
-        if (id === undefined) {
+        if (id === undefined || rootNode?.location === undefined) {
             console.log("rootnode missing location", rootNode)
             return
         }
 
-        const instanceItem = this.instanceItems[id]
+        let instanceItem = this.instanceItems[id]
         if (!instanceItem) {
             console.error("couldnt find instanceItem at id", rootNode)
             return
         }
 
         if (instanceItem.count === instanceItem.maxCount) {
-            this.resizeInstance(instanceItem)
-            return
+            const reusable = this.findReusableInstance(instanceItem.geometry, id)
+            if (reusable) {
+                rootNode.location.id = reusable.id
+                instanceItem = reusable.instanceItem
+            } else {
+                // create new Instance object with same props...
+                rootNode.location.id = this.instanceItems.nextIndex()
+                instanceItem = this.newInstance(instanceItem.geometry)
+                if (!instanceItem) {
+                    return
+                }
+            }
         }
 
         // make node
@@ -198,15 +226,25 @@ export class Drafter {
         }
 
         const id = partialNode.location.id
-        const instanceItem = this.instanceItems[id]
+        let instanceItem = this.instanceItems[id]
         if (!instanceItem) {
             console.error("couldnt find instanceItem at id", partialNode)
             return
         }
 
         if (instanceItem.count === instanceItem.maxCount) {
-            this.resizeInstance(instanceItem)
-            return
+            const reusable = this.findReusableInstance(instanceItem.geometry, id)
+            if (reusable) {
+                partialNode.location.id = reusable.id
+                instanceItem = reusable.instanceItem
+            } else {
+                // create new Instance object with same props...
+                partialNode.location.id = this.instanceItems.nextIndex()
+                instanceItem = this.newInstance(instanceItem.geometry)
+                if (!instanceItem) {
+                    return
+                }
+            }
         }
 
         const node = createTransformNode(partialNode)
@@ -225,7 +263,6 @@ export class Drafter {
         // console.log("addLeafNode")
         // console.log({node})
         // console.log({parent})
-
         return node
     }
     pruneNode(target: TransformNode | NodeLocation) {
@@ -245,8 +282,7 @@ export class Drafter {
         //isRoot branch
         const isRoot = node === node.parent
         if (isRoot) {
-            console.warn("not implemented yet", target)
-            // delete whole tree
+            this.removeNode(node)
             return
         }
 
@@ -272,9 +308,65 @@ export class Drafter {
         }
         this.updatePatchedNode(parentNode)
     }
-    removeNode() {
-        // removes node from InstanceItem AND tree
-        // delete children recusivly
+    removeNode(target: TransformNode | NodeLocation) {
+        const location = "location" in target ? target.location : target
+        const node = this.tree.findNode(location) as TransformNode | undefined
+        if (!node) return
+
+        const subtree: TransformNode[] = []
+        const subtreeSet = new Set<TransformNode>()
+        walkSubtree(node, (subtreeNode) => {
+            subtree.push(subtreeNode)
+            subtreeSet.add(subtreeNode)
+        })
+
+        const touchedIds = new Set<number>()
+        const emptyIds = new Set<number>()
+        const movedNodes = new Set<TransformNode>()
+
+        for (let i = subtree.length - 1; i >= 0; i--) {
+            const subtreeNode = subtree[i]
+            const id = subtreeNode.location.id
+            const instanceItem = this.instanceItems[id]
+            if (!instanceItem) continue
+
+            const removedIndex = subtreeNode.location.index
+            const lastActiveIndex = instanceItem.count - 1
+            const swappedNode =
+                removedIndex === lastActiveIndex
+                    ? undefined
+                    : (this.tree.getBucket(id)?.[lastActiveIndex] as
+                          | TransformNode
+                          | undefined)
+
+            this.tree.removeNode(subtreeNode)
+            decrementInstanceCount(instanceItem)
+            touchedIds.add(id)
+
+            if (instanceItem.count === 0) {
+                emptyIds.add(id)
+                continue
+            }
+
+            if (swappedNode && !subtreeSet.has(swappedNode)) {
+                movedNodes.add(swappedNode)
+            }
+        }
+
+        for (const id of emptyIds) {
+            this.removeInstance(id)
+            touchedIds.delete(id)
+        }
+
+        for (const movedNode of movedNodes) {
+            this.updatePatchedNode(movedNode)
+        }
+
+        for (const id of touchedIds) {
+            const instanceItem = this.instanceItems[id]
+            if (!instanceItem) continue
+            computeBoundingSphere(instanceItem)
+        }
     }
     /* path node props directly before passing, this updates draw geo*/
     updatePatchedNode(patchedNode: TransformNode) {
@@ -388,12 +480,6 @@ function setInstanceBuffersIndex(
         instanceItem.buffers.instanceMatrix,
         index,
         node.compoundMatrix
-    )
-    // update parent buffer
-    setUintAttributeAt(
-        instanceItem.buffers.parentIDs,
-        index,
-        node.parent.location.index
     )
     // update instance slot
     setUintAttributeAt(instanceItem.buffers.nodeSlot, index, slot)

@@ -2,7 +2,7 @@ import * as THREE from "three"
 import { InstancedLineSegments } from "../objects/meshes/InstancedLineSegments"
 import { InstancedProjectionMaterial } from "../objects/materials/InstancedProjectionMaterial"
 import { DataTextureLineMaterial } from "../objects/materials/DataTextureLineMaterial"
-import { InstanceCount } from "./capacity"
+import { InstanceCount } from "../constants"
 import { brushCleaner } from "../objects/geometries/brushCleaner"
 import {
     createLinkedInstanceMatrixTexture,
@@ -19,9 +19,7 @@ export type InstanceItem = {
     geometry: THREE.BufferGeometry
     localTransform: THREE.Matrix4 // matches head of tree baseTransform..?
     buffers: {
-        instanceMatrix: THREE.InstancedBufferAttribute
-        dataTexture: THREE.DataTexture
-        parentIDs: THREE.InstancedBufferAttribute
+        instanceMatrix: THREE.InstancedBufferAttribute // keep for raycast
         nodeSlot: THREE.InstancedBufferAttribute
     }
     group: THREE.Group
@@ -101,23 +99,14 @@ export function createInstanceItem(
 
     const proj = new InstancedLineSegments<InstancedProjectionMaterial>(
         geometries.projGeometry,
-        // materials.projection.clone(),
         materials.projection,
         capacity
     )
     proj.geometry.setAttribute("nodeSlot", nodeSlot)
     proj.frustumCulled = false
 
-    // need this for raycat..
+    // need this for raycast
     const instanceMatrix = mesh.instanceMatrix
-
-    const parentIDs = new THREE.InstancedBufferAttribute(
-        new Int8Array(capacity),
-        1
-    )
-    // proj.geometry.setAttribute("lookupIndex", parentIDs)
-    const dataTexture = createLinkedInstanceMatrixTexture(instanceMatrix)
-    // proj.material.instanceMatrixTexture = dataTexture
 
     // userdata for raycast lookups
     // copy all info to isntancces.
@@ -141,8 +130,6 @@ export function createInstanceItem(
         localTransform,
         buffers: {
             instanceMatrix,
-            dataTexture,
-            parentIDs,
             nodeSlot,
         },
         group,
@@ -179,12 +166,10 @@ export function setInstanceCount(instance: InstanceItem, count?: number): void {
 
 export function updateSharedBuffers(
     instanceItem: InstanceItem,
-    matrix: THREE.Matrix4,
-    parentIndex: number
+    matrix: THREE.Matrix4
 ): void {
     const index = instanceItem.count
     setInstanceMatrixAt(instanceItem.buffers.instanceMatrix, index, matrix)
-    setUintAttributeAt(instanceItem.buffers.parentIDs, index, parentIndex)
     updateBufferRanges(index, instanceItem.buffers)
     // inc count to draw visible.
     incrementInstanceCount(instanceItem)
@@ -192,7 +177,7 @@ export function updateSharedBuffers(
 
 export function computeBoundingSphere(instanceItem: InstanceItem): void {
     instanceItem.instances.mesh.computeBoundingSphere()
-    instanceItem.instances.line.computeBoundingSphere()
-    instanceItem.instances.dash.computeBoundingSphere()
+    // instanceItem.instances.line.computeBoundingSphere()
+    // instanceItem.instances.dash.computeBoundingSphere()
     // instanceItem.instances.proj.computeBoundingSphere()
 }

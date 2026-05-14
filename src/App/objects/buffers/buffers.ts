@@ -62,37 +62,26 @@ export function setUintAttributeAt(
  * @param buffers - Related GPU-backed buffers that must stay in sync.
  * @param buffers.instanceMatrix - Attribute storing one serialized mat4 per instance.
  * @param buffers.dataTexture - Texture view over the same matrix data for random shader reads.
- * @param buffers.parentIDs - Attribute storing one parent lookup index per instance.
  */
 export function updateBufferRanges(
     index: number,
     {
         instanceMatrix,
-        dataTexture,
-        parentIDs,
         nodeSlot,
     }: {
         instanceMatrix: THREE.InstancedBufferAttribute
-        dataTexture: THREE.DataTexture
-        parentIDs: THREE.InstancedBufferAttribute
         nodeSlot: THREE.InstancedBufferAttribute
     }
 ) {
     if (instanceMatrix.updateRanges.length >= maxUpdateRanges) {
         instanceMatrix.clearUpdateRanges()
-        dataTexture.clearUpdateRanges()
-        parentIDs.clearUpdateRanges()
+        nodeSlot.clearUpdateRanges()
     } else {
         const offset = index * 16
         instanceMatrix.addUpdateRange(offset, 16)
-        dataTexture.addUpdateRange(offset, 16)
-        parentIDs.addUpdateRange(index, 1)
+        nodeSlot.addUpdateRange(index, 1)
     }
-
     instanceMatrix.needsUpdate = true
-    dataTexture.needsUpdate = true
-    parentIDs.needsUpdate = true
-
     nodeSlot.needsUpdate = true
 }
 
