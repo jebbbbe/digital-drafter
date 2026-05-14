@@ -10,6 +10,7 @@ import { Drafter } from "./draft/Drafter"
 import * as rand from "./utils/random"
 import type { TransformNode } from "./draft/TransformNode"
 import type { NodeLocation } from "./draft/TransformTree"
+import { createBvhBooleanTest, type BvhBooleanTest } from "./bvhBooleanTest"
 
 let isAppReady = false
 let statsEnabled = false
@@ -40,6 +41,7 @@ let stats: Stats | undefined
 
 let interactionManager!: InteractionManager
 let drafter!: Drafter
+let bvhBooleanTest: BvhBooleanTest | undefined
 
 let testNode: any
 let testNodeVelocityX = 0.001
@@ -119,6 +121,7 @@ export function init(container: HTMLElement): () => void {
     drafter.newInstance(initalGeo)
     drafter.newInstance(initalGeo0)
     drafter.newInstance(initalGeo1)
+    bvhBooleanTest = createBvhBooleanTest(scene, initalGeo)
 
     const scale = rand.random(0.75, 1.5)
     const initalTransform = new THREE.Matrix4()
@@ -260,6 +263,7 @@ function render(): void {
         stats?.update()
     }
     orbitControls.update()
+    bvhBooleanTest?.update(globalThis.performance.now() * 0.001)
     renderer.render(scene, camera)
     if (testNode && false) {
         testNode.position.x += testNodeVelocityX
