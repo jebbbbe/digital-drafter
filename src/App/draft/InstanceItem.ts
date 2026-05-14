@@ -13,6 +13,7 @@ import {
 import { DataTextureLineSegmentsGeometry } from "../objects/geometries/DataTextureLineSegmentsGeometry"
 import { activeMaterialLib } from "./materialManager"
 import { constants } from "../constants"
+import { newFoldLineGeometry } from "../objects/geometries/FoldLineGoemetry"
 
 export type InstanceItem = {
     // brush:any for CSG later...
@@ -30,6 +31,7 @@ export type InstanceItem = {
             | THREE.InstancedMesh
         proj: InstancedLineSegments<InstancedProjectionMaterial>
         dash: InstancedLineSegments<THREE.LineDashedMaterial>
+        fold: InstancedLineSegments
     }
     count: number
     maxCount: number
@@ -105,6 +107,14 @@ export function createInstanceItem(
     proj.geometry.setAttribute("nodeSlot", nodeSlot)
     proj.frustumCulled = false
 
+    const fold = new InstancedLineSegments<InstancedProjectionMaterial>(
+        newFoldLineGeometry(),
+        materials.fold,
+        capacity
+    )
+    fold.geometry.setAttribute("nodeSlot", nodeSlot)
+    fold.frustumCulled = false
+
     // need this for raycast
     const instanceMatrix = mesh.instanceMatrix
 
@@ -114,6 +124,7 @@ export function createInstanceItem(
     line.userData = mesh.userData
     dash.userData = mesh.userData
     proj.userData = mesh.userData
+    fold.userData = mesh.userData
 
     // set visible
     const display = constants.themes.objects[constants.theme].display as any
@@ -123,7 +134,7 @@ export function createInstanceItem(
     proj.visible = display.projection.visible
 
     const group = new THREE.Group()
-    group.add(mesh, line, proj, dash)
+    group.add(mesh, line, proj, dash, fold)
 
     const newInstanceItem = {
         geometry: geometry,
@@ -138,6 +149,7 @@ export function createInstanceItem(
             line,
             dash,
             proj,
+            fold,
         },
         count: 0,
         maxCount: capacity,
@@ -162,6 +174,7 @@ export function setInstanceCount(instance: InstanceItem, count?: number): void {
     instance.instances.line.count = instance.count
     instance.instances.dash.count = instance.count
     instance.instances.proj.count = instance.count
+    instance.instances.dash.count = instance.count
 }
 
 export function updateSharedBuffers(

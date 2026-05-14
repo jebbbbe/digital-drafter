@@ -56,10 +56,12 @@ export class Drafter {
             this.materials.line.treeData = text
             this.materials.dash.treeData = text
             this.materials.projection.treeData = text
+            this.materials.fold.treeData = text
             this.materials.mesh.treeDataSize = size
             this.materials.line.treeDataSize = size
             this.materials.dash.treeDataSize = size
             this.materials.projection.treeDataSize = size
+            this.materials.fold.treeDataSize = size
             for (let i = 0; i < this.instanceItems.length; i++) {
                 const instanceItem = this.instanceItems[i]
                 if (!instanceItem) continue
@@ -170,7 +172,10 @@ export class Drafter {
         }
 
         if (instanceItem.count === instanceItem.maxCount) {
-            const reusable = this.findReusableInstance(instanceItem.geometry, id)
+            const reusable = this.findReusableInstance(
+                instanceItem.geometry,
+                id
+            )
             if (reusable) {
                 rootNode.location.id = reusable.id
                 instanceItem = reusable.instanceItem
@@ -233,7 +238,10 @@ export class Drafter {
         }
 
         if (instanceItem.count === instanceItem.maxCount) {
-            const reusable = this.findReusableInstance(instanceItem.geometry, id)
+            const reusable = this.findReusableInstance(
+                instanceItem.geometry,
+                id
+            )
             if (reusable) {
                 partialNode.location.id = reusable.id
                 instanceItem = reusable.instanceItem
