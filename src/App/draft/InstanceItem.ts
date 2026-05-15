@@ -13,10 +13,10 @@ import {
 import { DataTextureLineSegmentsGeometry } from "../objects/geometries/DataTextureLineSegmentsGeometry"
 import { activeMaterialLib } from "./materialManager"
 import { constants } from "../constants"
-import { newFoldLineGeometry } from "../objects/geometries/FoldLineGoemetry"
+import type { Brush } from "three-bvh-csg"
 
 export type InstanceItem = {
-    // brush:any for CSG later...
+    brush: Brush
     geometry: THREE.BufferGeometry
     localTransform: THREE.Matrix4 // matches head of tree baseTransform..?
     buffers: {
@@ -88,7 +88,7 @@ export function createInstanceItem(
     )
 
     const fold = new InstancedLineSegments<InstancedProjectionMaterial>(
-        newFoldLineGeometry(),
+        geometries.foldGeometry,
         materials.fold,
         capacity
     )
@@ -141,7 +141,8 @@ export function createInstanceItem(
     group.add(mesh, line, proj, dash, fold)
 
     const newInstanceItem = {
-        geometry: geometry,
+        brush: geometries.brush, // original geometries brush
+        geometry: geometry, // possibly changed buffers, uv, normal, etc
         localTransform,
         buffers: {
             instanceMatrix,

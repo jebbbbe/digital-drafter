@@ -1,6 +1,8 @@
 import * as THREE from "three"
 import { BufferGeometryUtils } from "three/addons"
 import { doublePositionBuffer } from "../buffers/buffers"
+import { newFoldLineGeometry } from "./FoldLineGoemetry"
+import { Brush } from "three-bvh-csg"
 
 const defaultGeoProcess = {
     mergeTolerance: 1e-2,
@@ -16,6 +18,7 @@ export function brushCleaner(
     geometry: THREE.BufferGeometry = new THREE.BoxGeometry(1, 1, 1),
     settings = defaultGeoProcess
 ) {
+    const brush = new Brush(geometry.clone())
     if (settings.removeAttributes) {
         geometry.deleteAttribute("uv")
         geometry.deleteAttribute("normal")
@@ -52,10 +55,13 @@ export function brushCleaner(
         )
     }
     projGeometry = doublePositionBuffer(projGeometry)
+
     return {
         meshGeometry,
         lineGeometry,
         projGeometry,
+        foldGeometry: newFoldLineGeometry(),
+        brush,
         localTransform,
     }
 }
