@@ -240,7 +240,7 @@ function Controls() {
                 opts: {
                     Add: controls.addLeafNearbyRandomlyFromSelection,
                     Delete: controls.pruneNodeFromSelection,
-                    Cut: () => {},
+                    Cut: controls.cutNodeFromSelection,
                 },
             }),
         })

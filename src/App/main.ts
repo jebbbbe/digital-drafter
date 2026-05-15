@@ -130,7 +130,7 @@ export function init(container: HTMLElement): () => void {
     drafter.newInstance(initalGeo)
     drafter.newInstance(initalGeo0)
     drafter.newInstance(initalGeo1)
-    bvhBooleanTest = createBvhBooleanTest(scene, initalGeo)
+    // bvhBooleanTest = createBvhBooleanTest(scene, initalGeo)
 
     const scale = rand.random(0.75, 1.5)
     const initalTransform = new THREE.Matrix4()
@@ -272,7 +272,7 @@ function render(): void {
         stats?.update()
     }
     orbitControls.update()
-    bvhBooleanTest?.update(globalThis.performance.now() * 0.001)
+    // bvhBooleanTest?.update(globalThis.performance.now() * 0.001)
     renderer.render(scene, camera)
     if (testNode && false) {
         testNode.position.x += testNodeVelocityX

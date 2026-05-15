@@ -19,6 +19,7 @@ import type { NodeLocation } from "./TransformTree"
 import { walkSubtree } from "./recursive"
 import { GlobalTreeTexture } from "../objects/textures/GlobalTreeTexture"
 import { matlib } from "./materialManager"
+import { SectionCutter } from "../objects/meshes/SectionCutter"
 
 export class Drafter {
     tree = new TransformTree()
@@ -42,11 +43,16 @@ export class Drafter {
         },
         enable: true,
     }
+    sectionCutter = new SectionCutter(this.materials.section)
 
     constructor(scene: THREE.Scene, debug: boolean = false) {
         this.scene = scene
         this.assignTexture()
         if (debug) this.setUpDebug()
+        const mesh = this.sectionCutter.mesh
+        mesh.renderOrder = 3
+        this.scene.add(mesh)
+        this.interactivObjects.push(mesh)
     }
     assignTexture() {
         try {

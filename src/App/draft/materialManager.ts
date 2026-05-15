@@ -38,6 +38,11 @@ const matlib = {
         depthTest: true,
         depthWrite: false,
     }),
+    section: new THREE.LineBasicMaterial({
+        color: 0xff00ff,
+        depthTest: true,
+        depthWrite: false,
+    }),
 } as any
 
 // @ts-ignore

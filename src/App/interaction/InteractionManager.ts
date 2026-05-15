@@ -161,6 +161,13 @@ export class InteractionManager {
             return
         }
 
+        // log intersects and return
+        if (intersects[0].object === this.drafter.sectionCutter.mesh) {
+            console.log(intersects)
+            return
+            // intersects.shift() 
+        }
+
         // find node from raycast
         const int = intersects[0]
         const id = int.object.userData.id
