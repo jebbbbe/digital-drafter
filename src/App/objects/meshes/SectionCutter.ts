@@ -96,6 +96,27 @@ export class SectionCutter {
         geometry.computeBoundingBox()
     }
 
+    getSegmentAsArray(index: number, array: number[] = [0, 0, 0, 0, 0, 0]) {
+        const offset = index * this.itemSize
+        array[0] = this.array[offset]
+        array[1] = this.array[offset + 1]
+        array[2] = this.array[offset + 2]
+        array[3] = this.array[offset + 3]
+        array[4] = this.array[offset + 4]
+        array[5] = this.array[offset + 5]
+        return array
+    }
+    getSegmentAsVector(
+        index: number,
+        a: THREE.Vector3 = new THREE.Vector3(),
+        b: THREE.Vector3 = new THREE.Vector3()
+    ) {
+        const offset = index * this.itemSize
+        a.fromArray(this.array, offset)
+        b.fromArray(this.array, offset + this.itemSize)
+        return [a, b]
+    }
+
     addSegmentVector(
         a: THREE.Vector3,
         b: THREE.Vector3,

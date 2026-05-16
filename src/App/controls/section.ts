@@ -34,15 +34,17 @@ export function cutNode(node: TransformNode) {
         if (node.parent !== node) {
             // not a root
             _dir.subVectors(node.parent.position, node.position)
-            const theta = Math.atan2(-_dir.z, _dir.x)
-            start.applyAxisAngle(_up, theta)
-            end.applyAxisAngle(_up, theta)
+                .setY(0)
+                .normalize()
+            start.copy(_dir).multiplyScalar(lineLen)
+            end.copy(_dir).multiplyScalar(-lineLen)
         } else if (node.children.length > 0) {
             // root with children
             _dir.subVectors(node.children[0].position, node.position)
-            const theta = Math.atan2(-_dir.z, _dir.x)
-            start.applyAxisAngle(_up, theta)
-            end.applyAxisAngle(_up, theta)
+                .setY(0)
+                .normalize()
+            start.copy(_dir).multiplyScalar(lineLen)
+            end.copy(_dir).multiplyScalar(-lineLen)
         } else {
             start.add(_offset).applyAxisAngle(_up, t)
             end.add(_offset).applyAxisAngle(_up, t)

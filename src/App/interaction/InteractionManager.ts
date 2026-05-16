@@ -35,6 +35,7 @@ type ActiveEvent = {
 
 const _prevPosition = new THREE.Vector3()
 const _delta = new THREE.Vector3()
+const _zero = new THREE.Vector3()
 
 export class InteractionManager {
     domElement: HTMLCanvasElement
@@ -167,9 +168,33 @@ export class InteractionManager {
 
         // log intersects and return
         if (intersects[0].object === this.drafter.sectionCutter.mesh) {
-            console.log(intersects)
+            console.log(intersects[0])
+            const { point, index, object }: any = intersects[0]
+            point.y = 0 // force for distance
+
+            const start = new THREE.Vector3()
+            const end = new THREE.Vector3()
+            this.drafter.sectionCutter.getSegmentAsVector(index, start, end)
+
+            const totalDist = start.distanceToSquared(end)
+            const threshold = totalDist / 16
+            let mode: "start" | "end" | "both" = "both"
+            if (point.distanceToSquared(start) <= threshold) {
+                mode = "start"
+            } else if (point.distanceToSquared(end) <= threshold) {
+                mode = "end"
+            }
+
+            const startHit = this.raycastHelper.castFromEventToPlane(e)
+            if (!startHit) return
+
+            this.selection.length = 0
+            this.selection.push({ object, index } as any)
+
+            this.detachTransformControls()
+            this.attachSegmentMoveKey(startHit, mode)
+            this.attachSegmentDeleteKey()
             return
-            // intersects.shift()
         }
 
         // find node from raycast
@@ -218,8 +243,8 @@ export class InteractionManager {
 
         // attach events
         this.attachNodeMove(moveOffset)
-        this.attachAddNodeKey()
-        this.attachDeleteNodeKey()
+        this.attachNodeAddKey()
+        this.attachNodeDeleteKey()
     }
 
     handleTransformDraggingChanged = (e: { value: unknown }) => {
@@ -228,8 +253,6 @@ export class InteractionManager {
     attachTransformControls(node: TransformNode) {
         this.removeActiveEvent("transformObjectChange")
         const slotIndex = getSlotIndex(node.location)
-        const _prevPosition = new THREE.Vector3()
-        const _delta = new THREE.Vector3()
 
         this.transformProxy.position.copy(node.position)
         this.transformProxy.rotation.set(0, 0, 0)
@@ -242,7 +265,11 @@ export class InteractionManager {
             _delta.subVectors(node.position, _prevPosition)
             if (_delta.lengthSq() === 0) return
 
-            this.drafter.sectionCutter.moveFromNodeSlot(_delta, _delta, slotIndex)
+            this.drafter.sectionCutter.moveFromNodeSlot(
+                _delta,
+                _delta,
+                slotIndex
+            )
             this.drafter.updatePatchedNode(node)
         }
 
@@ -252,7 +279,7 @@ export class InteractionManager {
             handleObjectChange,
             this.transformControls
         )
-        
+
         this.transformControls.attach(this.transformProxy)
     }
     detachTransformControls() {
@@ -265,8 +292,6 @@ export class InteractionManager {
     attachNodeMove(startOffset: THREE.Vector3) {
         const node = this.selection[0]
         const slotIndex = getSlotIndex(node.location)
-        const _prevPosition = new THREE.Vector3()
-        const _delta = new THREE.Vector3()
         this.orbitControls.enabled = false
         const prevEnableTransform = this.transformControls.enabled
         this.transformControls.enabled = false
@@ -289,7 +314,11 @@ export class InteractionManager {
             this.drafter.updatePatchedNode(node)
 
             // update Section Lines of Node
-            this.drafter.sectionCutter.moveFromNodeSlot(_delta, _delta, slotIndex)
+            this.drafter.sectionCutter.moveFromNodeSlot(
+                _delta,
+                _delta,
+                slotIndex
+            )
 
             // update transform controsl
             if (this.transformControlsEnabled) {
@@ -299,17 +328,17 @@ export class InteractionManager {
         }
 
         const handlePointerUp = () => {
-            this.removeActiveEvent("moveNode.pointerMove")
-            this.removeActiveEvent("moveNode.pointerUp")
+            this.removeActiveEvent("nodeMove.pointerMove")
+            this.removeActiveEvent("nodeMove.pointerUp")
             this.orbitControls.enabled = true
             this.transformControls.enabled = prevEnableTransform
         }
 
         // prettier-ignore
-        this.addActiveEvent("moveNode.pointerMove", "pointermove", handlePointerMove)
-        this.addActiveEvent("moveNode.pointerUp", "pointerup", handlePointerUp)
+        this.addActiveEvent("nodeMove.pointerMove", "pointermove", handlePointerMove)
+        this.addActiveEvent("nodeMove.pointerUp", "pointerup", handlePointerUp)
     }
-    attachAddNodeKey() {
+    attachNodeAddKey() {
         // when holding the key, add node up to 20 times
         const maxHOLD = 20
         let currHold = 0
@@ -326,29 +355,81 @@ export class InteractionManager {
         }
 
         // prettier-ignore
-        this.addActiveEvent( "deleteNodeKey.keydown", "keydown", handleKeyDown, window )
-        this.addActiveEvent("deleteNodeKey.keyup", "keyup", handleKeyUp, window)
+        this.addActiveEvent("nodeDeleteKey.keydown", "keydown", handleKeyDown, window)
+        this.addActiveEvent("nodeDeleteKey.keyup", "keyup", handleKeyUp, window)
     }
-    attachDeleteNodeKey() {
+    attachNodeDeleteKey() {
         const handleKeyDown = (keyEvent: KeyboardEvent) => {
             if (keyEvent.key !== "Delete") return
             if (keyEvent.repeat) return
             controls.pruneNodeFromSelection()
-
         }
         // prettier-ignore
-        this.addActiveEvent( "addNodeKey.keydown", "keydown", handleKeyDown, window )
+        this.addActiveEvent( "nodeAddKey.keydown", "keydown", handleKeyDown, window )
     }
     // now called from controls for external update
     onPruneNode() {
         // as method so can be called from LEVA on delete.
         // call handlePointerUp
-        this.activeEvents["moveNode.pointerUp"]?.listener()
+        this.activeEvents["nodeMove.pointerUp"]?.listener()
         // cremove this listneer
         this.removeActiveEvent("deleteKey.keyDown")
         // detach transform from seleccted
         this.detachTransformControls()
         // remove selected
         this.selection.length = 0
+    }
+    attachSegmentMoveKey(startHit: THREE.Vector3, mode: string = "both") {
+        // i dont like this pattern...
+        const select = this.selection[0] as any
+        const index = select.index
+        const prevHit = new THREE.Vector3().copy(startHit)
+
+        this.orbitControls.enabled = false
+        const prevEnableTransform = this.transformControls.enabled
+        this.transformControls.enabled = false
+
+        let p1 = _delta
+        let p2 = _delta
+        if (mode === "start") {
+            p2 = _zero
+        } else if (mode === "end") {
+            p1 = _zero
+        }
+
+        const handlePointerMove = (moveEvent: PointerEvent) => {
+            const hit = this.raycastHelper.castFromEventToPlane(moveEvent)
+            if (!hit) return
+
+            _delta.subVectors(hit, prevHit)
+            if (_delta.lengthSq() === 0) return
+
+            this.drafter.sectionCutter.moveSegmentVector(p1, p2, index)
+            prevHit.copy(hit)
+        }
+
+        const handlePointerUp = () => {
+            this.removeActiveEvent("segmentMove.pointerMove")
+            this.removeActiveEvent("segmentMove.pointerUp")
+            this.orbitControls.enabled = true
+            this.transformControls.enabled = prevEnableTransform
+        }
+
+        // prettier-ignore
+        this.addActiveEvent("segmentMove.pointerMove", "pointermove", handlePointerMove)
+        // prettier-ignore
+        this.addActiveEvent("segmentMove.pointerUp", "pointerup", handlePointerUp)
+    }
+    attachSegmentDeleteKey() {
+        const handleKeyDown = (keyEvent: KeyboardEvent) => {
+            if (keyEvent.key !== "Delete") return
+            if (keyEvent.repeat) return
+            // i dont like this pattern...
+            const select = this.selection[0] as any
+            const index = select.index
+            this.drafter.sectionCutter.deleteSegment(index)
+        }
+        // prettier-ignore
+        this.addActiveEvent( "segmentAddKey.keydown", "keydown", handleKeyDown, window )
     }
 }
