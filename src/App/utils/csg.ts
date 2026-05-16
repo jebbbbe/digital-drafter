@@ -35,7 +35,9 @@ export const boolean = {
     intersection: INTERSECTION,
 } as const
 
-const evaluator = new Evaluator()
+export const evaluator = new Evaluator()
+//@ts-ignore
+evaluator.useCDTClipping = true
 
 export function evaluateCSG(
     A: Brush,

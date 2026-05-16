@@ -22,21 +22,29 @@
 
 ### v0.4.0
 
-- [ ] three.js specific imports
 - [ ] rm react dynamic import, use module spliting
-- [ ] boolean BVH
 - [ ] point angle snap
 - [ ] escape key deselect
-- [ ] second leva panel, interactive
-- [ ] add new root...?
+- [ ] boolean BVH
+- [x] add new root...?
+- [/] second leva panel, interactive
+- [/] three.js specific imports
 
 ### v0.3.0
 
 - [ ] undo git squash
-- [ ] section cut bvh
-- [ ] fold line geo
-- [ ] global data texture
-- [ ] perf monitor
+- [ ] selection manager. color change in UI
+- [ ] better theme loader, with functions
+- [ ] moveline-> update Section.
+- [ ] move cut-> update section line
+- [ ] select color on line
+- [ ] window select multiple
+- [ ] bvh section lineweight
+- [x] bvh section cleanup..
+- [x] section cut bvh
+- [x] fold line geo
+- [x] global data texture
+- [x] perf monitor
 - [x] render doc injeciton
 - [s] how to deal with recursive children in diff buckets...?
 - [x] prune/ add node buttons

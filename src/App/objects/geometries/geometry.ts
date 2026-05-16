@@ -1,6 +1,7 @@
 import * as THREE from "three"
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js"
 import { BufferGeometryUtils } from "three/addons"
+import { evaluator } from "../../utils/csg"
 import {
     ADDITION,
     SUBTRACTION,
@@ -44,8 +45,6 @@ export function makeCustomMergeShape(): THREE.BufferGeometry {
 }
 
 export function makeCustomBVHShape(): THREE.BufferGeometry {
-    const evaluator = new Evaluator()
-
     const geo1 = new THREE.BoxGeometry(1, 3, 1)
     geo1.rotateX(Math.PI / 4)
     const brush1 = new Brush(geo1)
@@ -66,8 +65,6 @@ export function makeCustomBVHShape(): THREE.BufferGeometry {
 }
 
 export function makeCustomBVHHierarchyShape(): THREE.BufferGeometry {
-    const evaluator = new Evaluator()
-
     const rootGeo = new THREE.BoxGeometry(2, 2, 2)
     const root = new Operation(rootGeo)
     const group = new OperationGroup()
@@ -96,8 +93,6 @@ export function makeCustomBVHHierarchyShape(): THREE.BufferGeometry {
 }
 
 export function makeAsterix(s = 10): THREE.BufferGeometry {
-    const evaluator = new Evaluator()
-
     const g1 = new THREE.BoxGeometry(s, 1, 1)
     const g2 = new THREE.BoxGeometry(1, s, 1)
     const g3 = new THREE.BoxGeometry(1, 1, s)
@@ -111,7 +106,6 @@ export function makeAsterix(s = 10): THREE.BufferGeometry {
 }
 
 export function makeBadSphere(s = 0.5): THREE.BufferGeometry {
-    const evaluator = new Evaluator()
     const g1 = new THREE.BoxGeometry(s, s, 2)
     const g2 = new THREE.BoxGeometry(s, 2, s)
     const g3 = new THREE.BoxGeometry(2, s, s)
@@ -130,7 +124,6 @@ export function makeBadSphere(s = 0.5): THREE.BufferGeometry {
 }
 
 export function createWeirdSphereoid(iter = 1): THREE.BufferGeometry {
-    const evaluator = new Evaluator()
     const pos = [
         0, 1, 2, 3, 5, 6, 7, 8, 9, 11, 15, 17, 18, 19, 20, 21, 23, 24, 25, 26,
     ]
@@ -213,7 +206,6 @@ export function createMengerSpongeGeometry(iter = 1): THREE.BufferGeometry {
 }
 
 export function createMengerSpongeCSG(iter = 1): THREE.BufferGeometry {
-    const evaluator = new Evaluator()
     const keptCells = new Set([
         0, 1, 2, 3, 5, 6, 7, 8, 9, 11, 15, 17, 18, 19, 20, 21, 23, 24, 25, 26,
     ])
