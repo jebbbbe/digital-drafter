@@ -1,4 +1,5 @@
 import * as THREE from "three"
+import { Brush } from "three-bvh-csg"
 
 type MapItem = {
     lines: number[]
@@ -14,6 +15,9 @@ export class SectionCutter {
     array = new Float32Array(128 * this.stride)
     segmentNodeSlots = new Int32Array(this.array.length / this.stride).fill(-1)
     count = 0
+    // for csg
+    box = new THREE.BoxGeometry()
+    brush = new Brush(this.box)
     constructor(material: THREE.Material) {
         const geometry = new THREE.BufferGeometry()
         geometry.setAttribute(

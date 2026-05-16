@@ -4,6 +4,7 @@ import { constants } from "../constants"
 import { getSlotIndex } from "../draft/TransformTree"
 import type { TransformNode } from "../draft/TransformNode"
 import * as rand from "../utils/random"
+import { evaluateCSG, boolean } from "../utils/csg"
 
 export function cutNodeFromSelection() {
     const selection = interactionManager.selection
@@ -20,6 +21,7 @@ const s = 0.8
 
 export function cutNode(node: TransformNode) {
     // add new line segment
+    const sectionCutter = drafter.sectionCutter
 
     const nodeSlot = getSlotIndex(node.location)
     const mapItem = drafter.sectionCutter.locationMap.get(nodeSlot)
@@ -30,6 +32,13 @@ export function cutNode(node: TransformNode) {
     const start = new THREE.Vector3(lineLen, 0, 0)
     const end = new THREE.Vector3(-lineLen, 0, 0)
 
+    /*
+        controls how the new line is added
+        fisrt try parellel to parent, 
+        then try parellel to first child, 
+        then random. 
+    
+    */
     if (mapItem === undefined) {
         if (node.parent !== node) {
             // not a root
@@ -56,72 +65,81 @@ export function cutNode(node: TransformNode) {
 
     start.add(node.position)
     end.add(node.position)
-    drafter.sectionCutter.addSegmentVector(start, end, nodeSlot)
+    const midPoint = new THREE.Vector3()
+        .addVectors(start, end)
+        .multiplyScalar(0.5)
 
-    /*
-        // bvh geo
-        geo1 = geometryCutter.booleanShape({
-            geometry: geo,
-            matrix: matrix,
-            pointA,
-            pointB,
-        })
+    // add new line segment
+    sectionCutter.addSegmentVector(start, end, nodeSlot)
 
-        geo2 = geometryCutter.booleanShape({
-            geometry: geo,
-            matrix: matrix,
-            pointA,
-            pointB,
-        })
+    // SECTION
+    const id = node.location.id
+    const instanceItem = drafter.instanceItems[id]
+    if (!instanceItem) return
 
-        const side1ID = drafter.addInstance(geo1)
-        const side2ID = drafter.addInstance(geo2)
+    // get brush from instance
+    const instanceBrush = instanceItem.brush
+    instanceBrush.matrixAutoUpdate = false
+    const prevMatrix = instanceBrush.matrix.clone()
+    instanceBrush.matrix.copy(node.compoundMatrix)
+    instanceBrush.updateMatrixWorld(true)
 
-        // add nodes
-        const side1pos = new THREE.Vector3(0, 0, -4).sub(node.position)
-        const side2pos = new THREE.Vector3(0, 0, 4).sub(node.position)
+    // get brush from sectionCutter
+    const boxBrush = sectionCutter.brush
+    boxBrush.matrixAutoUpdate = false
+    boxBrush.matrix.identity()
 
-        const side1Root = {
-            position: side1pos,
-            location: { id: side1ID, index: -1 },
-            parent: node,
-        }
+    // determine Box Matrix
+    const dir = new THREE.Vector3()
+        .subVectors(start, midPoint)
+        .setY(0)
+        .normalize()
+    let angle = Math.atan2(dir.x, dir.z)
+    if (angle < 0) angle += Math.PI * 2
 
-        const side2Root = {
-            position: side2pos,
-            location: { id: side2ID, index: -1 },
-            parent: node,
-        }
+    const size = 50
+    const move1 = new THREE.Matrix4().makeTranslation(0.5, 0, 0)
+    const scale = new THREE.Matrix4().makeScale(size, size, size)
+    const rotate = new THREE.Matrix4().makeRotationY(angle)
+    const move2 = new THREE.Matrix4().makeTranslation(midPoint)
+    boxBrush.matrix.copy(move2).multiply(rotate).multiply(scale).multiply(move1)
+    boxBrush.updateMatrixWorld(true)
 
-        drafter.addRoot(side1Root)
-        drafter.addRoot(side2Root)
-        */
-}
-/*
-export function moveCutter() {
-    
-    // move cutter from an index.
-    if(move0) geometryCutter.move(index, delta)
-    if(move1) geometryCutter.move(index, delta)
+    // debug, preview the mesh
+    //@ts-ignore
+    // drafter.boxDebug.matrix.copy(boxBrush.matrix)
 
-    //update BVH
-    const node = drafter.getnodde( cutter.getNode() )
-    
-    //NEED some way to get children that are results of cuts. 
-    cosnt cutChildren[]
+    // evaluate
+    const brush1 = evaluateCSG(instanceBrush, boxBrush, boolean.intersection)
 
-    // update
-    const instanceIDs = []
-    for  cutChildren{
-        instanceIDs.push()
+    //remove matrix world
+    instanceBrush.matrix.copy(prevMatrix)
+    instanceBrush.updateMatrixWorld(true)
+
+    // add instance
+    const side1ID = drafter.instanceItems.nextIndex()
+    drafter.newInstance(brush1.geometry)
+
+    // determine root position
+    const lineDir = new THREE.Vector3()
+        .subVectors(end, start)
+        .setY(0)
+        .normalize()
+
+    const perp = new THREE.Vector3(-lineDir.z, 0, lineDir.x)
+    const distance = 1.75
+
+    const side1pos = new THREE.Vector3()
+        .copy(node.position)
+        .addScaledVector(perp, -distance)
+
+    // add new root
+    const side1Root: Partial<TransformNode> = {
+        position: side1pos,
+        location: { id: side1ID, index: -1 },
+        parent: node,
     }
 
-    for  instanceIDs{
-        const id = intsnceIds[i]
-        const instance = drafter.isntanceIDs[id]
-        .....
-        drafter.patchIsntance(nnewGeo, id)
-    }
-    // no need for dfs as nothign about matrix position changes?
+    // add new root!
+    drafter.addRootNode(side1Root)
 }
-    */

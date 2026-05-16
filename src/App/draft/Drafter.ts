@@ -83,6 +83,24 @@ export class Drafter {
         this.debug.enable = true
         this.debug.objects.line.material = this.materials.debugLine
         this.debug.objects.point.material = this.materials.debugPoint
+
+        const boxDebug = new THREE.Mesh(
+            this.sectionCutter.box,
+            new THREE.MeshBasicMaterial({
+                color: 0x00ffff,
+            })
+        )
+        // const angle = Math.PI/4
+        // const move1 = new THREE.Matrix4().makeTranslation(0.5, 0, 0)
+        // const scale = new THREE.Matrix4().makeScale(100, 100, 100)
+        // const rotate = new THREE.Matrix4().makeRotationY(angle)
+        // const move2 = new THREE.Matrix4().makeTranslation(2, 0, -20)
+        // sec.matrix.copy(move2).multiply(rotate).multiply(scale).multiply(move1)
+        // sec.matrix.multiply(move1)
+        boxDebug.matrixAutoUpdate = false
+        //@ts-ignore
+        this.boxDebug = boxDebug
+        this.scene.add(boxDebug)
     }
 
     newInstance(geometry: THREE.BufferGeometry): InstanceItem | undefined {
@@ -380,7 +398,7 @@ export class Drafter {
         const subtree: TransformNode[] = []
         const fn = (n: TransformNode) =>
             calculateCompoundMatrix(n, subtree, instanceItem.localTransform)
-        
+
         walkSubtree(patchedNode, fn)
 
         const sphereUpdate = {} as Record<number, InstanceItem>
@@ -459,12 +477,10 @@ function calculateCompoundMatrix(
     const isRoot = node.parent === node
 
     if (isRoot) {
-        node.compoundMatrix
-            .copy(node.baseMatrix)
-            .multiply(localTransform)
+        node.compoundMatrix.copy(node.baseMatrix).multiply(localTransform)
     } else {
         node.compoundMatrix
-            .copy(node.baseMatrix)  
+            .copy(node.baseMatrix)
             .multiply(node.parent.compoundMatrix)
     }
 }
