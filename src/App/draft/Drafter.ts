@@ -204,18 +204,7 @@ export class Drafter {
 
         // increment count
         incrementInstanceCount(instanceItem)
-
-        // this should be wrong
-        node.baseMatrix.makeTranslation(node.position)
-        node.compoundMatrix
-            .copy(node.baseMatrix)
-            .multiply(instanceItem.localTransform)
-
-        const slot = this.setNodeTextureAt(node)
-        setInstanceBuffersIndex(instanceItem, node, slot)
-
-        // update matrix
-        computeBoundingSphere(instanceItem)
+        this.updatePatchedNode(node)
     }
 
     // i dont like parentLocation, switch to passing another node...
@@ -266,13 +255,7 @@ export class Drafter {
         this.tree.addNode(node, parent)
 
         incrementInstanceCount(instanceItem)
-        // applyNodeMatrixUpdate(node, this.instanceItems)
-        calculateBaseMatrix(node)
-        calculateCompoundMatrix(node)
-
-        const slot = this.setNodeTextureAt(node)
-        setInstanceBuffersIndex(instanceItem, node, slot)
-        computeBoundingSphere(instanceItem)
+        this.updatePatchedNode(node)
 
         // console.log("addLeafNode")
         // console.log({node})
@@ -395,9 +378,9 @@ export class Drafter {
         //update childrens base matrix as it depends on parent pos.
 
         const subtree: TransformNode[] = []
-
-        const fn = (n: TransformNode) => calculateCompoundMatrix(n, subtree)
-
+        const fn = (n: TransformNode) =>
+            calculateCompoundMatrix(n, subtree, instanceItem.localTransform)
+        
         walkSubtree(patchedNode, fn)
 
         const sphereUpdate = {} as Record<number, InstanceItem>
@@ -468,17 +451,20 @@ function calculateBaseMatrixChild(node: TransformNode) {
 
 function calculateCompoundMatrix(
     node: TransformNode,
-    subTree: TransformNode[] = []
+    subTree: TransformNode[] = [],
+    localTransform: THREE.Matrix4 = new THREE.Matrix4()
 ) {
     subTree.push(node)
 
     const isRoot = node.parent === node
 
     if (isRoot) {
-        node.compoundMatrix.copy(node.baseMatrix)
-    } else {
         node.compoundMatrix
             .copy(node.baseMatrix)
+            .multiply(localTransform)
+    } else {
+        node.compoundMatrix
+            .copy(node.baseMatrix)  
             .multiply(node.parent.compoundMatrix)
     }
 }

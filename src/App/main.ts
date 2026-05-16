@@ -132,7 +132,7 @@ export function init(container: HTMLElement): () => void {
     drafter.newInstance(initalGeo1)
     // bvhBooleanTest = createBvhBooleanTest(scene, initalGeo)
 
-    const scale = rand.random(0.75, 1.5)
+    const scale = 1 // rand.random(0.75, 1.5)
     const initalTransform = new THREE.Matrix4()
         .makeRotationX(
             rand.randomItem([0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2])

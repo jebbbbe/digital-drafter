@@ -1,6 +1,6 @@
 import * as THREE from "three"
 import * as rand from "../utils/random"
-import { isAppReady, drafter, interactionManager } from "../main"
+import { drafter, interactionManager } from "../main"
 import type { TransformNode } from "../draft/TransformNode"
 
 const PI = Math.PI
@@ -11,12 +11,6 @@ const _scale = new THREE.Vector3()
 const _posOffset = new THREE.Vector3()
 const _rotateEuler = new THREE.Euler(0, 0, 0, "YXZ")
 const _extractEuler = new THREE.Euler()
-
-function setMatrixUniformScale(matrix: THREE.Matrix4, value: number): void {
-    matrix.decompose(_position, _quaternion, _scale)
-    _scale.set(value, value, value)
-    matrix.compose(_position, _quaternion, _scale)
-}
 
 export function addTestNode(x: number = 10, z: number = 5): void {
     const instance = drafter.instanceItems[0]
@@ -32,21 +26,6 @@ export function addTestNode(x: number = 10, z: number = 5): void {
         },
         { id: 0, index: rand.randomInt(0, max) }
     )
-}
-
-export function setRootScaleMatrix(value: number): void {
-    if (!isAppReady) return
-
-    const instanceItem = drafter.instanceItems[0]
-    const rootNode = drafter.tree.findNode({ id: 0, index: 0 }) as
-        | TransformNode
-        | undefined
-    if (!instanceItem || !rootNode) return
-
-    setMatrixUniformScale(instanceItem.localTransform, value)
-
-    rootNode.compoundMatrix.copy(instanceItem.localTransform)
-    drafter.updatePatchedNode(rootNode)
 }
 
 export function addLeafNearbyRandomlyFromSelection() {
