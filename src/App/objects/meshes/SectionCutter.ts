@@ -1,16 +1,18 @@
 import * as THREE from "three"
 
-type mapItem = {
+type MapItem = {
     lines: number[]
-    prevPosition: THREE.Vector3
 }
 
 export class SectionCutter {
     mesh!: THREE.LineSegments
     itemSize = 3
     stride = this.itemSize * 2 // 2 3d points
-    locationMap = new Map<number, number[]>()
+    // map nodes to its section Lines
+    locationMap = new Map<number, MapItem>()
+    // map lines to their nodeSlot
     array = new Float32Array(128 * this.stride)
+    segmentNodeSlots = new Int32Array(this.array.length / this.stride).fill(-1)
     count = 0
     constructor(material: THREE.Material) {
         const geometry = new THREE.BufferGeometry()
@@ -24,6 +26,40 @@ export class SectionCutter {
         this.mesh.frustumCulled = false
     }
 
+    mapAdd(nodeSlot: number, segmentIndex: number) {
+        const mapItem: MapItem | undefined = this.locationMap.get(nodeSlot)
+        if (mapItem === undefined) {
+            this.locationMap.set(nodeSlot, { lines: [segmentIndex] } as MapItem)
+        } else {
+            mapItem.lines.push(segmentIndex)
+        }
+    }
+
+    mapDelete(nodeSlot: number, segmentIndex: number) {
+        const mapItem: MapItem | undefined = this.locationMap.get(nodeSlot)
+        if (mapItem !== undefined) {
+            const idx = mapItem.lines.indexOf(segmentIndex)
+            mapItem.lines.splice(idx, 1)
+            if (mapItem.lines.length === 0) {
+                this.locationMap.delete(nodeSlot)
+            }
+        }
+    }
+
+    mapReplace(
+        nodeSlot: number,
+        fromSegmentIndex: number,
+        toSegmentIndex: number
+    ) {
+        const mapItem: MapItem | undefined = this.locationMap.get(nodeSlot)
+        if (mapItem !== undefined) {
+            const idx = mapItem.lines.indexOf(fromSegmentIndex)
+            if (idx !== -1) {
+                mapItem.lines[idx] = toSegmentIndex
+            }
+        }
+    }
+
     resize(minSize = this.array.length * 2) {
         // increase buffer size
         let nextSize = this.array.length
@@ -35,6 +71,13 @@ export class SectionCutter {
         const nextArray = new Float32Array(nextSize)
         nextArray.set(this.array)
         this.array = nextArray
+
+        const nextSegmentNodeSlots = new Int32Array(
+            nextSize / this.stride
+        ).fill(-1)
+        nextSegmentNodeSlots.set(this.segmentNodeSlots)
+        this.segmentNodeSlots = nextSegmentNodeSlots
+
         this.mesh.geometry.setAttribute(
             "position",
             new THREE.BufferAttribute(this.array, this.itemSize)
@@ -49,14 +92,18 @@ export class SectionCutter {
             "position"
         ) as THREE.BufferAttribute
         position.needsUpdate = true
-        geometry.computeBoundingSphere();
-        geometry.computeBoundingBox();
-
+        geometry.computeBoundingSphere()
+        geometry.computeBoundingBox()
     }
 
-    addSegmentVector(a: THREE.Vector3, b: THREE.Vector3): number {
+    addSegmentVector(
+        a: THREE.Vector3,
+        b: THREE.Vector3,
+        nodeSlot?: number
+    ): number {
         const index = this.count
         const offset = index * this.itemSize
+        const segmentSlot = index / 2
 
         if (offset + this.stride > this.array.length) {
             this.resize(offset + this.stride)
@@ -67,12 +114,18 @@ export class SectionCutter {
         this.count += 2
         this.mesh.geometry.setDrawRange(0, this.count)
         this.markUpdate()
+
+        // add to map
+        this.segmentNodeSlots[segmentSlot] = nodeSlot ?? -1
+        if (nodeSlot !== undefined) this.mapAdd(nodeSlot, index)
+
         return index
     }
 
-    addSegmentArray(a: number[]): number {
+    addSegmentArray(a: number[], nodeSlot?: number): number {
         const index = this.count
         const offset = index * this.itemSize
+        const segmentSlot = index / 2
         if (offset + this.stride > this.array.length) {
             this.resize(offset + this.stride)
         }
@@ -82,6 +135,9 @@ export class SectionCutter {
         this.count += 2
         this.mesh.geometry.setDrawRange(0, this.count)
         this.markUpdate()
+        // add to map
+        this.segmentNodeSlots[segmentSlot] = nodeSlot ?? -1
+        if (nodeSlot !== undefined) this.mapAdd(nodeSlot, index)
         return index
     }
 
@@ -92,13 +148,60 @@ export class SectionCutter {
         this.markUpdate()
     }
 
-    patchsegmentArray(a: number[], index: number) {
+    patchSegmentArray(a: number[], index: number) {
         const offset = index * this.itemSize
         this.array.set(a, offset)
         this.markUpdate()
     }
 
-    deleteSegment(index: number) {
+    moveSegmentVector(a: THREE.Vector3, b: THREE.Vector3, index: number) {
+        // add pts to existing array
+        const move = [0, 0, 0, 0, 0, 0]
+        a.toArray(move, 0)
+        b.toArray(move, this.itemSize)
+
+        this.moveSegmentArray(move, index)
+    }
+
+    moveSegmentArray(move: number[], index: number) {
+        // add pts to existing array
+        const offset = index * this.itemSize
+
+        this.array[offset] += move[0]
+        this.array[offset + 1] += move[1]
+        this.array[offset + 2] += move[2]
+        this.array[offset + 3] += move[3]
+        this.array[offset + 4] += move[4]
+        this.array[offset + 5] += move[5]
+
+        this.markUpdate()
+    }
+
+    moveFromNodeSlot(a: THREE.Vector3, b: THREE.Vector3, nodeSlot: number) {
+        const move = [0, 0, 0, 0, 0, 0]
+        a.toArray(move, 0)
+        b.toArray(move, this.itemSize)
+
+        const mapItem = this.locationMap.get(nodeSlot)
+        if (mapItem) {
+            const lines = mapItem.lines
+            for (let i = 0; i < lines.length; i++) {
+                const index = lines[i]
+                this.moveSegmentArray(move, index)
+            }
+        }
+    }
+
+    deleteFromNodeSlot(nodeSlot: number) {
+        while (true) {
+            const mapItem = this.locationMap.get(nodeSlot)
+            if (!mapItem || mapItem.lines.length === 0) break
+            this.deleteSegment(mapItem.lines[0], false)
+        }
+        this.markUpdate()
+    }
+
+    deleteSegment(index: number, mark: boolean = true) {
         if (index < 0 || index + 1 >= this.count) {
             return
         }
@@ -106,6 +209,8 @@ export class SectionCutter {
         const offset = index * this.itemSize
         const lastIndex = this.count - 2
         const lastOffset = lastIndex * this.itemSize
+        const lastSegmentSlot = lastIndex / 2
+        const segmentSlot = index / 2
 
         if (index !== lastIndex) {
             this.array.copyWithin(offset, lastOffset, lastOffset + this.stride)
@@ -114,123 +219,23 @@ export class SectionCutter {
         this.array.fill(0, lastOffset, lastOffset + this.stride)
         this.count -= 2
         this.mesh.geometry.setDrawRange(0, this.count)
-        this.markUpdate()
-    }
-}
+        if (mark) this.markUpdate()
 
-export class AddSegmentsMesh extends THREE.LineSegments {
-    constructor(material: THREE.Material) {
-        const geometry = new THREE.BufferGeometry()
-        super(geometry, material)
-        geometry.setDrawRange(0, 0)
+        const nodeSlot = this.segmentNodeSlots[segmentSlot]
+        const movedNodeSlot = this.segmentNodeSlots[lastSegmentSlot]
 
-        const itemSize = 3
-        const stride = itemSize * 2 // 2 3d points
-        this.userData.locationMap = new Map<number, number[]>()
-        this.userData.itemSize = itemSize
-        this.userData.stride = stride
-        this.userData.array = new Float32Array(128 * stride)
-        this.userData.count = 0
-
-        geometry.setAttribute(
-            "position",
-            new THREE.BufferAttribute(this.userData.array, itemSize)
-        )
-    }
-
-    markUpdate() {
-        const position = this.geometry.getAttribute(
-            "position"
-        ) as THREE.BufferAttribute
-        position.needsUpdate = true
-    }
-
-    // add line
-    addSegment(a: THREE.Vector3, b: THREE.Vector3): number {
-        let { count, array, itemSize } = this.userData
-        const index = count
-        const offset = index * itemSize
-
-        if (offset + this.userData.stride > array.length) {
-            array = this.resize(offset + this.userData.stride)
+        if (nodeSlot !== -1) {
+            this.mapDelete(nodeSlot, index)
         }
-
-        a.toArray(array, offset)
-        b.toArray(array, offset + itemSize)
-        count += 2
-        this.geometry.setDrawRange(0, count)
-        this.markUpdate()
-        this.userData.count = count
-        return index
-    }
-
-    // update line from index
-    patchSegment(a: THREE.Vector3, b: THREE.Vector3, index: number) {
-        const { array, itemSize } = this.userData
-        const offset = index * itemSize
-        a.toArray(array, offset)
-        b.toArray(array, offset + itemSize)
-        this.markUpdate()
-    }
-
-    // delete line
-    deleteSegment(index: number) {
-        let { count, array, itemSize, stride } = this.userData
-
-        if (index < 0 || index + 1 >= count) {
-            return
-        }
-
-        const offset = index * itemSize
-        const lastIndex = count - 2
-        const lastOffset = lastIndex * itemSize
 
         if (index !== lastIndex) {
-            array.copyWithin(offset, lastOffset, lastOffset + stride)
+            this.segmentNodeSlots[segmentSlot] = movedNodeSlot
+            if (movedNodeSlot !== -1) {
+                this.mapReplace(movedNodeSlot, lastIndex, index)
+            }
         }
 
-        array.fill(0, lastOffset, lastOffset + stride)
-        count -= 2
-        this.geometry.setDrawRange(0, count)
-        this.markUpdate()
-        this.userData.count = count
-    }
-
-    addSegmentFromID(a: THREE.Vector3, b: THREE.Vector3) {
-        return this.addSegment(a, b) / 2
-    }
-
-    patchSegmentFromID(a: THREE.Vector3, b: THREE.Vector3, id: number) {
-        this.patchSegment(a, b, id * 2)
-    }
-
-    deleteSegmentFromID(id: number) {
-        this.deleteSegment(id * 2)
-    }
-
-    // resize line
-    resize(minSize = this.userData.array.length * 2) {
-        let { array } = this.userData
-
-        // increase buffer size
-        let nextSize = array.length
-
-        while (nextSize < minSize) {
-            nextSize *= 2
-        }
-
-        const nextArray = new Float32Array(nextSize)
-        nextArray.set(this.userData.array)
-        this.userData.array = nextArray
-        this.geometry.setAttribute(
-            "position",
-            new THREE.BufferAttribute(
-                this.userData.array,
-                this.userData.itemSize
-            )
-        )
-        this.markUpdate()
-        return nextArray
+        this.segmentNodeSlots[lastSegmentSlot] = -1
     }
 }
 

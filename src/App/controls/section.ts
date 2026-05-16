@@ -1,7 +1,9 @@
 import * as THREE from "three"
 import { drafter, scene, interactionManager } from "../main"
 import { constants } from "../constants"
+import { getSlotIndex } from "../draft/TransformTree"
 import type { TransformNode } from "../draft/TransformNode"
+import * as rand from "../utils/random"
 
 export function cutNodeFromSelection() {
     const selection = interactionManager.selection
@@ -11,13 +13,48 @@ export function cutNodeFromSelection() {
     cutNode(node)
 }
 
+const _up = new THREE.Vector3(0, 1, 0)
+const _offset = new THREE.Vector3()
+const _dir = new THREE.Vector3()
+const s = 0.8
+
 export function cutNode(node: TransformNode) {
     // add new line segment
-    const s = 0.8
-    const start = new THREE.Vector3(s, 0, 0).add(node.position)
-    const end = new THREE.Vector3(-s, 0, 0).add(node.position)
-    drafter.sectionCutter.addSegmentVector(start, end)
-    console.log({ start, end })
+
+    const nodeSlot = getSlotIndex(node.location)
+    const mapItem = drafter.sectionCutter.locationMap.get(nodeSlot)
+
+    _offset.z = rand.random(-0.25, 0.25)
+    const t = rand.random(0, Math.PI * 2)
+    const lineLen = s * 1.0
+    const start = new THREE.Vector3(lineLen, 0, 0)
+    const end = new THREE.Vector3(-lineLen, 0, 0)
+
+    if (mapItem === undefined) {
+        if (node.parent !== node) {
+            // not a root
+            _dir.subVectors(node.parent.position, node.position)
+            const theta = Math.atan2(-_dir.z, _dir.x)
+            start.applyAxisAngle(_up, theta)
+            end.applyAxisAngle(_up, theta)
+        } else if (node.children.length > 0) {
+            // root with children
+            _dir.subVectors(node.children[0].position, node.position)
+            const theta = Math.atan2(-_dir.z, _dir.x)
+            start.applyAxisAngle(_up, theta)
+            end.applyAxisAngle(_up, theta)
+        } else {
+            start.add(_offset).applyAxisAngle(_up, t)
+            end.add(_offset).applyAxisAngle(_up, t)
+        }
+    } else {
+        start.add(_offset).applyAxisAngle(_up, t)
+        end.add(_offset).applyAxisAngle(_up, t)
+    }
+
+    start.add(node.position)
+    end.add(node.position)
+    drafter.sectionCutter.addSegmentVector(start, end, nodeSlot)
 
     /*
         // bvh geo

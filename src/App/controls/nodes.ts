@@ -2,6 +2,7 @@ import * as THREE from "three"
 import * as rand from "../utils/random"
 import { drafter, interactionManager } from "../main"
 import type { TransformNode } from "../draft/TransformNode"
+import { getSlotIndex } from "../draft/TransformTree"
 
 const PI = Math.PI
 const PIo2 = PI / 2
@@ -124,6 +125,7 @@ export function pruneNodeFromSelection() {
 }
 
 export function pruneNode(node: TransformNode) {
+    drafter.sectionCutter.deleteFromNodeSlot(getSlotIndex(node.location))
     drafter.pruneNode(node)
     interactionManager.onPruneNode()
 }

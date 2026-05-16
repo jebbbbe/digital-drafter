@@ -21,7 +21,7 @@ export class RaycastHelper {
         } else {
             this.targets = targets
         }
-        this.raycaster.params.Line.threshold = 0.1
+        this.raycaster.params.Line.threshold = 0.05
     }
     castFromEvent(
         e: MouseEvent,

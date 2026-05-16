@@ -5,6 +5,7 @@ import { Drafter } from "../draft/Drafter"
 import type { TransformNode } from "../draft/TransformNode"
 import type { NodeLocation } from "../draft/TransformTree"
 import { createsCycle } from "../draft/recursive"
+import { getSlotIndex } from "../draft/TransformTree"
 import { RaycastHelper } from "./RaycastHelper"
 import {
     enableStub,
@@ -31,6 +32,9 @@ type ActiveEvent = {
     type: string
     listener: Function
 }
+
+const _prevPosition = new THREE.Vector3()
+const _delta = new THREE.Vector3()
 
 export class InteractionManager {
     domElement: HTMLCanvasElement
@@ -165,7 +169,7 @@ export class InteractionManager {
         if (intersects[0].object === this.drafter.sectionCutter.mesh) {
             console.log(intersects)
             return
-            // intersects.shift() 
+            // intersects.shift()
         }
 
         // find node from raycast
@@ -223,21 +227,32 @@ export class InteractionManager {
     }
     attachTransformControls(node: TransformNode) {
         this.removeActiveEvent("transformObjectChange")
+        const slotIndex = getSlotIndex(node.location)
+        const _prevPosition = new THREE.Vector3()
+        const _delta = new THREE.Vector3()
 
         this.transformProxy.position.copy(node.position)
         this.transformProxy.rotation.set(0, 0, 0)
         this.transformProxy.scale.set(1, 1, 1)
         this.transformProxy.updateMatrixWorld(true)
+
         const handleObjectChange = () => {
+            _prevPosition.copy(node.position)
             node.position.copy(this.transformProxy.position)
+            _delta.subVectors(node.position, _prevPosition)
+            if (_delta.lengthSq() === 0) return
+
+            this.drafter.sectionCutter.moveFromNodeSlot(_delta, _delta, slotIndex)
             this.drafter.updatePatchedNode(node)
         }
+
         this.addActiveEvent(
             "transformObjectChange",
             "objectChange",
             handleObjectChange,
             this.transformControls
         )
+        
         this.transformControls.attach(this.transformProxy)
     }
     detachTransformControls() {
@@ -249,17 +264,34 @@ export class InteractionManager {
 
     attachNodeMove(startOffset: THREE.Vector3) {
         const node = this.selection[0]
+        const slotIndex = getSlotIndex(node.location)
+        const _prevPosition = new THREE.Vector3()
+        const _delta = new THREE.Vector3()
         this.orbitControls.enabled = false
         const prevEnableTransform = this.transformControls.enabled
         this.transformControls.enabled = false
 
         const handlePointerMove = (moveEvent: PointerEvent) => {
+            // get xz pos
             const hit = this.raycastHelper.castFromEventToPlane(moveEvent)
             if (!hit) return
 
+            // add offset to pt
+            _prevPosition.copy(node.position)
             node.position.copy(hit).add(startOffset)
+
+            //get delta
+            _delta.subVectors(node.position, _prevPosition)
+            // no move exit early
+            if (_delta.lengthSq() === 0) return
+
+            // update recusive on node
             this.drafter.updatePatchedNode(node)
 
+            // update Section Lines of Node
+            this.drafter.sectionCutter.moveFromNodeSlot(_delta, _delta, slotIndex)
+
+            // update transform controsl
             if (this.transformControlsEnabled) {
                 this.transformProxy.position.copy(node.position)
                 this.transformProxy.updateMatrixWorld(true)
@@ -302,6 +334,7 @@ export class InteractionManager {
             if (keyEvent.key !== "Delete") return
             if (keyEvent.repeat) return
             controls.pruneNodeFromSelection()
+
         }
         // prettier-ignore
         this.addActiveEvent( "addNodeKey.keydown", "keydown", handleKeyDown, window )

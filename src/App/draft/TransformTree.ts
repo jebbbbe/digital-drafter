@@ -241,3 +241,7 @@ export class TransformTree {
         array.resize(newCapacity)
     }
 }
+
+export function getSlotIndex({ id, index }: NodeLocation): number {
+    return id * InstanceCount + index
+}
