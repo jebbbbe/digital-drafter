@@ -1,9 +1,21 @@
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import { controls } from "../App/index"
 import { button, buttonGroup, folder, Leva, useControls } from "leva"
 import { constants } from "../App/constants"
 
 function Controls() {
+    function getLevaTheme(themeKey: string) {
+        const theme = constants.themes.objects[
+            themeKey as keyof typeof constants.themes.objects
+        ] as { leva?: Record<string, unknown> } | undefined
+
+        return theme?.leva ?? {}
+    }
+
+    const [levaTheme, setLevaTheme] = useState(() =>
+        getLevaTheme(constants.theme)
+    )
+
     function wrapControls<T extends Record<string, any>>(obj: T): T {
         return Object.fromEntries(
             Object.entries(obj).map(([key, fn]) => {
@@ -179,7 +191,17 @@ function Controls() {
                 label: "Theme",
                 value: constants.theme,
                 options: constants.themeOptions,
-                onChange: wControls.themeSelect,
+                onChange: (value, path, context) => {
+                    const result = (
+                        wControls.themeSelect as (...args: any[]) => unknown
+                    )(value, path, context)
+
+                    if (result) {
+                        setLevaTheme(getLevaTheme(value))
+                    }
+
+                    return result
+                },
             },
             Scene,
         })
@@ -260,11 +282,11 @@ function Controls() {
     useControls(schema)
 
     return (
-        <>
+        <div id="panel">
             <Leva
-                // theme={myTheme} // you can pass a custom theme (see the styling section)
-                // fill // default = false, true makes the pane fill the parent dom node it's rendered in
-                // flat // default = false, true removes border radius and shadow
+                theme={levaTheme} // you can pass a custom theme (see the styling section)
+                fill={true} // default = false, true makes the pane fill the parent dom node it's rendered in
+                flat={true} // default = false, true removes border radius and shadow
                 // oneLineLabels // default = false, alternative layout for labels, with labels and fields on separate rows
                 collapsed={false} // default = false, when true the GUI is collapsed
                 // hidden // default = false, when true the GUI is hidden
@@ -278,6 +300,7 @@ function Controls() {
                     position: { x: 0, y: 0 }, // Initial position (when drag is enabled)
                     // onDrag: () => {}, // Callback when dragged
                 }}
+                // titleBar = {false}
             />
             {/* <button type="button" onClick={controls.randomizeCubeColor}>
                 Randomize cube color
@@ -291,7 +314,7 @@ function Controls() {
             <button type="button" onClick={controls.saveCubeAsGltf}>
                 Save cube as .gltf
             </button> */}
-        </>
+        </div>
     )
 }
 

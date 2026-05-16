@@ -33,7 +33,7 @@ export const constants = {
             foldSize: 1.75,
         },
     },
-    theme: "light",
+    theme: "paper",
     themeOptions: {
         Paper: "paper",
         Light: "light",
@@ -61,7 +61,7 @@ export const constants = {
                     },
                     dash: {
                         color: "#a7a7a7",
-                        visible: false,
+                        visible: true,
                         dashSize: 0.05,
                         gapSize: 0.01,
                     },
@@ -105,6 +105,20 @@ export const constants = {
                         foldSize: 1.75,
                     },
                 },
+                leva: {
+                    colors: {
+                        elevation1: "#ffffff",
+                        elevation2: "#ffffff",
+                        elevation3: "#d5d5d5",
+                        accent1: "#d1d1d1",
+                        accent2: "#767676",
+                        accent3: "#000000",
+                        highlight1: "#000000",
+                        highlight2: "#000000",
+                        highlight3: "#000000",
+                        vivid1: "#00ff06",
+                    },
+                },
             },
             dark: {
                 display: {
@@ -132,6 +146,20 @@ export const constants = {
                         visible: true,
                         foldDistance: 1.75,
                         foldSize: 1.75,
+                    },
+                },
+                leva: {
+                    colors: {
+                        elevation1: "#000000",
+                        elevation2: "#000000",
+                        elevation3: "#4b4b4b",
+                        accent1: "#a3a3a3",
+                        accent2: "#9a9a9a",
+                        accent3: "#ffffff",
+                        highlight1: "#ffffff",
+                        highlight2: "#ffffff",
+                        highlight3: "#ffffff",
+                        vivid1: "#00ff06",
                     },
                 },
             },

@@ -55,6 +55,7 @@ type DisplayTheme = {
 }
 
 export function syncLevaDisplayControls(display: DisplayTheme): void {
+    console.log({ levaStore })
     levaStore.set(
         {
             [panelPaths.background]: display.background,

@@ -13,11 +13,13 @@ if (!rootElement) {
 
 const app = (
     <main>
-         <App />
-         <StrictMode>
-            <Header/>
-            <Controls/>
-         </StrictMode>
+        <Header />
+        <div id="screen">
+            <StrictMode>
+                <Controls />
+            </StrictMode>
+            <App />
+        </div>
     </main>
 )
 // createRoot(rootElement).render(app)
