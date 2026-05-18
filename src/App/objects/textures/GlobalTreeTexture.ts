@@ -1,5 +1,6 @@
 import * as THREE from "three"
 import { InstanceCount } from "../../constants"
+import type { NodeLocation } from "../../draft/TransformTree"
 
 type Pow2 =
     | 1
@@ -25,14 +26,16 @@ type FixedLengthArray<
 > = R["length"] extends N ? R : FixedLengthArray<T, N, [...R, T]>
 
 type SlotData = FixedLengthArray<number, 20>
+type MatrixData = FixedLengthArray<number, 16>
+type JustData = FixedLengthArray<number, 4>
 
 const defaultSlot: SlotData = [
     // ...new THREE.Matrix4().setPosition(3, 0, 3).elements,
     ...new THREE.Matrix4().elements,
-    0,
-    0,
-    0,
-    0,
+    0, // parent slot
+    0, // is selected
+    0, // unused
+    0, // unused
 ]
 
 /**
@@ -157,21 +160,43 @@ export class GlobalTreeTexture {
     }
 
     /**
-     * Converts a block-local instance location into its flat global slot index.
-     */
-    getSlot({ id, index }: { id: number; index: number }): number {
-        return id * this.blockSize + index
-    }
-
-    /**
      * Writes one full slot payload into the backing array at the given global slot.
      */
-    writeMatrix(slot: number, matrixArray16: SlotData) {
+    writeSlot(slot: number, matrixAndMetaData: SlotData) {
         const offset = slot * this.stride
-
-        this.array.set(matrixArray16, offset)
-
-        // change this later
+        this.array.set(matrixAndMetaData, offset)
+    }
+    writeMatrix(slot: number, matrixAndMetaData: MatrixData) {
+        const offset = slot * this.stride
+        this.array.set(matrixAndMetaData, offset)
+    }
+    writeData(slot: number, matrixAndMetaData: JustData) {
+        const offset = slot * this.stride + 16 // add matrix len
+        this.array.set(matrixAndMetaData, offset)
+    }
+    writeNodeParent(slot: number, parentSlot: number) {
+        const offset = slot * this.stride + 16
+        this.array[offset] = parentSlot
+    }
+    writeNodeSelected(slot: number, isSelected: boolean) {
+        const offset = slot * this.stride + 16 + 1
+        this.array[offset] = Number(isSelected)
+    }
+    sendUpdate(slot: number) {
+        // if this bottlecks, see how we handled updateRanges for the shared Matrix Buffer
         this.texture.needsUpdate = true
     }
+}
+
+/**
+ * Converts a block-local instance location into its flat global slot index.
+ */
+export function getSlotIndex({ id, index }: NodeLocation): number {
+    return id * InstanceCount + index
+}
+
+export function getNodeLocationFromSlot(slotIndex: number): NodeLocation {
+    const id = Math.floor(slotIndex / InstanceCount)
+    const index = slotIndex % InstanceCount
+    return { id, index }
 }

@@ -1,15 +1,13 @@
 import * as THREE from "three"
 import { drafter, scene, interactionManager } from "../main"
 import { constants } from "../constants"
-import { getSlotIndex, type NodeLocation } from "../draft/TransformTree"
+import { getSlotIndex } from "../objects/textures/GlobalTreeTexture"
 import type { TransformNode } from "../draft/TransformNode"
 import * as rand from "../utils/random"
 import { evaluateCSG, boolean } from "../utils/csg"
 
 export function cutNodeFromSelection() {
-    const selection = interactionManager.selection
-    if (selection.length === 0) return
-    const node = interactionManager.selection[0]
+    const node = interactionManager.selection.firstTarget("TransformNode")
     if (!node) return
     cutNode(node)
 }

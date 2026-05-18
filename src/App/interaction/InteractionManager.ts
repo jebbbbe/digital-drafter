@@ -5,7 +5,10 @@ import { Drafter } from "../draft/Drafter"
 import type { TransformNode } from "../draft/TransformNode"
 import type { NodeLocation } from "../draft/TransformTree"
 import { createsCycle } from "../draft/recursive"
-import { getSlotIndex, getNodeLocationFromSlot } from "../draft/TransformTree"
+import {
+    getSlotIndex,
+    getNodeLocationFromSlot,
+} from "../objects/textures/GlobalTreeTexture"
 import { RaycastHelper } from "./RaycastHelper"
 import {
     enableStub,
@@ -17,6 +20,9 @@ import {
     syncLevaDisplayStub,
 } from "../../components/Leva/LevaStore"
 import { controls } from "../controls/controls"
+
+import { SelectionManager } from "./selectionManager"
+import type { SelectObject } from "./selectionManager"
 
 type InteractionManagerArgs = {
     camera: THREE.Camera
@@ -47,7 +53,7 @@ export class InteractionManager {
     transformControlsEnabled = true
     transformProxy = new THREE.Object3D()
     activeEvents: Partial<Record<string, ActiveEvent>> = {}
-    selection: TransformNode[] = []
+    selection: SelectionManager
     levaStubEnabled = false
     constructor({
         camera,
@@ -70,6 +76,8 @@ export class InteractionManager {
 
         this.scene.add(this.transformProxy)
         this.scene.add(this.transformControls.getHelper())
+
+        this.selection = new SelectionManager(drafter)
     }
 
     addEventListeners(): void {
@@ -162,7 +170,7 @@ export class InteractionManager {
                 this.detachTransformControls()
             }
             // remove previous seleciton
-            this.selection.length = 0
+            this.selection.clear()
             return
         }
 
@@ -188,8 +196,11 @@ export class InteractionManager {
             const startHit = this.raycastHelper.castFromEventToPlane(e)
             if (!startHit) return
 
-            this.selection.length = 0
-            this.selection.push({ object, index } as any)
+            this.selection.clear()
+            this.selection.push({
+                type: "SectionSegment",
+                target: { object, index },
+            } as SelectObject)
 
             this.detachTransformControls()
             this.attachSegmentMoveKey(startHit, mode)
@@ -209,8 +220,11 @@ export class InteractionManager {
         if (!node) return
 
         // add new selection
-        this.selection.length = 0
-        this.selection.push(node)
+        this.selection.clear()
+        this.selection.push({
+            type: "TransformNode",
+            target: node,
+        })
 
         // enable ui buttons
         // enableStub()
@@ -294,7 +308,8 @@ export class InteractionManager {
     }
 
     attachNodeMove(startOffset: THREE.Vector3) {
-        const node = this.selection[0]
+        const node = this.selection.firstTarget("TransformNode")
+        if (!node) return
         const slotIndex = getSlotIndex(node.location)
         this.orbitControls.enabled = false
         const prevEnableTransform = this.transformControls.enabled
@@ -381,12 +396,13 @@ export class InteractionManager {
         // detach transform from seleccted
         this.detachTransformControls()
         // remove selected
-        this.selection.length = 0
+        this.selection.clear()
     }
     attachSegmentMoveKey(startHit: THREE.Vector3, mode: string = "both") {
-        // i dont like this pattern...
-        const select = this.selection[0] as any
-        const index = select.index
+        const line = this.selection.firstTarget("SectionSegment")
+        console.log(line)
+        if (!line) return
+        const index = line.index
         const prevHit = new THREE.Vector3().copy(startHit)
 
         this.orbitControls.enabled = false
@@ -428,9 +444,9 @@ export class InteractionManager {
         const handleKeyDown = (keyEvent: KeyboardEvent) => {
             if (keyEvent.key !== "Delete") return
             if (keyEvent.repeat) return
-            // i dont like this pattern...
-            const select = this.selection[0] as any
-            const index = select.index
+            const line = this.selection.firstTarget("SectionSegment")
+            if (!line) return
+            const index = line.index
             const segmentSlot = index / 2
             const sectionCutter = this.drafter.sectionCutter
             const slot = sectionCutter.segmentNodeChildrenSlots[segmentSlot]

@@ -2,7 +2,7 @@ import * as THREE from "three"
 import * as rand from "../utils/random"
 import { drafter, interactionManager } from "../main"
 import type { TransformNode } from "../draft/TransformNode"
-import { getSlotIndex } from "../draft/TransformTree"
+import { getSlotIndex } from "../objects/textures/GlobalTreeTexture"
 
 const PI = Math.PI
 const PIo2 = PI / 2
@@ -30,9 +30,7 @@ export function addTestNode(x: number = 10, z: number = 5): void {
 }
 
 export function addLeafNearbyRandomlyFromSelection() {
-    const selection = interactionManager.selection
-    if (selection.length === 0) return
-    const node = interactionManager.selection[0]
+    const node = interactionManager.selection.firstTarget("TransformNode")
     if (!node) return
     // addLeafNearbyRandomly(node)
     addLeafNearbyRandomlyNicely(node)
@@ -117,9 +115,7 @@ export function addLeafNearbyRandomlyNicely(node: TransformNode) {
 }
 
 export function pruneNodeFromSelection() {
-    const selection = interactionManager.selection
-    if (selection.length === 0) return
-    const node = interactionManager.selection[0]
+    const node = interactionManager.selection.firstTarget("TransformNode")
     if (!node) return
     pruneNode(node)
 }
@@ -132,11 +128,9 @@ export function pruneNode(node: TransformNode) {
 }
 
 export function moveNodeFromSelection(pos: { x: number; z: number }) {
-    console.log(pos)
-    const selection = interactionManager.selection
-    if (selection.length === 0) return
-    const node = interactionManager.selection[0]
+    const node = interactionManager.selection.firstTarget("TransformNode")
     if (!node) return
+    pruneNode(node)
 
     node.position.set(pos.x, 0, pos.z)
     drafter.updatePatchedNode(node)
@@ -145,9 +139,7 @@ export function moveNodeFromSelection(pos: { x: number; z: number }) {
 }
 
 export function rotateRootFromSelection(rot: { x: number; y: number }) {
-    const selection = interactionManager.selection
-    if (selection.length === 0) return
-    const rootNode = interactionManager.selection[0]
+    const rootNode = interactionManager.selection.firstTarget("TransformNode")
     if (!rootNode) return
     if (rootNode !== rootNode.parent) return
 
@@ -165,9 +157,7 @@ export function rotateRootFromSelection(rot: { x: number; y: number }) {
 }
 
 export function scaleRootFromSelection(n: number) {
-    const selection = interactionManager.selection
-    if (selection.length === 0) return
-    const rootNode = interactionManager.selection[0]
+    const rootNode = interactionManager.selection.firstTarget("TransformNode")
     if (!rootNode) return
     if (rootNode !== rootNode.parent) return
 

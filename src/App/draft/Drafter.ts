@@ -17,7 +17,10 @@ import {
 } from "./InstanceItem"
 import type { NodeLocation } from "./TransformTree"
 import { walkSubtree } from "./recursive"
-import { GlobalTreeTexture } from "../objects/textures/GlobalTreeTexture"
+import {
+    GlobalTreeTexture,
+    getSlotIndex,
+} from "../objects/textures/GlobalTreeTexture"
 import { matlib } from "./materialManager"
 import { SectionCutter } from "../objects/meshes/SectionCutter"
 
@@ -419,8 +422,8 @@ export class Drafter {
     }
 
     setNodeTextureAt(node: TransformNode) {
-        const slot = this.globalTreeTexture.getSlot(node.location)
-        const parentSlot = this.globalTreeTexture.getSlot(node.parent.location)
+        const slot = getSlotIndex(node.location)
+        const parentSlot = getSlotIndex(node.parent.location)
         const update = [
             ...node.compoundMatrix.elements,
             parentSlot,
@@ -428,7 +431,8 @@ export class Drafter {
             0,
             0,
         ] as any // 20 elem list...
-        this.globalTreeTexture.writeMatrix(slot, update)
+        this.globalTreeTexture.writeSlot(slot, update)
+        this.globalTreeTexture.sendUpdate(slot)
         return slot
     }
 }
