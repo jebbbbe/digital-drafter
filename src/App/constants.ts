@@ -1,4 +1,23 @@
 export const InstanceCount = 32 as const
+
+/* 
+leve them comments
+leva: {
+    colors: {
+        elevation1: "#272822", // title BK
+        elevation2: "#272822", // panel BK
+        elevation3: "#F92672", // toggle, dropdown, number
+        accent1: "#db1313", // btn cclick
+        accent2: "#ff00d0", // btn color
+        accent3: "#00ff0d", // btn border
+        highlight1: "#000000", // title text
+        highlight2: "#2200ff", // text
+        highlight3: "#c8ff00", // folder + button text
+        vivid1: "#00ff06", // ?
+    },
+},
+*/
+
 export const constants = {
     camera: {
         rotationEnabled: false,
@@ -33,7 +52,7 @@ export const constants = {
             foldSize: 1.75,
         },
     },
-    theme: "paper",
+    theme: "light",
     themeOptions: {
         Paper: "paper",
         Light: "light",
@@ -107,11 +126,11 @@ export const constants = {
                 },
                 leva: {
                     colors: {
-                        elevation1: "#ffffff",
-                        elevation2: "#ffffff",
+                        elevation1: "#f8f8f8",
+                        elevation2: "#f8f8f8",
                         elevation3: "#d5d5d5",
                         accent1: "#d1d1d1",
-                        accent2: "#767676",
+                        accent2: "#a7a7a7",
                         accent3: "#000000",
                         highlight1: "#000000",
                         highlight2: "#000000",
@@ -353,6 +372,20 @@ export const constants = {
                     yAxis: "#A6E22E",
                     zAxis: "#66D9EF",
                     active: "#E6DB74",
+                },
+                leva: {
+                    colors: {
+                        elevation1: "#272822", // title BK
+                        elevation2: "#272822", // panel BK
+                        elevation3: "#75715E", // toggle, dropdown, number
+                        accent1: "#AE81FF", // btn click
+                        accent2: "#75715E", // btn color
+                        accent3: "#f92672", // btn border
+                        highlight1: "#F8F8F2", // title text
+                        highlight2: "#F8F8F2", // text  F8F8F2
+                        highlight3: "#E6DB74", // folder + button text
+                        vivid1: "#00ff06", // ?
+                    },
                 },
             },
             neon: {
