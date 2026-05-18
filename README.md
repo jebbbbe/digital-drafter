@@ -22,6 +22,9 @@
 
 ### v0.4.0
 
+- [ ] parent/child relationship
+- [ ] intal transform stoarage\*
+- [ ] parent offset transform, gometry center transform
 - [ ] rm react dynamic import, use module spliting
 - [ ] point angle snap
 - [ ] escape key deselect
@@ -29,17 +32,19 @@
 - [x] add new root...?
 - [/] second leva panel, interactive
 - [/] three.js specific imports
+- [ ] moveline-> update Section.
+- [ ] move cut-> update section line
+- [ ] bvh section lineweight
 
 ### v0.3.0
 
 - [ ] undo git squash
-- [ ] selection manager. color change in UI
 - [ ] better theme loader, with functions
-- [ ] moveline-> update Section.
-- [ ] move cut-> update section line
+- [ ] mobile css
 - [ ] select color on line
 - [ ] window select multiple
-- [ ] bvh section lineweight
+- [ ] selection manager.
+- [x] color change in UI
 - [x] bvh section cleanup..
 - [x] section cut bvh
 - [x] fold line geo
@@ -81,3 +86,20 @@ https://github.com/WestLangley
 https://discourse.threejs.org/t/setdrawrange-on-three-line2/2891
 https://stackoverflow.com/questions/31399856/drawing-a-line-with-three-js-dynamically/31411794#31411794
 https://blog.fastforwardlabs.com/2017/10/04/first-look-using-three.js-for-2d-data-visualization.html
+
+# \*
+
+before continuing with section cut logic, there a a few crutal issues:
+
+- how inital transform is set on root nodes
+- pos offset from parent in xyz, works for section, but gizmo placement is wrong, will need for boolean logic later
+- how to deal with both transform issue in TransoformNode type
+- add a arent/ child relationship type in TransoformNode
+    - rotate, normal rotation
+    - mirror, flip UP axis in rotate
+    - arc, rotate entire node, will need aditonal geometry
+    - slide, constrain node pos to current Line position
+    - section, seciton cut
+    - boolean, bool fns
+- this will let us get specific updates, allow dsf search for specific changes
+- when doing dfs, switch how base, compund matrix is calc'd
