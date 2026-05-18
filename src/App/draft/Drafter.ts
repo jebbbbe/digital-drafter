@@ -7,7 +7,10 @@ import {
     updateBufferRanges,
 } from "../objects/buffers/buffers"
 import { FreeList } from "../objects/FreeList"
-import { calculateProjectionMatrix } from "./matrix"
+import {
+    calculateProjectionMatrix,
+    calculateMirroredProjectionMatrix,
+} from "./matrix"
 import type { InstanceItem } from "./InstanceItem"
 import {
     createInstanceItem,
@@ -212,6 +215,8 @@ export class Drafter {
                 }
             }
         }
+        // set type
+        rootNode.type = "root"
 
         // make node
         const node = createTransformNode(rootNode)
@@ -437,24 +442,12 @@ export class Drafter {
     }
 }
 
-const _matrixPosition = new THREE.Vector3()
-const _matrixQuaternion = new THREE.Quaternion()
-const _matrixScale = new THREE.Vector3()
+const _position = new THREE.Vector3()
+const _quaternion = new THREE.Quaternion()
+const _scale = new THREE.Vector3()
 
 function calculateBaseMatrix(node: TransformNode) {
-    const isRoot = node.parent === node
-
-    if (isRoot) {
-        // prettier-ignore
-        node.baseMatrix.decompose(_matrixPosition, _matrixQuaternion, _matrixScale)
-        node.baseMatrix.compose(node.position, _matrixQuaternion, _matrixScale)
-    } else {
-        calculateProjectionMatrix(
-            node.parent.position,
-            node.position,
-            node.baseMatrix
-        )
-    }
+    calculateBaseMatrixChild(node)
     //update direct childrens base matrix as it depends on parent pos.
     const children = node.children
     for (let i = 0; i < children.length; i++) {
@@ -463,12 +456,28 @@ function calculateBaseMatrix(node: TransformNode) {
 }
 
 function calculateBaseMatrixChild(node: TransformNode) {
-    // cant be a root by definition
-    calculateProjectionMatrix(
-        node.parent.position,
-        node.position,
-        node.baseMatrix
-    )
+    const projectionType = node.type
+
+    switch (projectionType) {
+        case "root":
+            node.baseMatrix.decompose(_position, _quaternion, _scale)
+            node.baseMatrix.compose(node.position, _quaternion, _scale)
+            break
+        case "rotate":
+            calculateProjectionMatrix(
+                node.parent.position,
+                node.position,
+                node.baseMatrix
+            )
+            break
+        case "mirror":
+            calculateMirroredProjectionMatrix(
+                node.parent.position,
+                node.position,
+                node.baseMatrix
+            )
+            break
+    }
 }
 
 function calculateCompoundMatrix(

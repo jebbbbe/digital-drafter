@@ -7,6 +7,13 @@ const up = new THREE.Vector3(0, 1, 0)
 const translateToOrigin = new THREE.Matrix4()
 const rotation = new THREE.Matrix4()
 const translateBack = new THREE.Matrix4()
+// prettier-ignore
+const mirrorXZ = new THREE.Matrix4().set(
+  1,  0, 0, 0,
+  0, -1, 0, 0,
+  0,  0, 1, 0,
+  0,  0, 0, 1
+);
 
 /**
  * Computes the projection transform between two points for the drafter preview.
@@ -63,6 +70,14 @@ export function calculateProjectionMatrix(
         midPoint: midPoint,
         axis: axis,
     }
+}
+export const calculateMirroredProjectionMatrix = (
+    A: THREE.Vector3,
+    B: THREE.Vector3,
+    matrix: THREE.Matrix4 = new THREE.Matrix4()
+) => {
+    calculateProjectionMatrix(A, B, matrix)
+    matrix.premultiply(mirrorXZ)
 }
 
 /**

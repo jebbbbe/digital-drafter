@@ -152,6 +152,7 @@ export function init(container: HTMLElement): () => void {
             },
             // prettier-ignore
             leafs: [
+                // { node:{position: new THREE.Vector3(2, 0, 2),  type:"mirror" }, parent:{ id:0, index: 0 }}, mirror nodde test
                 { node:{position: new THREE.Vector3(2, 0, 2),   }, parent:{ id:0, index: 0 }},
                 { node:{position: new THREE.Vector3(2, 0, 0),   }, parent:{ id:0, index: 1 }},
                 { node:{position: new THREE.Vector3(2, 0, -2),  }, parent:{ id:0, index: 2 }},
