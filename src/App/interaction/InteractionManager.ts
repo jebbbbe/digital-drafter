@@ -5,7 +5,7 @@ import { Drafter } from "../draft/Drafter"
 import type { TransformNode } from "../draft/TransformNode"
 import type { NodeLocation } from "../draft/TransformTree"
 import { createsCycle } from "../draft/recursive"
-import { getSlotIndex } from "../draft/TransformTree"
+import { getSlotIndex, getNodeLocationFromSlot } from "../draft/TransformTree"
 import { RaycastHelper } from "./RaycastHelper"
 import {
     enableStub,
@@ -194,6 +194,8 @@ export class InteractionManager {
             this.detachTransformControls()
             this.attachSegmentMoveKey(startHit, mode)
             this.attachSegmentDeleteKey()
+            this.removeActiveEvent("space.keydown")
+            this.removeActiveEvent("space.keyup")
             return
         }
 
@@ -284,7 +286,9 @@ export class InteractionManager {
     }
     detachTransformControls() {
         this.removeActiveEvent("transformObjectChange")
-        this.removeActiveEvent("deleteKey.keyDown")
+        this.removeActiveEvent("delete.keydown")
+        this.removeActiveEvent("space.keydown")
+        this.removeActiveEvent("space.keyup")
         this.transformControls.detach()
         this.orbitControls.enabled = true
     }
@@ -328,15 +332,15 @@ export class InteractionManager {
         }
 
         const handlePointerUp = () => {
-            this.removeActiveEvent("nodeMove.pointerMove")
-            this.removeActiveEvent("nodeMove.pointerUp")
+            this.removeActiveEvent("pointermove")
+            this.removeActiveEvent("pointerup")
             this.orbitControls.enabled = true
             this.transformControls.enabled = prevEnableTransform
         }
 
         // prettier-ignore
-        this.addActiveEvent("nodeMove.pointerMove", "pointermove", handlePointerMove)
-        this.addActiveEvent("nodeMove.pointerUp", "pointerup", handlePointerUp)
+        this.addActiveEvent("pointermove", "pointermove", handlePointerMove)
+        this.addActiveEvent("pointerup", "pointerup", handlePointerUp)
     }
     attachNodeAddKey() {
         // when holding the key, add node up to 20 times
@@ -355,8 +359,8 @@ export class InteractionManager {
         }
 
         // prettier-ignore
-        this.addActiveEvent("nodeDeleteKey.keydown", "keydown", handleKeyDown, window)
-        this.addActiveEvent("nodeDeleteKey.keyup", "keyup", handleKeyUp, window)
+        this.addActiveEvent("space.keydown", "keydown", handleKeyDown, window)
+        this.addActiveEvent("space.keyup", "keyup", handleKeyUp, window)
     }
     attachNodeDeleteKey() {
         const handleKeyDown = (keyEvent: KeyboardEvent) => {
@@ -365,15 +369,15 @@ export class InteractionManager {
             controls.pruneNodeFromSelection()
         }
         // prettier-ignore
-        this.addActiveEvent( "nodeAddKey.keydown", "keydown", handleKeyDown, window )
+        this.addActiveEvent( "delete.keydown", "keydown", handleKeyDown, window )
     }
     // now called from controls for external update
     onPruneNode() {
         // as method so can be called from LEVA on delete.
         // call handlePointerUp
-        this.activeEvents["nodeMove.pointerUp"]?.listener()
+        this.activeEvents["pointerup"]?.listener()
         // cremove this listneer
-        this.removeActiveEvent("deleteKey.keyDown")
+        this.removeActiveEvent("delete.keydown")
         // detach transform from seleccted
         this.detachTransformControls()
         // remove selected
@@ -409,16 +413,16 @@ export class InteractionManager {
         }
 
         const handlePointerUp = () => {
-            this.removeActiveEvent("segmentMove.pointerMove")
-            this.removeActiveEvent("segmentMove.pointerUp")
+            this.removeActiveEvent("pointermove")
+            this.removeActiveEvent("pointerup")
             this.orbitControls.enabled = true
             this.transformControls.enabled = prevEnableTransform
         }
 
         // prettier-ignore
-        this.addActiveEvent("segmentMove.pointerMove", "pointermove", handlePointerMove)
+        this.addActiveEvent("pointermove", "pointermove", handlePointerMove)
         // prettier-ignore
-        this.addActiveEvent("segmentMove.pointerUp", "pointerup", handlePointerUp)
+        this.addActiveEvent("pointerup", "pointerup", handlePointerUp)
     }
     attachSegmentDeleteKey() {
         const handleKeyDown = (keyEvent: KeyboardEvent) => {
@@ -427,9 +431,16 @@ export class InteractionManager {
             // i dont like this pattern...
             const select = this.selection[0] as any
             const index = select.index
-            this.drafter.sectionCutter.deleteSegment(index)
+            const segmentSlot = index / 2
+            const sectionCutter = this.drafter.sectionCutter
+            const slot = sectionCutter.segmentNodeChildrenSlots[segmentSlot]
+            sectionCutter.deleteSegment(index)
+            if (slot === -1) return
+            const location = getNodeLocationFromSlot(slot)
+            // const removedInstanceIDs = this.drafter.removeNode(location)
+            this.drafter.pruneNode(location)
         }
         // prettier-ignore
-        this.addActiveEvent( "segmentAddKey.keydown", "keydown", handleKeyDown, window )
+        this.addActiveEvent( "delete.keydown", "keydown", handleKeyDown, window )
     }
 }

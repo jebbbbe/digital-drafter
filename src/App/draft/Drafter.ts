@@ -176,9 +176,6 @@ export class Drafter {
         this.instanceItems.remove(id)
         this.tree.removeBucket(id)
         this.globalTreeTexture.decBlockCount()
-        // todo
-        // we will need to remove all node children located in another freelist id,
-        // we can implement when we atart to have this with geo csg brush
     }
 
     addRootNode(rootNode: Partial<TransformNode>) {
@@ -223,6 +220,7 @@ export class Drafter {
         // increment count
         incrementInstanceCount(instanceItem)
         this.updatePatchedNode(node)
+        return node
     }
 
     // i dont like parentLocation, switch to passing another node...
@@ -280,6 +278,7 @@ export class Drafter {
         // console.log({parent})
         return node
     }
+
     pruneNode(target: TransformNode | NodeLocation) {
         //get location
         const location = "location" in target ? target.location : target
@@ -323,16 +322,15 @@ export class Drafter {
         }
         this.updatePatchedNode(parentNode)
     }
+
     removeNode(target: TransformNode | NodeLocation) {
         const location = "location" in target ? target.location : target
         const node = this.tree.findNode(location) as TransformNode | undefined
         if (!node) return
 
         const subtree: TransformNode[] = []
-        const subtreeSet = new Set<TransformNode>()
         walkSubtree(node, (subtreeNode) => {
             subtree.push(subtreeNode)
-            subtreeSet.add(subtreeNode)
         })
 
         const touchedIds = new Set<number>()
@@ -363,7 +361,7 @@ export class Drafter {
                 continue
             }
 
-            if (swappedNode && !subtreeSet.has(swappedNode)) {
+            if (swappedNode) {
                 movedNodes.add(swappedNode)
             }
         }
@@ -382,6 +380,7 @@ export class Drafter {
             if (!instanceItem) continue
             computeBoundingSphere(instanceItem)
         }
+        return Array.from(emptyIds)
     }
     /* path node props directly before passing, this updates draw geo*/
     updatePatchedNode(patchedNode: TransformNode) {
@@ -418,6 +417,7 @@ export class Drafter {
             computeBoundingSphere(sphereUpdate[key])
         }
     }
+
     setNodeTextureAt(node: TransformNode) {
         const slot = this.globalTreeTexture.getSlot(node.location)
         const parentSlot = this.globalTreeTexture.getSlot(node.parent.location)

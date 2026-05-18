@@ -14,6 +14,7 @@ export class SectionCutter {
     // map lines to their nodeSlot
     array = new Float32Array(128 * this.stride)
     segmentNodeSlots = new Int32Array(this.array.length / this.stride).fill(-1)
+    segmentNodeChildrenSlots = new Int32Array(this.array.length / this.stride).fill(-1)
     count = 0
     // for csg
     box = new THREE.BoxGeometry()
@@ -81,6 +82,12 @@ export class SectionCutter {
         ).fill(-1)
         nextSegmentNodeSlots.set(this.segmentNodeSlots)
         this.segmentNodeSlots = nextSegmentNodeSlots
+
+        const nextSegmentNodeChildrenSlots = new Int32Array(
+            nextSize / this.stride
+        ).fill(-1)
+        nextSegmentNodeChildrenSlots.set(this.segmentNodeChildrenSlots)
+        this.segmentNodeChildrenSlots = nextSegmentNodeChildrenSlots
 
         this.mesh.geometry.setAttribute(
             "position",
@@ -248,6 +255,8 @@ export class SectionCutter {
 
         const nodeSlot = this.segmentNodeSlots[segmentSlot]
         const movedNodeSlot = this.segmentNodeSlots[lastSegmentSlot]
+        const movedNodeChildrenSlot =
+            this.segmentNodeChildrenSlots[lastSegmentSlot]
 
         if (nodeSlot !== -1) {
             this.mapDelete(nodeSlot, index)
@@ -255,12 +264,14 @@ export class SectionCutter {
 
         if (index !== lastIndex) {
             this.segmentNodeSlots[segmentSlot] = movedNodeSlot
+            this.segmentNodeChildrenSlots[segmentSlot] = movedNodeChildrenSlot
             if (movedNodeSlot !== -1) {
                 this.mapReplace(movedNodeSlot, lastIndex, index)
             }
         }
 
         this.segmentNodeSlots[lastSegmentSlot] = -1
+        this.segmentNodeChildrenSlots[lastSegmentSlot] = -1
     }
 }
 

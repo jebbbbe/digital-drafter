@@ -245,3 +245,9 @@ export class TransformTree {
 export function getSlotIndex({ id, index }: NodeLocation): number {
     return id * InstanceCount + index
 }
+
+export function getNodeLocationFromSlot(slotIndex: number): NodeLocation {
+    const id = Math.floor(slotIndex / InstanceCount)
+    const index = slotIndex % InstanceCount
+    return { id, index }
+}

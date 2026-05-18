@@ -1,7 +1,7 @@
 import * as THREE from "three"
 import { drafter, scene, interactionManager } from "../main"
 import { constants } from "../constants"
-import { getSlotIndex } from "../draft/TransformTree"
+import { getSlotIndex, type NodeLocation } from "../draft/TransformTree"
 import type { TransformNode } from "../draft/TransformNode"
 import * as rand from "../utils/random"
 import { evaluateCSG, boolean } from "../utils/csg"
@@ -70,7 +70,7 @@ export function cutNode(node: TransformNode) {
         .multiplyScalar(0.5)
 
     // add new line segment
-    sectionCutter.addSegmentVector(start, end, nodeSlot)
+    const segmentIndex = sectionCutter.addSegmentVector(start, end, nodeSlot)
 
     // SECTION
     const id = node.location.id
@@ -91,7 +91,7 @@ export function cutNode(node: TransformNode) {
 
     // determine Box Matrix
     const dir = new THREE.Vector3()
-        .subVectors(start, midPoint)
+        .subVectors(end, midPoint)
         .setY(0)
         .normalize()
     let angle = Math.atan2(dir.x, dir.z)
@@ -141,5 +141,10 @@ export function cutNode(node: TransformNode) {
     }
 
     // add new root!
-    drafter.addRootNode(side1Root)
+    const newNode = drafter.addRootNode(side1Root)
+    if (!newNode) return
+    //set child location on segment
+    const side1Slot = getSlotIndex(newNode.location)
+    // add ref here for deletion/edit of children
+    sectionCutter.segmentNodeChildrenSlots[segmentIndex / 2] = side1Slot
 }

@@ -100,7 +100,16 @@ export function makeAsterix(s = 10): THREE.BufferGeometry {
     const b2 = new Brush(g2)
     const b3 = new Brush(g3)
     const s1 = evaluator.evaluate(b1, b2, ADDITION)
-    const result = evaluator.evaluate(b3, s1, ADDITION)
+    // asym test
+    let result = evaluator.evaluate(b3, s1, ADDITION)
+
+    const g4 = new THREE.BoxGeometry(s / 3, s / 3, s / 3)
+    const b4 = new Brush(g4)
+    // b4.matrixAutoUpdate = false
+    b4.position.x = s/2
+    b4.updateMatrixWorld(true)
+    result = evaluator.evaluate(result, b4, ADDITION)
+
     if (!result) return g1
     return result.geometry
 }

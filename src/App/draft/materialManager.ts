@@ -56,6 +56,7 @@ if (activeMaterialLib === "gl_Line") {
     matlib.mesh = patchNodeMatrix(
         new THREE.MeshBasicMaterial({
             color: display.mesh.color,
+            side: THREE.DoubleSide,
             polygonOffset: true,
             polygonOffsetFactor: 1,
             polygonOffsetUnits: 1,
@@ -73,6 +74,7 @@ if (activeMaterialLib === "gl_Line") {
     matlib.mesh = patchNodeMatrix(
         new THREE.MeshBasicMaterial({
             color: display.mesh.color,
+            side: THREE.DoubleSide,
             polygonOffset: true,
             polygonOffsetFactor: 3,
             polygonOffsetUnits: 3,
