@@ -38,11 +38,16 @@ out vec2 vCapCoord;
 out float vCapSize;
 #endif
 
+varying vec4 nodeData;
+
 vec3 readPoint(int pointIndex) {
     return texelFetch(segments, ivec2(pointIndex, 0), 0).rgb;
 }
 
 void main() {
+
+    nodeData = metadata;
+
     int corner = gl_VertexID % 4;
     int segmentIndex = gl_VertexID / 4;
     float along = float(corner / 2);
@@ -94,6 +99,9 @@ in float vCapSize;
 
 out vec4 outColor;
 
+varying vec4 nodeData;
+
+
 void main() {
     #ifdef USE_CIRCLE_CAP
     if (capStyle > 1.5 && vCapSize > 0.0) {
@@ -108,6 +116,10 @@ void main() {
     #endif
 
     outColor = vec4(color, 1.0);
+
+    if(nodeData.y == 1.){
+        outColor.xyz = vec3(0.9,0.9,0.0);
+    }
 }
 `
 
