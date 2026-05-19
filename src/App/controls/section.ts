@@ -139,7 +139,7 @@ export function cutNode(node: TransformNode) {
     }
 
     // add new root!
-    const newNode = drafter.addRootNode(side1Root)
+    const newNode = drafter.addLeafNode(side1Root)
     if (!newNode) return
     //set child location on segment
     const side1Slot = getSlotIndex(newNode.location)

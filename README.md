@@ -22,7 +22,7 @@
 
 ### v0.4.0
 
-- [ ] parent/child relationship
+- [w] parent/child relationship
 - [ ] intal transform stoarage\*
 - [ ] parent offset transform, gometry center transform
 - [ ] rm react dynamic import, use module spliting
@@ -43,7 +43,7 @@
 - [ ] mobile css
 - [ ] select color on line
 - [ ] window select multiple
-- [ ] selection manager.
+- [x] selection manager.
 - [x] color change in UI
 - [x] bvh section cleanup..
 - [x] section cut bvh
