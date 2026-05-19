@@ -10,7 +10,7 @@ import { Drafter } from "./draft/Drafter"
 import * as rand from "./utils/random"
 import type { TransformNode } from "./draft/TransformNode"
 import type { NodeLocation } from "./draft/TransformTree"
-import { createBvhBooleanTest, type BvhBooleanTest } from "./bvhBooleanTest"
+import { createBvhBooleanTest, type BvhBooleanTest } from "./test/bvhBooleanTest"
 
 let isAppReady = false
 let statsEnabled = false
