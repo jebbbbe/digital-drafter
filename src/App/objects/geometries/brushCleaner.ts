@@ -86,17 +86,15 @@ function normalizeGeometryBox(
     if (largestDimension === 0) {
         return result
     }
-    // directly modify the buffer
-    // geometry.translate(-center.x, -center.y, -center.z)
-    // geometry.scale(
-    //     1 / largestDimension,
-    //     1 / largestDimension,
-    //     1 / largestDimension
-    // )
-    // geometry.computeBoundingBox()
-    result.makeTranslation(-center.x, -center.y, -center.z)
-    _vec.set(1 / largestDimension, 1 / largestDimension, 1 / largestDimension)
-    result.scale(_vec)
+
+    const s = 1 / largestDimension
+    const translate = new THREE.Matrix4().makeTranslation(
+        -center.x,
+        -center.y,
+        -center.z
+    )
+    const scale = new THREE.Matrix4().makeScale(s, s, s)
+    result.copy(scale).multiply(translate)
 
     return result
 }
