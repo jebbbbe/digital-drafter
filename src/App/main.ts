@@ -10,7 +10,8 @@ import { Drafter } from "./draft/Drafter"
 import * as rand from "./utils/random"
 import type { TransformNode } from "./draft/TransformNode"
 import type { NodeLocation } from "./draft/TransformTree"
-import { createBvhBooleanTest, type BvhBooleanTest } from "./test/bvhBooleanTest"
+// import { createBvhBooleanTest, type BvhBooleanTest } from "./test/bvhBooleanTest"
+import { geometryLibrary } from "./objects/geometries/library"
 
 let isAppReady = false
 let statsEnabled = false
@@ -41,7 +42,7 @@ let stats: Stats | undefined
 
 let interactionManager!: InteractionManager
 let drafter!: Drafter
-let bvhBooleanTest: BvhBooleanTest | undefined
+// let bvhBooleanTest: BvhBooleanTest | undefined
 
 let testNode: any
 let testNodeVelocityX = 0.001
@@ -110,27 +111,22 @@ export function init(container: HTMLElement): () => void {
     // Drafter
     drafter = new Drafter(scene)
 
-    // const initalGeo = shape.makeCustomMergeShape()
-    let initalGeo0 = shape.makeCustomBVHShape()
-    // const initalGeo = shape.makeCustomBVHHierarchyShape()
-    let initalGeo = shape.makeAsterix(0.1)
-    let initalGeo1 = shape.makeAsterix(10)
-    // const initalGeo = shape.makeBadSphere(0.95)
-    // const initalGeo = shape.createWeirdSphereoid(2)
-    // const initalGeo = shape.createMengerSpongeGeometry(2)
     const r = Math.random()
     if (r < 1 / 3) {
         // prettier-ignore
-        ;[initalGeo0, initalGeo, initalGeo1] = [initalGeo1, initalGeo0, initalGeo]
+        drafter.newInstance(geometryLibrary.custom)
+        drafter.newInstance(geometryLibrary.asterix)
+        drafter.newInstance(geometryLibrary.asterixBox)
     } else if (r < 2 / 3) {
         // prettier-ignore
-        ;[initalGeo0, initalGeo, initalGeo1] = [initalGeo, initalGeo1, initalGeo0]
+        drafter.newInstance(geometryLibrary.asterix)
+        drafter.newInstance(geometryLibrary.asterixBox)
+        drafter.newInstance(geometryLibrary.custom)
+    } else {
+        drafter.newInstance(geometryLibrary.asterixBox)
+        drafter.newInstance(geometryLibrary.custom)
+        drafter.newInstance(geometryLibrary.asterix)
     }
-
-    drafter.newInstance(initalGeo)
-    drafter.newInstance(initalGeo0)
-    drafter.newInstance(initalGeo1)
-    // bvhBooleanTest = createBvhBooleanTest(scene, initalGeo)
 
     const scale = 1 // rand.random(0.75, 1.5)
     const initalTransform = new THREE.Matrix4()

@@ -11,13 +11,11 @@ import {
 } from "../objects/textures/GlobalTreeTexture"
 import { RaycastHelper } from "./RaycastHelper"
 import {
-    enableStub,
     disableStub,
     enableLeafStub,
     enableRootStub,
-    disableLeafStub,
-    disableRootStub,
     syncLevaDisplayStub,
+    setLevaInsertDefault,
 } from "../../components/Leva/LevaStore"
 import { controls } from "../controls/controls"
 
@@ -398,6 +396,43 @@ export class InteractionManager {
         this.addActiveEvent("pointermove", "pointermove", handlePointerMove)
         // prettier-ignore
         this.addActiveEvent("pointerup", "pointerup", handlePointerUp)
+    }
+
+    attachInsertGeometry(node: TransformNode) {
+        this.selection.clear()
+        this.selection.push({
+            type: "TransformNode",
+            target: node,
+        })
+
+        const handlePointerMove = (moveEvent: PointerEvent) => {
+            const hit = this.raycastHelper.castFromEventToPlane(moveEvent)
+            if (!hit) return
+            console.log(hit)
+            node.position.copy(hit)
+            this.drafter.updatePatchedNode(node)
+
+            // SKIP update Section Lines of Node
+
+            // update transform controsl
+            // if (this.transformControlsEnabled) {
+            //     this.transformProxy.position.copy(node.position)
+            //     this.transformProxy.updateMatrixWorld(true)
+            // }
+        }
+
+        const handlePointerUp = () => {
+            syncLevaDisplayStub(controls.getNodevalues(node))
+            setLevaInsertDefault()
+            this.selection.clear()
+            this.removeActiveEvent("pointermove")
+            this.removeActiveEvent("pointerup")
+        }
+
+        // prettier-ignore
+        this.addActiveEvent( "pointermove", "pointermove", handlePointerMove, window )
+        // prettier-ignore
+        this.addActiveEvent( "pointerup", "pointerup", handlePointerUp, window )
     }
 
     handleKeyboardDown = (keyEvent: KeyboardEvent) => {

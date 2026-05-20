@@ -198,3 +198,18 @@ export function getNodevalues(node: TransformNode): NodeMatrixValues {
     }
     return values
 }
+
+export function insertGeometry(geo: THREE.BufferGeometry) {
+    const x = 9999 // offscreen
+    const id = drafter.instanceItems.nextIndex()
+    drafter.newInstance(geo)
+    const rootNode = {
+        position: new THREE.Vector3(x, 0, x),
+        location: { id, index: -1 },
+        baseMatrix: new THREE.Matrix4(),
+    }
+    const node = drafter.addRootNode(rootNode)
+    if (!node) return
+    interactionManager.attachInsertGeometry(node)
+
+}

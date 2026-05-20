@@ -1,6 +1,7 @@
 import { levaStore } from "leva"
 
 export const panelPaths = {
+    insert: "Insert",
     theme: "Settings.theme",
     background: "Settings.Display.Background",
     meshColor: "Settings.Display.Mesh.meshColor",
@@ -127,3 +128,9 @@ export function setStubLeafDisabled(disabled: boolean = true) {
 }
 export const enableLeafStub = () => setStubLeafDisabled(false)
 export const disableLeafStub = () => setStubLeafDisabled(true)
+
+export function setLevaInsertDefault() {
+    const sync = {} as any
+    sync[panelPaths.insert] = "..."
+    levaStore.set(sync, false)
+}

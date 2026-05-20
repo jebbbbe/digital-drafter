@@ -103,14 +103,33 @@ export function makeAsterix(s = 10): THREE.BufferGeometry {
     // asym test
     let result = evaluator.evaluate(b3, s1, ADDITION)
 
+    if (!result) return g1
+    return result.geometry
+}
+
+export function makeAsterixCenter(s = 10): THREE.BufferGeometry {
+    let result = new Brush(makeAsterix(s))
+
     const g4 = new THREE.BoxGeometry(s / 3, s / 3, s / 3)
     const b4 = new Brush(g4)
-    // b4.matrixAutoUpdate = false
-    b4.position.x = s/2
     b4.updateMatrixWorld(true)
     result = evaluator.evaluate(result, b4, ADDITION)
 
-    if (!result) return g1
+    if (!result) return makeCube()
+    return result.geometry
+}
+
+export function makeAsterixAsym(s = 10): THREE.BufferGeometry {
+    let result = new Brush(makeAsterix(s))
+
+    const g4 = new THREE.BoxGeometry(s / 3, s / 3, s / 3)
+    const b4 = new Brush(g4)
+    // b4.matrixAutoUpdate = false
+    b4.position.x = s / 2
+    b4.updateMatrixWorld(true)
+    result = evaluator.evaluate(result, b4, ADDITION)
+
+    if (!result) return makeCube()
     return result.geometry
 }
 
@@ -300,6 +319,6 @@ export function createMengerSpongeCSG(iter = 1): THREE.BufferGeometry {
     return result.geometry
 }
 
-export function makeCube() {
-    return new THREE.BoxGeometry(1, 1, 1)
+export function makeCube(x = 1, y = 1, z = 1) {
+    return new THREE.BoxGeometry(x, y, z)
 }

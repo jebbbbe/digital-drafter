@@ -2,6 +2,7 @@ import { useMemo, useState } from "react"
 import { controls } from "../App/index"
 import { button, buttonGroup, folder, Leva, useControls } from "leva"
 import { constants } from "../App/constants"
+import { geometryLibrary } from "../App/objects/geometries/library"
 
 function Controls() {
     function getLevaTheme(themeKey: string) {
@@ -236,7 +237,7 @@ function Controls() {
                 step: 0.01,
                 disabled: true,
                 // lock: true,
-                joystick:false,
+                joystick: false,
                 onChange: wControls.moveNodeFromSelection,
             },
             rotate: {
@@ -281,8 +282,13 @@ function Controls() {
             Insert: {
                 value: "...",
                 options: {
-                    "...": "...",
-
+                    "...": undefined,
+                    ...geometryLibrary,
+                },
+                onChange: (value: any) => {
+                    // THREE.BufferGeometry | undefined
+                    if (!value) return
+                    controls.insertGeometry(value)
                 },
             },
             // Import: button(() => {}, { disabled: true }),

@@ -166,13 +166,13 @@ export class GlobalTreeTexture {
         const offset = slot * this.stride
         this.array.set(matrixAndMetaData, offset)
     }
-    writeMatrix(slot: number, matrixAndMetaData: MatrixData) {
+    writeMatrix(slot: number, matrix: MatrixData) {
         const offset = slot * this.stride
-        this.array.set(matrixAndMetaData, offset)
+        this.array.set(matrix, offset)
     }
-    writeData(slot: number, matrixAndMetaData: JustData) {
+    writeData(slot: number, MetaData: JustData) {
         const offset = slot * this.stride + 16 // add matrix len
-        this.array.set(matrixAndMetaData, offset)
+        this.array.set(MetaData, offset)
     }
     writeNodeParent(slot: number, parentSlot: number) {
         const offset = slot * this.stride + 16

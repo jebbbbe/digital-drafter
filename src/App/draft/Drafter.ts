@@ -429,14 +429,8 @@ export class Drafter {
     setNodeTextureAt(node: TransformNode) {
         const slot = getSlotIndex(node.location)
         const parentSlot = getSlotIndex(node.parent.location)
-        const update = [
-            ...node.compoundMatrix.elements,
-            parentSlot,
-            0, // not in use yet
-            0,
-            0,
-        ] as any // 20 elem list...
-        this.globalTreeTexture.writeSlot(slot, update)
+        this.globalTreeTexture.writeMatrix(slot, node.compoundMatrix.elements)
+        this.globalTreeTexture.writeNodeParent(slot, parentSlot)
         this.globalTreeTexture.sendUpdate(slot)
         return slot
     }
