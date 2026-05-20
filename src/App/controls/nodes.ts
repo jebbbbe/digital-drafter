@@ -130,12 +130,14 @@ export function pruneNode(node: TransformNode) {
 export function moveNodeFromSelection(pos: { x: number; z: number }) {
     const node = interactionManager.selection.firstTarget("TransformNode")
     if (!node) return
-    pruneNode(node)
 
     node.position.set(pos.x, 0, pos.z)
     drafter.updatePatchedNode(node)
 
-    // update gui
+    if (interactionManager.transformControlsEnabled) {
+        interactionManager.transformProxy.position.copy(node.position)
+        interactionManager.transformProxy.updateMatrixWorld(true)
+    }
 }
 
 export function rotateRootFromSelection(rot: { x: number; y: number }) {

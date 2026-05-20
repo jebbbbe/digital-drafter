@@ -50,19 +50,6 @@ function Controls() {
             { collapsed: true }
         )
 
-        const Debug = folder(
-            {
-                showStats: {
-                    label: "Show Stats",
-                    value: false,
-                    onChange: wControls.setStatsVisible,
-                },
-                toggleCameraRotation: button(controls.toggleCameraRotation),
-                Export,
-            },
-            { collapsed: false, color: "#d30000" }
-        )
-
         const Actions = folder({
             "Add Test Node": button(() => controls.addTestNode()),
             "Add Many Test Nodes": button(() => {
@@ -72,7 +59,22 @@ function Controls() {
             }),
         })
 
-        const Scene = folder(
+        const Debug = folder(
+            {
+                showStats: {
+                    label: "Show Stats",
+                    value: false,
+                    onChange: wControls.setStatsVisible,
+                },
+                "Reset Camera": button(controls.resetCamera),
+                "Toggle Camera Rotation": button(controls.toggleCameraRotation),
+                // Export,
+                Actions,
+            },
+            { collapsed: true, color: "#d30000" }
+        )
+
+        const Display = folder(
             {
                 Background: {
                     label: "Background",
@@ -186,28 +188,25 @@ function Controls() {
             { collapsed: true }
         )
 
-        const Display = folder({
-            theme: {
-                label: "Theme",
-                value: constants.theme,
-                options: constants.themeOptions,
-                onChange: (value, path, context) => {
-                    const result = (
-                        wControls.themeSelect as (...args: any[]) => unknown
-                    )(value, path, context)
-
-                    if (result) {
-                        setLevaTheme(getLevaTheme(value))
-                    }
-
-                    return result
-                },
-            },
-            Scene,
-        })
-
         const Settings = folder(
             {
+                theme: {
+                    label: "Theme",
+                    value: constants.theme,
+                    options: constants.themeOptions,
+                    onChange: (value, path, context) => {
+                        const result = (
+                            wControls.themeSelect as (...args: any[]) => unknown
+                        )(value, path, context)
+
+                        if (result) {
+                            setLevaTheme(getLevaTheme(value))
+                        }
+
+                        return result
+                    },
+                },
+
                 controlScheme: {
                     label: "Control Scheme",
                     value: "default",
@@ -221,11 +220,12 @@ function Controls() {
                     value: true,
                     disabled: true,
                 },
+                Display,
             },
             { collapsed: true }
         )
 
-        const Stub = folder({
+        const Selection = folder({
             position: {
                 value: {
                     x: 0,
@@ -235,7 +235,8 @@ function Controls() {
                 max: 100,
                 step: 0.01,
                 disabled: true,
-                lock: true,
+                // lock: true,
+                joystick:false,
                 onChange: wControls.moveNodeFromSelection,
             },
             rotate: {
@@ -257,25 +258,38 @@ function Controls() {
                 // onEditEnd: controls.scaleRootFromSelection,
                 onChange: wControls.scaleRootFromSelection,
             },
-            buttonGroup: buttonGroup({
-                label: "",
-                opts: {
-                    Add: controls.addLeafNearbyRandomlyFromSelection,
-                    Delete: controls.pruneNodeFromSelection,
-                    Cut: controls.cutNodeFromSelection,
-                },
+            // buttonGroup: buttonGroup({
+            //     label: "",
+            //     opts: {
+            //         Add: controls.addLeafNearbyRandomlyFromSelection,
+            //         Delete: controls.pruneNodeFromSelection,
+            //         Cut: controls.cutNodeFromSelection,
+            //     },
+            // }),
+            Add: button(() => controls.addLeafNearbyRandomlyFromSelection(), {
+                disabled: true,
+            }),
+            Delete: button(() => controls.pruneNodeFromSelection(), {
+                disabled: true,
+            }),
+            "Section Cut": button(() => controls.cutNodeFromSelection(), {
+                disabled: true,
             }),
         })
 
         return {
-            Debug,
-            Actions,
-            Display,
-            "Reset Camera": button(controls.resetCamera),
-            "Download Image": button(() => controls.downloadImage()),
+            Insert: {
+                value: "...",
+                options: {
+                    "...": "...",
+
+                },
+            },
+            // Import: button(() => {}, { disabled: true }),
+            Selection,
+            "Save Image": button(() => controls.downloadImage()),
             Settings,
-            Import: button(() => {}, { disabled: false }),
-            Stub,
+            Debug,
         }
     }, [])
 
@@ -295,11 +309,12 @@ function Controls() {
                 titleBar={{
                     // Configure title bar options
                     title: "Controls", // Custom title
-                    drag: true, // Enable dragging
+                    drag: false, // Enable dragging
                     filter: false, // Enable filter/search
-                    position: { x: 0, y: 0 }, // Initial position (when drag is enabled)
+                    // position: { x: 0, y: 0 }, // Initial position (when drag is enabled)
                     // onDrag: () => {}, // Callback when dragged
                 }}
+                neverHide={true}
                 // titleBar = {false}
             />
             {/* <button type="button" onClick={controls.randomizeCubeColor}>

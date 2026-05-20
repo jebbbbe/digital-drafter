@@ -153,6 +153,7 @@ export class InteractionManager {
                 slotIndex
             )
             this.drafter.updatePatchedNode(node)
+            syncLevaDisplayStub(controls.getNodevalues(node))
         }
 
         this.addActiveEvent(
@@ -340,9 +341,11 @@ export class InteractionManager {
                 this.transformProxy.position.copy(node.position)
                 this.transformProxy.updateMatrixWorld(true)
             }
+            syncLevaDisplayStub(controls.getNodevalues(node))
         }
 
         const handlePointerUp = () => {
+            syncLevaDisplayStub(controls.getNodevalues(node))
             this.removeActiveEvent("pointermove")
             this.removeActiveEvent("pointerup")
             this.orbitControls.enabled = true

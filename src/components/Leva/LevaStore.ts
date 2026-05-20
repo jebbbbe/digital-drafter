@@ -1,29 +1,31 @@
 import { levaStore } from "leva"
 
 export const panelPaths = {
-    scaleMatrix: "Debug.rootScale",
-    test: "Display.Scene.Background",
-    theme: "Display.theme",
-    background: "Display.Scene.Background",
-    meshColor: "Display.Scene.Mesh.meshColor",
-    meshVisible: "Display.Scene.Mesh.meshVisible",
-    lineColor: "Display.Scene.Line.lineColor",
-    lineVisible: "Display.Scene.Line.lineVisible",
-    dashColor: "Display.Scene.Dash.dashColor",
-    dashVisible: "Display.Scene.Dash.dashVisible",
-    dashSize: "Display.Scene.Dash.dashSize",
-    gapSize: "Display.Scene.Dash.gapSize",
-    projectionColor: "Display.Scene.Projection.projectionColor",
-    projectionVisible: "Display.Scene.Projection.projectionVisible",
-    foldColor: "Display.Scene.Fold.foldColor",
-    foldVisible: "Display.Scene.Fold.foldVisible",
-    foldDistance: "Display.Scene.Fold.foldDistance",
-    foldSize: "Display.Scene.Fold.foldSize",
+    theme: "Settings.theme",
+    background: "Settings.Display.Background",
+    meshColor: "Settings.Display.Mesh.meshColor",
+    meshVisible: "Settings.Display.Mesh.meshVisible",
+    lineColor: "Settings.Display.Line.lineColor",
+    lineVisible: "Settings.Display.Line.lineVisible",
+    dashColor: "Settings.Display.Dash.dashColor",
+    dashVisible: "Settings.Display.Dash.dashVisible",
+    dashSize: "Settings.Display.Dash.dashSize",
+    gapSize: "Settings.Display.Dash.gapSize",
+    projectionColor: "Settings.Display.Projection.projectionColor",
+    projectionVisible: "Settings.Display.Projection.projectionVisible",
+    foldColor: "Settings.Display.Fold.foldColor",
+    foldVisible: "Settings.Display.Fold.foldVisible",
+    foldDistance: "Settings.Display.Fold.foldDistance",
+    foldSize: "Settings.Display.Fold.foldSize",
 
-    stubPos: "Stub.position",
-    stubRot: "Stub.rotate",
-    stubScale: "Stub.scale",
-    stubButton: "Stub.buttonGroup", // not able to disable..?
+    stubPos: "Selection.position",
+    stubRot: "Selection.rotate",
+    stubScale: "Selection.scale",
+    stubButton: "Selection.buttonGroup", // not able to disable..?
+
+    stubAdd: "Selection.Add",
+    stubDelete: "Selection.Delete",
+    stubCut: "Selection.Section Cut",
 }
 
 type DisplayTheme = {
@@ -103,7 +105,10 @@ export function setStubDisabled(disabled: boolean = true) {
     levaStore.disableInputAtPath(panelPaths.stubPos, disabled)
     levaStore.disableInputAtPath(panelPaths.stubRot, disabled)
     levaStore.disableInputAtPath(panelPaths.stubScale, disabled)
-    // levaStore.disableInputAtPath(panelPaths.stubButton, disabled)
+    // levaStore.setSettingsAtPath(panelPaths.stubButton, { disabled })
+    levaStore.setSettingsAtPath(panelPaths.stubAdd, { disabled })
+    levaStore.setSettingsAtPath(panelPaths.stubDelete, { disabled })
+    levaStore.setSettingsAtPath(panelPaths.stubCut, { disabled })
 }
 export const enableStub = () => setStubDisabled(false)
 export const disableStub = () => setStubDisabled(true)
@@ -115,7 +120,10 @@ export function setStubLeafDisabled(disabled: boolean = true) {
     levaStore.disableInputAtPath(panelPaths.stubPos, disabled)
     levaStore.disableInputAtPath(panelPaths.stubRot, true)
     levaStore.disableInputAtPath(panelPaths.stubScale, true)
-    // levaStore.disableInputAtPath(panelPaths.stubButton, disabled)
+    // levaStore.setSettingsAtPath(panelPaths.stubButton, { disabled })
+    levaStore.setSettingsAtPath(panelPaths.stubAdd, { disabled })
+    levaStore.setSettingsAtPath(panelPaths.stubDelete, { disabled })
+    levaStore.setSettingsAtPath(panelPaths.stubCut, { disabled })
 }
 export const enableLeafStub = () => setStubLeafDisabled(false)
 export const disableLeafStub = () => setStubLeafDisabled(true)
