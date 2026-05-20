@@ -5,6 +5,7 @@ import * as camera from "./camera.ts"
 import * as nodes from "./nodes.ts"
 import * as save from "./export.ts"
 import * as section from "./section.ts"
+import * as interaction from "./interaction.ts"
 import * as debug from "./debug.ts"
 
 // this file automatically generates a guard on each imput for isAppReady
@@ -16,6 +17,7 @@ type Controls = typeof display &
     typeof nodes &
     typeof save &
     typeof section &
+    typeof interaction &
     typeof debug
 
 const controls = {} as Controls
@@ -40,6 +42,7 @@ guardImport(camera as ControlModule)
 guardImport(nodes as ControlModule)
 guardImport(save as ControlModule)
 guardImport(section as ControlModule)
+guardImport(interaction as ControlModule)
 guardImport(debug as ControlModule)
 
 export { controls }

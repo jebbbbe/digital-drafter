@@ -5,6 +5,8 @@ import { getSlotIndex } from "../objects/textures/GlobalTreeTexture"
 import type { TransformNode } from "../draft/TransformNode"
 import * as rand from "../utils/random"
 import { evaluateCSG, boolean } from "../utils/csg"
+import type { SectionSegment } from "../interaction/selectionManager"
+import { getNodeLocationFromSlot } from "../objects/textures/GlobalTreeTexture"
 
 export function cutNodeFromSelection() {
     const node = interactionManager.selection.firstTarget("TransformNode")
@@ -145,4 +147,18 @@ export function cutNode(node: TransformNode) {
     const side1Slot = getSlotIndex(newNode.location)
     // add ref here for deletion/edit of children
     sectionCutter.segmentNodeChildrenSlots[segmentIndex / 2] = side1Slot
+}
+
+export function deleteSegment(line: SectionSegment) {
+    const index = line.index
+    const segmentSlot = index / 2
+    const sectionCutter = drafter.sectionCutter
+    const slot = sectionCutter.segmentNodeChildrenSlots[segmentSlot]
+    sectionCutter.deleteSegment(index)
+    if (slot === -1) return
+    const location = getNodeLocationFromSlot(slot)
+    // const removedInstanceIDs = this.drafter.removeNode(location)
+    drafter.pruneNode(location)
+
+    //TODO: remove section children, dont prune node, remvoe it.
 }

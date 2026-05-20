@@ -63,7 +63,7 @@ export class SelectionManager {
         }
         this.selection.length = 0
     }
-    fisrt() {
+    first() {
         return this.selection[0]
     }
     firstTarget(search: "TransformNode"): TransformNode | undefined

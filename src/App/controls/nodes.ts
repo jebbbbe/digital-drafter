@@ -124,7 +124,7 @@ export function pruneNode(node: TransformNode) {
     drafter.sectionCutter.deleteFromNodeSlot(getSlotIndex(node.location))
     drafter.pruneNode(node)
     // drafter.removeNode(node)
-    interactionManager.onPruneNode()
+    interactionManager.onDeleteSelection()
 }
 
 export function moveNodeFromSelection(pos: { x: number; z: number }) {
