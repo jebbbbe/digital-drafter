@@ -116,6 +116,10 @@ export function setFoldSize(value: number): void {
     drafter.materials.fold.foldSize = value
 }
 
+export function setSectionColor(value: string): void {
+    drafter.materials.section.color.set(value)
+}
+
 export function setGizmoColors(colors: {
     xAxis: string
     yAxis: string
@@ -162,6 +166,7 @@ export function themeSelect(theme: string): boolean {
         setFoldVisible(newTheme.fold.visible)
         setFoldDistance(newTheme.fold.foldDistance)
         setFoldSize(newTheme.fold.foldSize)
+        setSectionColor(newTheme.section.color)
 
         syncLevaDisplayControls(newTheme)
     }

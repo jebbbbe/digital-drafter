@@ -18,6 +18,7 @@ export const panelPaths = {
     foldVisible: "Settings.Display.Fold.foldVisible",
     foldDistance: "Settings.Display.Fold.foldDistance",
     foldSize: "Settings.Display.Fold.foldSize",
+    sectionColor: "Settings.Display.Section.sectionColor",
 
     stubPos: "Selection.position",
     stubRot: "Selection.rotate",
@@ -55,6 +56,9 @@ type DisplayTheme = {
         foldDistance: number
         foldSize: number
     }
+    section: {
+        color: string
+    }
 }
 
 export function syncLevaDisplayControls(display: DisplayTheme): void {
@@ -76,6 +80,7 @@ export function syncLevaDisplayControls(display: DisplayTheme): void {
             [panelPaths.foldVisible]: display.fold.visible,
             [panelPaths.foldDistance]: display.fold.foldDistance,
             [panelPaths.foldSize]: display.fold.foldSize,
+            [panelPaths.sectionColor]: display.section.color,
         },
         false
     )

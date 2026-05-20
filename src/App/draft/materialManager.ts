@@ -39,7 +39,7 @@ const matlib = {
         depthWrite: false,
     }),
     section: new THREE.LineBasicMaterial({
-        color: 0xff00ff,
+        color: display.section.color,
         depthTest: true,
         depthWrite: false,
     }),

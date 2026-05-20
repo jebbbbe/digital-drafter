@@ -185,6 +185,13 @@ function Controls() {
                         onChange: wControls.setFoldSize,
                     },
                 }),
+                Section: folder({
+                    sectionColor: {
+                        label: "Color",
+                        value: constants.display.section.color,
+                        onChange: wControls.setSectionColor,
+                    },
+                }),
             },
             { collapsed: true }
         )
