@@ -126,7 +126,7 @@ export const constants = {
                 },
                 leva: {
                     colors: {
-                        elevation1: "#f8f8f8",
+                        elevation1: "#ececec",
                         elevation2: "#f8f8f8",
                         elevation3: "#d5d5d5",
                         accent1: "#d1d1d1",
@@ -169,7 +169,7 @@ export const constants = {
                 },
                 leva: {
                     colors: {
-                        elevation1: "#000000",
+                        elevation1: "#1d1d1d",
                         elevation2: "#000000",
                         elevation3: "#4b4b4b",
                         accent1: "#a3a3a3",
@@ -375,7 +375,7 @@ export const constants = {
                 },
                 leva: {
                     colors: {
-                        elevation1: "#272822", // title BK
+                        elevation1: "#75715E", // title BK
                         elevation2: "#272822", // panel BK
                         elevation3: "#75715E", // toggle, dropdown, number
                         accent1: "#AE81FF", // btn click

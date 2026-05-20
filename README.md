@@ -23,26 +23,30 @@
 ### v0.4.0
 
 - [w] parent/child relationship
-- [ ] intal transform stoarage\*
-- [ ] parent offset transform, gometry center transform
+- [w] intal transform stoarage\*
 - [ ] rm react dynamic import, use module spliting
 - [ ] point angle snap
 - [ ] escape key deselect
 - [ ] boolean BVH
-- [x] add new root...?
 - [/] second leva panel, interactive
 - [/] three.js specific imports
 - [ ] moveline-> update Section.
 - [ ] move cut-> update section line
 - [ ] bvh section lineweight
+- [ ] better theme loader, with functions
+- [ ] undo git squash
+- [ ] select color on line
+- [ ] window select multiple
 
 ### v0.3.0
 
-- [ ] undo git squash
-- [ ] better theme loader, with functions
-- [ ] mobile css
-- [ ] select color on line
-- [ ] window select multiple
+- [x] mobile css
+- [x] mobile css
+- [x] keyboard events
+- [x] seciton cut fix
+- [x] parent offset transform, gometry center transform
+- [x] new ui layout
+- [x] add new geometry
 - [x] selection manager.
 - [x] color change in UI
 - [x] bvh section cleanup..
