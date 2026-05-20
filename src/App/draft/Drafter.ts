@@ -46,14 +46,16 @@ export class Drafter {
         objects: {
             line: new THREE.Line(),
             point: new THREE.Points(),
+            section: new THREE.Mesh(),
         },
-        enable: true,
+        enable: false,
     }
     sectionCutter = new SectionCutter(this.materials.section)
 
     constructor(scene: THREE.Scene, debug: boolean = false) {
         this.scene = scene
         this.assignTexture()
+        this.debug.enable = debug
         if (debug) this.setUpDebug()
         const mesh = this.sectionCutter.mesh
         mesh.renderOrder = 3
@@ -105,7 +107,7 @@ export class Drafter {
         // sec.matrix.multiply(move1)
         boxDebug.matrixAutoUpdate = false
         //@ts-ignore
-        this.boxDebug = boxDebug
+        this.debug.objects.section = boxDebug
         this.scene.add(boxDebug)
     }
 

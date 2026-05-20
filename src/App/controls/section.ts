@@ -39,6 +39,7 @@ export function cutNode(node: TransformNode) {
         then random. 
     
     */
+
     if (mapItem === undefined) {
         if (node.parent !== node) {
             // not a root
@@ -68,9 +69,6 @@ export function cutNode(node: TransformNode) {
     const midPoint = new THREE.Vector3()
         .addVectors(start, end)
         .multiplyScalar(0.5)
-
-    // add new line segment
-    const segmentIndex = sectionCutter.addSegmentVector(start, end, nodeSlot)
 
     // SECTION
     const id = node.location.id
@@ -107,10 +105,18 @@ export function cutNode(node: TransformNode) {
 
     // debug, preview the mesh
     //@ts-ignore
-    // drafter.boxDebug.matrix.copy(boxBrush.matrix)
+    if (drafter.debug.enable) {
+        drafter.debug.objects.section.matrix.copy(boxBrush.matrix)
+    }
 
     // evaluate
-    const brush1 = evaluateCSG(instanceBrush, boxBrush, boolean.intersection)
+    let brush1
+    try {
+        brush1 = evaluateCSG(instanceBrush, boxBrush, boolean.intersection)
+    } catch (err) {
+        console.error("evaluateCSG fail", err)
+        return
+    }
 
     //remove matrix world
     instanceBrush.matrix.copy(prevMatrix)
@@ -131,7 +137,7 @@ export function cutNode(node: TransformNode) {
 
     const side1pos = new THREE.Vector3()
         .copy(node.position)
-        .addScaledVector(perp, -distance)
+        .addScaledVector(perp, distance)
 
     // add new root
     const side1Root: Partial<TransformNode> = {
@@ -146,6 +152,9 @@ export function cutNode(node: TransformNode) {
     //set child location on segment
     const side1Slot = getSlotIndex(newNode.location)
     // add ref here for deletion/edit of children
+
+    // add new line segment
+    const segmentIndex = sectionCutter.addSegmentVector(start, end, nodeSlot)
     sectionCutter.segmentNodeChildrenSlots[segmentIndex / 2] = side1Slot
 }
 
