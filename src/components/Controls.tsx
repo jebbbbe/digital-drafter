@@ -282,12 +282,12 @@ function Controls() {
             Insert: {
                 value: "...",
                 options: {
-                    "...": undefined,
+                    "...": "...",
                     ...geometryLibrary,
                 },
                 onChange: (value: any) => {
                     // THREE.BufferGeometry | undefined
-                    if (!value) return
+                    if (value === "...") return
                     controls.insertGeometry(value)
                 },
             },

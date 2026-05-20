@@ -399,16 +399,39 @@ export class InteractionManager {
     }
 
     attachInsertGeometry(node: TransformNode) {
+        const insertPointerMoveEvent = "insert.pointermove"
+        const insertPointerUpEvent = "insert.pointerup"
+
         this.selection.clear()
         this.selection.push({
             type: "TransformNode",
             target: node,
         })
 
+        let hasStartedInsert = false
+
+        const handlePointerUp = () => {
+            syncLevaDisplayStub(controls.getNodevalues(node))
+            setLevaInsertDefault()
+            this.selection.clear()
+            this.removeActiveEvent(insertPointerMoveEvent)
+            this.removeActiveEvent(insertPointerUpEvent)
+        }
+
         const handlePointerMove = (moveEvent: PointerEvent) => {
             const hit = this.raycastHelper.castFromEventToPlane(moveEvent)
             if (!hit) return
-            console.log(hit)
+
+            if (!hasStartedInsert) {
+                hasStartedInsert = true
+                this.addActiveEvent(
+                    insertPointerUpEvent,
+                    "pointerup",
+                    handlePointerUp,
+                    window
+                )
+            }
+
             node.position.copy(hit)
             this.drafter.updatePatchedNode(node)
 
@@ -421,18 +444,8 @@ export class InteractionManager {
             // }
         }
 
-        const handlePointerUp = () => {
-            syncLevaDisplayStub(controls.getNodevalues(node))
-            setLevaInsertDefault()
-            this.selection.clear()
-            this.removeActiveEvent("pointermove")
-            this.removeActiveEvent("pointerup")
-        }
-
         // prettier-ignore
-        this.addActiveEvent( "pointermove", "pointermove", handlePointerMove, window )
-        // prettier-ignore
-        this.addActiveEvent( "pointerup", "pointerup", handlePointerUp, window )
+        this.addActiveEvent( insertPointerMoveEvent, "pointermove", handlePointerMove, window )
     }
 
     handleKeyboardDown = (keyEvent: KeyboardEvent) => {
