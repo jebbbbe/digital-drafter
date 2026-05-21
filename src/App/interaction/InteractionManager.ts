@@ -4,11 +4,7 @@ import { TransformControls } from "three/examples/jsm/controls/TransformControls
 import { Drafter } from "../draft/Drafter"
 import type { TransformNode } from "../draft/TransformNode"
 import type { NodeLocation } from "../draft/TransformTree"
-import { createsCycle } from "../draft/recursive"
-import {
-    getSlotIndex,
-    getNodeLocationFromSlot,
-} from "../objects/textures/GlobalTreeTexture"
+import { getSlotIndex } from "../objects/textures/GlobalTreeTexture"
 import { RaycastHelper } from "./RaycastHelper"
 import {
     disableStub,
@@ -22,6 +18,7 @@ import { controls } from "../controls/controls"
 import { SelectionManager } from "./selectionManager"
 import type { SelectObject } from "./selectionManager"
 import { ListenerManager } from "./ListenerManager"
+import { ThreeControllersManager } from "./controllers"
 
 type InteractionManagerArgs = {
     camera: THREE.Camera
@@ -47,13 +44,10 @@ export class InteractionManager {
     scene: THREE.Scene
     drafter: Drafter
     raycastHelper: RaycastHelper
-    orbitControls: OrbitControls
-    transformControls: TransformControls
-    transformControlsEnabled = true
-    transformProxy = new THREE.Object3D()
+    useTransformControls = true
     selection: SelectionManager
     listeners: ListenerManager
-    levaStubActive = false
+    controllers: ThreeControllersManager
     constructor({
         camera,
         scene,
@@ -64,28 +58,28 @@ export class InteractionManager {
     }: InteractionManagerArgs) {
         this.scene = scene
         this.domElement = domElement
-        this.orbitControls = orbitControls
         this.drafter = drafter
         this.raycastHelper = new RaycastHelper(camera, targets, domElement)
-
-        this.transformControls = new TransformControls(camera, domElement)
-        this.transformControls.setMode("translate")
-        this.transformControls.showY = false
-        this.transformControls.translationSnap = 0.25
-
-        this.scene.add(this.transformProxy)
-        this.scene.add(this.transformControls.getHelper())
-
         this.selection = new SelectionManager(drafter)
         this.listeners = new ListenerManager(this.domElement)
+
+        const transformControls = new TransformControls(camera, domElement)
+
+        this.controllers = new ThreeControllersManager(
+            orbitControls,
+            transformControls,
+            this.useTransformControls
+        )
+
+        this.scene.add(this.controllers.transformProxy)
+        this.scene.add(transformControls.getHelper())
     }
 
-    // Listeners
     addEventListeners(): void {
         // prettier-ignore
         this.listeners.addActiveEvent( "pointerDown", "pointerdown", this.handlePointerDown )
         // prettier-ignore
-        this.listeners.addActiveEvent( "transformDraggingChanged", "dragging-changed", this.handleTransformDraggingChanged, this.transformControls )
+        this.listeners.addActiveEvent( "transformDraggingChanged", "dragging-changed", this.controllers.handleTransformDraggingChanged, this.controllers.transformControls )
         // prettier-ignore
         this.listeners.addActiveEvent( "general.keydown", "keydown", this.handleKeyboardDown, window )
         // prettier-ignore
@@ -94,27 +88,22 @@ export class InteractionManager {
 
     dispose(): void {
         this.listeners.removeAllActiveEvents()
-        this.transformControls.detach()
-        this.scene.remove(this.transformProxy)
-        this.scene.remove(this.transformControls.getHelper())
+        this.controllers.dispose()
+        this.scene.remove(this.controllers.transformProxy)
+        this.scene.remove(this.controllers.transformControls.getHelper())
     }
 
     // Transform Controls
-    handleTransformDraggingChanged = (e: { value: unknown }) => {
-        this.orbitControls.enabled = !Boolean(e.value)
-    }
     attachTransformControls(node: TransformNode) {
-        this.listeners.removeActiveEvent("transformObjectChange")
+        if (!this.useTransformControls) return
+
         const slotIndex = getSlotIndex(node.location)
 
-        this.transformProxy.position.copy(node.position)
-        this.transformProxy.rotation.set(0, 0, 0)
-        this.transformProxy.scale.set(1, 1, 1)
-        this.transformProxy.updateMatrixWorld(true)
+        this.controllers.setGizmoPosition(node.position)
 
         const handleObjectChange = () => {
             _prevPosition.copy(node.position)
-            node.position.copy(this.transformProxy.position)
+            node.position.copy(this.controllers.getGizmoPosition())
             _delta.subVectors(node.position, _prevPosition)
             if (_delta.lengthSq() === 0) return
 
@@ -131,28 +120,30 @@ export class InteractionManager {
             "transformObjectChange",
             "objectChange",
             handleObjectChange,
-            this.transformControls
+            this.controllers.transformControls
         )
 
-        this.transformControls.attach(this.transformProxy)
+        this.controllers.attachTransformProxy()
     }
     detachTransformControls() {
         this.listeners.removeActiveEvent("transformObjectChange")
-        this.transformControls.detach()
-        this.orbitControls.enabled = true
+        this.controllers.detachTransformControls()
     }
 
     gizmoCLicked(e: PointerEvent): boolean {
         if (
-            this.transformControlsEnabled &&
-            this.listeners.activeEvents.transformObjectChange
+            this.useTransformControls &&
+            this.listeners.activeEvents["transformObjectChange"]
         ) {
             const gizmoHits = this.raycastHelper.castFromEvent(
                 e,
-                [this.transformControls.getHelper()],
+                [this.controllers.transformControls.getHelper()],
                 true
             )
-            if (gizmoHits.length > 0 && this.transformControls.axis) {
+            if (
+                gizmoHits.length > 0 &&
+                this.controllers.transformControls.axis
+            ) {
                 return true
             }
         }
@@ -171,32 +162,42 @@ export class InteractionManager {
 
         // nothing hit!
         if (intersects.length === 0) {
-            // detach transform controls unless in use
-            if (
-                !this.transformControlsEnabled ||
-                (!this.transformControls.dragging &&
-                    !this.transformControls.axis)
-            ) {
+            // detach transform controls
+            if (this.useTransformControls) {
                 this.detachTransformControls()
             }
             // remove previous seleciton
             this.selection.clear()
 
-            //
-            if (this.levaStubActive) {
-                this.levaStubActive = false
-                syncLevaDisplayStub({
-                    positionValue: { x: 0, z: 0 },
-                    rotateValue: { x: 0, y: 0 },
-                    scaleValue: 1.0,
-                })
-                disableStub()
-            }
-        } else if (intersects[0].object === this.drafter.sectionCutter.mesh) {
+            // clear leva panel
+            syncLevaDisplayStub({
+                positionValue: { x: 0, z: 0 },
+                rotateValue: { x: 0, y: 0 },
+                scaleValue: 1.0,
+            })
+            disableStub()
+            return
+        }
+
+        const first = intersects[0]
+        // console.log(first)
+
+        const startHit = this.raycastHelper.castFromEventToPlane(e)
+        if (!startHit) return
+
+        //clear seleciton
+        this.selection.clear()
+
+        if (first.object === this.drafter.sectionCutter.mesh) {
             // hit section cutter
-            console.log(intersects[0])
             const { point, index, object }: any = intersects[0]
-            point.y = 0 // force for distance
+            point.y = 0 // force
+
+            // add selection
+            this.selection.push({
+                type: "SectionSegment",
+                target: { object, index },
+            } as SelectObject)
 
             const start = new THREE.Vector3()
             const end = new THREE.Vector3()
@@ -211,68 +212,44 @@ export class InteractionManager {
                 mode = "end"
             }
 
-            const startHit = this.raycastHelper.castFromEventToPlane(e)
-            if (!startHit) return
-
-            this.selection.clear()
-            this.selection.push({
-                type: "SectionSegment",
-                target: { object, index },
-            } as SelectObject)
-
             this.detachTransformControls()
             this.attachSegmentMoveKey(startHit, mode)
         } else {
             // hit Node
             // find node from raycast
-            const int = intersects[0]
-            const id = int.object.userData.id
-            const index = int.instanceId
+            const id = first.object.userData.id
+            const index = first.instanceId
             const location = { id, index } as NodeLocation
             // prettier-ignore
             const node = this.drafter.tree.findNode(location) as  TransformNode | undefined
             if (!node) return
 
-            // add new selection
-            this.selection.clear()
+            // add selection
             this.selection.push({
                 type: "TransformNode",
                 target: node,
             })
 
-            // enable ui buttons
-            // enableStub()
             const isRoot = node === node.parent
 
             // set leva panel values
             syncLevaDisplayStub(controls.getNodevalues(node))
 
+            // enable ui buttons
             if (isRoot) {
                 enableRootStub()
-                this.levaStubActive = true
             } else {
                 enableLeafStub()
-                this.levaStubActive = true
             }
 
-            // attach transform controls
-            if (this.transformControlsEnabled) {
-                this.attachTransformControls(node)
-            }
-
-            // console.log(intersects)
-            // console.log(int)
-            // console.log(location)
-            // console.log(node)
-
-            //raycast to plane
-            const startHit = this.raycastHelper.castFromEventToPlane(e)
+            // moveOffset
             const moveOffset = startHit
                 ? new THREE.Vector3().subVectors(node.position, startHit)
                 : new THREE.Vector3()
 
             // attach events
             this.attachNodeMove(moveOffset)
+            this.attachTransformControls(node)
         }
     }
 
@@ -290,9 +267,7 @@ export class InteractionManager {
                   .subVectors(node.position, node.parent.position)
                   .lengthSq()
             : 0
-        this.orbitControls.enabled = false
-        const prevEnableTransform = this.transformControls.enabled
-        this.transformControls.enabled = false
+        this.controllers.pauseControls()
 
         const handlePointerMove = (moveEvent: PointerEvent) => {
             // get xz pos
@@ -334,12 +309,9 @@ export class InteractionManager {
                 slotIndex
             )
 
-            // updateGizmoPosition 
-            // update transform controls
-            if (this.transformControlsEnabled) {
-                this.transformProxy.position.copy(node.position)
-                this.transformProxy.updateMatrixWorld(true)
-            }
+            // updateGizmoPosition
+            this.controllers.setGizmoPosition(node.position)
+            // update leva values
             syncLevaDisplayStub(controls.getNodevalues(node))
         }
 
@@ -347,8 +319,7 @@ export class InteractionManager {
             syncLevaDisplayStub(controls.getNodevalues(node))
             this.listeners.removeActiveEvent("pointermove")
             this.listeners.removeActiveEvent("pointerup")
-            this.orbitControls.enabled = true
-            this.transformControls.enabled = prevEnableTransform
+            this.controllers.resumeControls()
         }
 
         // prettier-ignore
@@ -363,9 +334,7 @@ export class InteractionManager {
         const index = line.index
         const prevHit = new THREE.Vector3().copy(startHit)
 
-        this.orbitControls.enabled = false
-        const prevEnableTransform = this.transformControls.enabled
-        this.transformControls.enabled = false
+        this.controllers.pauseControls()
 
         let p1 = _delta
         let p2 = _delta
@@ -389,8 +358,7 @@ export class InteractionManager {
         const handlePointerUp = () => {
             this.listeners.removeActiveEvent("pointermove")
             this.listeners.removeActiveEvent("pointerup")
-            this.orbitControls.enabled = true
-            this.transformControls.enabled = prevEnableTransform
+            this.controllers.resumeControls()
         }
 
         // prettier-ignore
@@ -435,14 +403,6 @@ export class InteractionManager {
 
             node.position.copy(hit)
             this.drafter.updatePatchedNode(node)
-
-            // SKIP update Section Lines of Node
-
-            // update transform controsl
-            // if (this.transformControlsEnabled) {
-            //     this.transformProxy.position.copy(node.position)
-            //     this.transformProxy.updateMatrixWorld(true)
-            // }
         }
 
         // prettier-ignore
@@ -470,7 +430,7 @@ export class InteractionManager {
     handleKeyboardUp = (keyEvent: KeyboardEvent) => {
         // console.log(keyEvent)
         if (keyEvent.key === " ") {
-            // rest hold counter for space
+            // reset hold counter for space
             spaceHoldCurr = 0
         }
     }
@@ -481,7 +441,6 @@ export class InteractionManager {
         //clear selecction geo
         this.selection.clear()
         // detach leva
-        this.levaStubActive = false
         syncLevaDisplayStub({
             positionValue: { x: 0, z: 0 },
             rotateValue: { x: 0, y: 0 },

@@ -134,11 +134,7 @@ export function moveNodeFromSelection(pos: { x: number; z: number }) {
 
     node.position.set(pos.x, 0, pos.z)
     drafter.updatePatchedNode(node)
-
-    if (interactionManager.transformControlsEnabled) {
-        interactionManager.transformProxy.position.copy(node.position)
-        interactionManager.transformProxy.updateMatrixWorld(true)
-    }
+    interactionManager.controllers.setGizmoPosition(node.position)
 }
 
 export function rotateRootFromSelection(rot: { x: number; y: number }) {
@@ -212,5 +208,4 @@ export function insertGeometry(geo: THREE.BufferGeometry) {
     const node = drafter.addRootNode(rootNode)
     if (!node) return
     interactionManager.attachInsertGeometry(node)
-
 }
