@@ -23,24 +23,24 @@
 ### v0.4.0
 
 - [w] parent/child relationship
-- [w] intal transform stoarage\*
+- [w] intal transform storage\*
 - [ ] rm react dynamic import, use module spliting
 - [ ] point angle snap
 - [ ] escape key deselect
 - [ ] boolean BVH
-- [/] second leva panel, interactive
-- [/] three.js specific imports
 - [ ] moveline-> update Section.
 - [ ] move cut-> update section line
-- [ ] bvh section lineweight
+- [ ] bvh section lineweight, evaluator.debug.edges
 - [ ] better theme loader, with functions
-- [ ] undo git squash
-- [ ] select color on line
 - [ ] window select multiple
+- [ ] select color on line
+- [ ] selected glitch
+- [ ] selected texture img
+
 
 ### v0.3.0
 
-- [x] mobile css
+- [x] undo git squash
 - [x] mobile css
 - [x] keyboard events
 - [x] seciton cut fix
