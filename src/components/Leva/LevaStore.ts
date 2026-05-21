@@ -25,8 +25,8 @@ export const panelPaths = {
     stubScale: "Selection.scale",
     stubButton: "Selection.buttonGroup", // not able to disable..?
 
-    stubAdd: "Selection.Add",
-    stubDelete: "Selection.Delete",
+    stubAdd: "Selection.Add View",
+    stubDelete: "Selection.Delete View",
     stubCut: "Selection.Section Cut",
 }
 
