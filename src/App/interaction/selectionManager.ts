@@ -48,7 +48,7 @@ export class SelectionManager {
     }
     pop() {
         const item = this.selection.pop()
-        if (item !== undefined) this.setSelectedUpdate(item, true)
+        if (item !== undefined) this.setSelectedUpdate(item, false)
         return item
     }
     shift() {

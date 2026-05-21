@@ -117,14 +117,15 @@ export function addLeafNearbyRandomlyNicely(node: TransformNode) {
 export function pruneNodeFromSelection() {
     const node = interactionManager.selection.firstTarget("TransformNode")
     if (!node) return
+    interactionManager.onDeleteSelection()
     pruneNode(node)
 }
 
 export function pruneNode(node: TransformNode) {
-    drafter.sectionCutter.deleteFromNodeSlot(getSlotIndex(node.location))
+    const nodeSlot = getSlotIndex(node.location)
+    drafter.sectionCutter.deleteFromNodeSlot(nodeSlot)
     drafter.pruneNode(node)
     // drafter.removeNode(node)
-    interactionManager.onDeleteSelection()
 }
 
 export function moveNodeFromSelection(pos: { x: number; z: number }) {
