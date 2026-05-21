@@ -2,7 +2,7 @@ import { useMemo, useState } from "react"
 import { controls } from "../App/index"
 import { button, buttonGroup, folder, Leva, useControls } from "leva"
 import { constants } from "../App/constants"
-import { geometryLibrary } from "../App/objects/geometries/library"
+import { geometryTitles } from "../App/objects/geometries/library"
 
 function Controls() {
     function getLevaTheme(themeKey: string) {
@@ -274,10 +274,13 @@ function Controls() {
             //         Cut: controls.cutNodeFromSelection,
             //     },
             // }),
-            Add: button(() => controls.addLeafNearbyRandomlyFromSelection(), {
-                disabled: true,
-            }),
-            Delete: button(() => controls.pruneNodeFromSelection(), {
+            "Add View": button(
+                () => controls.addLeafNearbyRandomlyFromSelection(),
+                {
+                    disabled: true,
+                }
+            ),
+            "Delete View": button(() => controls.pruneNodeFromSelection(), {
                 disabled: true,
             }),
             "Section Cut": button(() => controls.cutNodeFromSelection(), {
@@ -290,7 +293,7 @@ function Controls() {
                 value: "...",
                 options: {
                     "...": "...",
-                    ...geometryLibrary,
+                    ...geometryTitles,
                 },
                 onChange: (value: any) => {
                     // THREE.BufferGeometry | undefined

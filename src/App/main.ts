@@ -18,14 +18,6 @@ let statsEnabled = false
 
 const cube = new THREE.Mesh(
     new THREE.BoxGeometry(1, 1, 1),
-    // shape.makeCustomMergeShape(),
-    // shape.makeCustomBVHShape(),
-    // shape.makeCustomBVHHierarchyShape(),
-    // shape.makeAsterix(0.1),
-    // shape.makeAsterix(30),
-    // shape.makeBadSphere(0.95),
-    // shape.createWeirdSphereoid(2),
-    // shape.createMengerSpongeGeometry(2),
     new THREE.MeshStandardMaterial({
         color: "#1d8bff",
         roughness: 0.35,
