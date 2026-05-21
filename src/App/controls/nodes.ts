@@ -117,7 +117,7 @@ export function addLeafNearbyRandomlyNicely(node: TransformNode) {
 export function pruneNodeFromSelection() {
     const node = interactionManager.selection.firstTarget("TransformNode")
     if (!node) return
-    interactionManager.onDeleteSelection()
+    interactionManager.deselectALL()
     pruneNode(node)
 }
 

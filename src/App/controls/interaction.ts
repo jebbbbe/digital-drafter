@@ -18,14 +18,14 @@ export function deleteFistObject(
     switch (object.type) {
         case "TransformNode":
             const node = object.target as TransformNode
-            interactionManager.onDeleteSelection()
+            interactionManager.deselectALL()
             pruneNode(node)
             break
         case "SectionSegment":
             const line = object.target as SectionSegment
             deleteSegment(line)
             // skip unless we attach gizmo to this..
-            // interactionManager.onDeleteSelection()
+            // interactionManager.deselectALL()
             break
     }
 }

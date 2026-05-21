@@ -26,7 +26,6 @@
 - [w] intal transform storage\*
 - [ ] rm react dynamic import, use module spliting
 - [ ] point angle snap
-- [ ] escape key deselect
 - [ ] boolean BVH
 - [ ] moveline-> update Section.
 - [ ] move cut-> update section line
@@ -34,8 +33,9 @@
 - [ ] better theme loader, with functions
 - [ ] window select multiple
 - [ ] select color on line
-- [ ] selected glitch
 - [ ] selected texture img
+- [X] selected glitch
+- [X] escape key deselect
 
 
 ### v0.3.0

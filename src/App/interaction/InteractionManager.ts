@@ -449,7 +449,7 @@ export class InteractionManager {
     }
 
     handleKeyboardDown = (keyEvent: KeyboardEvent) => {
-        // console.log(keyEvent)
+        console.log(keyEvent)
         if (keyEvent.key === "Delete") {
             if (keyEvent.repeat) return
             controls.deleteFistObject()
@@ -460,6 +460,9 @@ export class InteractionManager {
                 if (!node) return
                 controls.addLeafNearbyRandomlyNicely(node)
             }
+        } else if (keyEvent.key === "Escape") {
+            if (keyEvent.repeat) return
+            this.deselectALL()
         }
     }
 
@@ -471,13 +474,22 @@ export class InteractionManager {
         }
     }
 
-    onDeleteSelection() {
-        // as method so can be called from LEVA on delete.
-        // call handlePointerUp
-        this.activeEvents["pointerup"]?.listener()
-        // detach transform from seleccted
+    deselectALL() {
+        // hide transform controls
         this.detachTransformControls()
-        // remove selected
+        //clear selecction geo
         this.selection.clear()
+        // detach leva
+        this.levaStubEnabled = false
+        syncLevaDisplayStub({
+            positionValue: { x: 0, z: 0 },
+            rotateValue: { x: 0, y: 0 },
+            scaleValue: 1.0,
+        })
+        disableStub()
+        // detach mouse events
+        this.activeEvents["pointerup"]?.listener()
+        // this.removeActiveEvent("pointerup")
+        // this.removeActiveEvent("pointermove")
     }
 }
