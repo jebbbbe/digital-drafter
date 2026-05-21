@@ -21,6 +21,7 @@ import { controls } from "../controls/controls"
 
 import { SelectionManager } from "./selectionManager"
 import type { SelectObject } from "./selectionManager"
+import { ListenerManager } from "./ListenerManager"
 
 type InteractionManagerArgs = {
     camera: THREE.Camera
@@ -29,12 +30,6 @@ type InteractionManagerArgs = {
     orbitControls: OrbitControls
     drafter: Drafter
     targets?: THREE.Object3D[]
-}
-
-type ActiveEvent = {
-    target: HTMLCanvasElement | TransformControls | Window
-    type: string
-    listener: Function
 }
 
 const _prevPosition = new THREE.Vector3()
@@ -56,8 +51,8 @@ export class InteractionManager {
     transformControls: TransformControls
     transformControlsEnabled = true
     transformProxy = new THREE.Object3D()
-    activeEvents: Partial<Record<string, ActiveEvent>> = {}
     selection: SelectionManager
+    listeners: ListenerManager
     levaStubEnabled = false
     constructor({
         camera,
@@ -82,51 +77,26 @@ export class InteractionManager {
         this.scene.add(this.transformControls.getHelper())
 
         this.selection = new SelectionManager(drafter)
+        this.listeners = new ListenerManager(this.domElement)
     }
 
     // Listeners
     addEventListeners(): void {
         // prettier-ignore
-        this.addActiveEvent( "pointerDown", "pointerdown", this.handlePointerDown )
+        this.listeners.addActiveEvent( "pointerDown", "pointerdown", this.handlePointerDown )
         // prettier-ignore
-        this.addActiveEvent( "transformDraggingChanged", "dragging-changed", this.handleTransformDraggingChanged, this.transformControls )
+        this.listeners.addActiveEvent( "transformDraggingChanged", "dragging-changed", this.handleTransformDraggingChanged, this.transformControls )
         // prettier-ignore
-        this.addActiveEvent( "general.keydown", "keydown", this.handleKeyboardDown, window )
+        this.listeners.addActiveEvent( "general.keydown", "keydown", this.handleKeyboardDown, window )
         // prettier-ignore
-        this.addActiveEvent( "general.keyup", "keyup", this.handleKeyboardUp, window )
+        this.listeners.addActiveEvent( "general.keyup", "keyup", this.handleKeyboardUp, window )
     }
 
     dispose(): void {
-        this.removeAllActiveEvents()
+        this.listeners.removeAllActiveEvents()
         this.transformControls.detach()
         this.scene.remove(this.transformProxy)
         this.scene.remove(this.transformControls.getHelper())
-    }
-
-    addActiveEvent(
-        name: string,
-        type: string,
-        listener: Function,
-        target: HTMLCanvasElement | TransformControls | Window = this.domElement
-    ) {
-        this.removeActiveEvent(name)
-        ;(target as any).addEventListener(type, listener)
-        const event = { target, type, listener } as ActiveEvent
-        this.activeEvents[name] = event
-        return event
-    }
-
-    removeActiveEvent(name: string) {
-        const event = this.activeEvents[name]
-        if (!event) return
-        ;(event.target as any).removeEventListener(event.type, event.listener)
-        delete this.activeEvents[name]
-    }
-
-    removeAllActiveEvents() {
-        for (const name in this.activeEvents) {
-            this.removeActiveEvent(name)
-        }
     }
 
     // Transform Controls
@@ -134,7 +104,7 @@ export class InteractionManager {
         this.orbitControls.enabled = !Boolean(e.value)
     }
     attachTransformControls(node: TransformNode) {
-        this.removeActiveEvent("transformObjectChange")
+        this.listeners.removeActiveEvent("transformObjectChange")
         const slotIndex = getSlotIndex(node.location)
 
         this.transformProxy.position.copy(node.position)
@@ -157,7 +127,7 @@ export class InteractionManager {
             syncLevaDisplayStub(controls.getNodevalues(node))
         }
 
-        this.addActiveEvent(
+        this.listeners.addActiveEvent(
             "transformObjectChange",
             "objectChange",
             handleObjectChange,
@@ -168,10 +138,10 @@ export class InteractionManager {
     }
 
     detachTransformControls() {
-        this.removeActiveEvent("transformObjectChange")
-        this.removeActiveEvent("delete.keydown")
-        this.removeActiveEvent("space.keydown")
-        this.removeActiveEvent("space.keyup")
+        this.listeners.removeActiveEvent("transformObjectChange")
+        this.listeners.removeActiveEvent("delete.keydown")
+        this.listeners.removeActiveEvent("space.keydown")
+        this.listeners.removeActiveEvent("space.keyup")
         this.transformControls.detach()
         this.orbitControls.enabled = true
     }
@@ -183,7 +153,7 @@ export class InteractionManager {
         // if we clicked the gizmo, exit early so we can use it
         if (
             this.transformControlsEnabled &&
-            this.activeEvents.transformObjectChange
+            this.listeners.activeEvents.transformObjectChange
         ) {
             const gizmoHits = this.raycastHelper.castFromEvent(
                 e,
@@ -249,8 +219,8 @@ export class InteractionManager {
 
             this.detachTransformControls()
             this.attachSegmentMoveKey(startHit, mode)
-            this.removeActiveEvent("space.keydown")
-            this.removeActiveEvent("space.keyup")
+            this.listeners.removeActiveEvent("space.keydown")
+            this.listeners.removeActiveEvent("space.keyup")
         } else {
             // find node from raycast
             const int = intersects[0]
@@ -369,15 +339,15 @@ export class InteractionManager {
 
         const handlePointerUp = () => {
             syncLevaDisplayStub(controls.getNodevalues(node))
-            this.removeActiveEvent("pointermove")
-            this.removeActiveEvent("pointerup")
+            this.listeners.removeActiveEvent("pointermove")
+            this.listeners.removeActiveEvent("pointerup")
             this.orbitControls.enabled = true
             this.transformControls.enabled = prevEnableTransform
         }
 
         // prettier-ignore
-        this.addActiveEvent("pointermove", "pointermove", handlePointerMove)
-        this.addActiveEvent("pointerup", "pointerup", handlePointerUp)
+        this.listeners.addActiveEvent("pointermove", "pointermove", handlePointerMove)
+        this.listeners.addActiveEvent("pointerup", "pointerup", handlePointerUp)
     }
 
     attachSegmentMoveKey(startHit: THREE.Vector3, mode: string = "both") {
@@ -411,16 +381,16 @@ export class InteractionManager {
         }
 
         const handlePointerUp = () => {
-            this.removeActiveEvent("pointermove")
-            this.removeActiveEvent("pointerup")
+            this.listeners.removeActiveEvent("pointermove")
+            this.listeners.removeActiveEvent("pointerup")
             this.orbitControls.enabled = true
             this.transformControls.enabled = prevEnableTransform
         }
 
         // prettier-ignore
-        this.addActiveEvent("pointermove", "pointermove", handlePointerMove)
+        this.listeners.addActiveEvent("pointermove", "pointermove", handlePointerMove)
         // prettier-ignore
-        this.addActiveEvent("pointerup", "pointerup", handlePointerUp)
+        this.listeners.addActiveEvent("pointerup", "pointerup", handlePointerUp)
     }
 
     attachInsertGeometry(node: TransformNode) {
@@ -439,8 +409,8 @@ export class InteractionManager {
             syncLevaDisplayStub(controls.getNodevalues(node))
             setLevaInsertDefault()
             this.selection.clear()
-            this.removeActiveEvent(insertPointerMoveEvent)
-            this.removeActiveEvent(insertPointerUpEvent)
+            this.listeners.removeActiveEvent(insertPointerMoveEvent)
+            this.listeners.removeActiveEvent(insertPointerUpEvent)
         }
 
         const handlePointerMove = (moveEvent: PointerEvent) => {
@@ -449,7 +419,7 @@ export class InteractionManager {
 
             if (!hasStartedInsert) {
                 hasStartedInsert = true
-                this.addActiveEvent(
+                this.listeners.addActiveEvent(
                     insertPointerUpEvent,
                     "pointerup",
                     handlePointerUp,
@@ -470,7 +440,7 @@ export class InteractionManager {
         }
 
         // prettier-ignore
-        this.addActiveEvent( insertPointerMoveEvent, "pointermove", handlePointerMove, window )
+        this.listeners.addActiveEvent( insertPointerMoveEvent, "pointermove", handlePointerMove, window )
     }
 
     handleKeyboardDown = (keyEvent: KeyboardEvent) => {
@@ -513,8 +483,8 @@ export class InteractionManager {
         })
         disableStub()
         // detach mouse events
-        this.activeEvents["pointerup"]?.listener()
-        // this.removeActiveEvent("pointerup")
-        // this.removeActiveEvent("pointermove")
+        this.listeners.activeEvents["pointerup"]?.listener()
+        // this.listeners.removeActiveEvent("pointerup")
+        // this.listeners.removeActiveEvent("pointermove")
     }
 }
