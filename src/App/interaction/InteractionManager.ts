@@ -139,9 +139,6 @@ export class InteractionManager {
 
     detachTransformControls() {
         this.listeners.removeActiveEvent("transformObjectChange")
-        this.listeners.removeActiveEvent("delete.keydown")
-        this.listeners.removeActiveEvent("space.keydown")
-        this.listeners.removeActiveEvent("space.keyup")
         this.transformControls.detach()
         this.orbitControls.enabled = true
     }
@@ -219,8 +216,6 @@ export class InteractionManager {
 
             this.detachTransformControls()
             this.attachSegmentMoveKey(startHit, mode)
-            this.listeners.removeActiveEvent("space.keydown")
-            this.listeners.removeActiveEvent("space.keyup")
         } else {
             // find node from raycast
             const int = intersects[0]
