@@ -53,7 +53,7 @@ export class InteractionManager {
     transformProxy = new THREE.Object3D()
     selection: SelectionManager
     listeners: ListenerManager
-    levaStubEnabled = false
+    levaStubActive = false
     constructor({
         camera,
         scene,
@@ -136,18 +136,13 @@ export class InteractionManager {
 
         this.transformControls.attach(this.transformProxy)
     }
-
     detachTransformControls() {
         this.listeners.removeActiveEvent("transformObjectChange")
         this.transformControls.detach()
         this.orbitControls.enabled = true
     }
 
-    handlePointerDown = (e: PointerEvent): void => {
-        // exit early for multiple touchs on mobile
-        if (e.pointerType === "touch" && !e.isPrimary) return
-
-        // if we clicked the gizmo, exit early so we can use it
+    gizmoCLicked(e: PointerEvent): boolean {
         if (
             this.transformControlsEnabled &&
             this.listeners.activeEvents.transformObjectChange
@@ -158,26 +153,25 @@ export class InteractionManager {
                 true
             )
             if (gizmoHits.length > 0 && this.transformControls.axis) {
-                return
+                return true
             }
         }
+        return false
+    }
 
-        //disable leva UI
-        if (this.levaStubEnabled) {
-            this.levaStubEnabled = false
-            syncLevaDisplayStub({
-                positionValue: { x: 0, z: 0 },
-                rotateValue: { x: 0, y: 0 },
-                scaleValue: 1.0,
-            })
-            disableStub()
-        }
+    handlePointerDown = (e: PointerEvent): void => {
+        // exit early for multiple touchs on mobile
+        if (e.pointerType === "touch" && !e.isPrimary) return
 
-        //raycast to interacctive objects in the scene
+        // if we clicked the gizmo, exit early so we can use it
+        if (this.gizmoCLicked(e)) return
+
+        //raycast to interactive objects in the scene
         const intersects = this.raycastHelper.castFromEvent(e)
 
-        // detach transform controls unless in use
+        // nothing hit!
         if (intersects.length === 0) {
+            // detach transform controls unless in use
             if (
                 !this.transformControlsEnabled ||
                 (!this.transformControls.dragging &&
@@ -187,7 +181,19 @@ export class InteractionManager {
             }
             // remove previous seleciton
             this.selection.clear()
+
+            //
+            if (this.levaStubActive) {
+                this.levaStubActive = false
+                syncLevaDisplayStub({
+                    positionValue: { x: 0, z: 0 },
+                    rotateValue: { x: 0, y: 0 },
+                    scaleValue: 1.0,
+                })
+                disableStub()
+            }
         } else if (intersects[0].object === this.drafter.sectionCutter.mesh) {
+            // hit section cutter
             console.log(intersects[0])
             const { point, index, object }: any = intersects[0]
             point.y = 0 // force for distance
@@ -217,6 +223,7 @@ export class InteractionManager {
             this.detachTransformControls()
             this.attachSegmentMoveKey(startHit, mode)
         } else {
+            // hit Node
             // find node from raycast
             const int = intersects[0]
             const id = int.object.userData.id
@@ -242,10 +249,10 @@ export class InteractionManager {
 
             if (isRoot) {
                 enableRootStub()
-                this.levaStubEnabled = true
+                this.levaStubActive = true
             } else {
                 enableLeafStub()
-                this.levaStubEnabled = true
+                this.levaStubActive = true
             }
 
             // attach transform controls
@@ -288,7 +295,6 @@ export class InteractionManager {
         this.transformControls.enabled = false
 
         const handlePointerMove = (moveEvent: PointerEvent) => {
-            const shiftPress = moveEvent.shiftKey
             // get xz pos
             const hit = this.raycastHelper.castFromEventToPlane(moveEvent)
             if (!hit) return
@@ -297,7 +303,10 @@ export class InteractionManager {
             _prevPosition.copy(node.position)
             _candidatePosition.copy(hit).add(startOffset)
 
-            if (moveEvent.shiftKey && parentPosition && lineLengthSq > 0) {
+            const constrainMove =
+                moveEvent.shiftKey && parentPosition && lineLengthSq > 0
+
+            if (constrainMove) {
                 const t = _parentToCandidate
                     .subVectors(_candidatePosition, parentPosition)
                     .dot(_lineDirection)
@@ -311,6 +320,7 @@ export class InteractionManager {
 
             //get delta
             _delta.subVectors(node.position, _prevPosition)
+
             // no move exit early
             if (_delta.lengthSq() === 0) return
 
@@ -324,7 +334,8 @@ export class InteractionManager {
                 slotIndex
             )
 
-            // update transform controsl
+            // updateGizmoPosition 
+            // update transform controls
             if (this.transformControlsEnabled) {
                 this.transformProxy.position.copy(node.position)
                 this.transformProxy.updateMatrixWorld(true)
@@ -470,7 +481,7 @@ export class InteractionManager {
         //clear selecction geo
         this.selection.clear()
         // detach leva
-        this.levaStubEnabled = false
+        this.levaStubActive = false
         syncLevaDisplayStub({
             positionValue: { x: 0, z: 0 },
             rotateValue: { x: 0, y: 0 },
