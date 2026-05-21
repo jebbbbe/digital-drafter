@@ -144,6 +144,7 @@ export function cutNode(node: TransformNode) {
         position: side1pos,
         location: { id: side1ID, index: -1 },
         parent: node,
+        type: "section",
     }
 
     // add new root!

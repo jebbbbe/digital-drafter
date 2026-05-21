@@ -473,6 +473,13 @@ function calculateBaseMatrixChild(node: TransformNode) {
                 node.baseMatrix
             )
             break
+        case "section":
+            calculateProjectionMatrix(
+                node.parent.position,
+                node.position,
+                node.baseMatrix
+            )
+            break
     }
 }
 
