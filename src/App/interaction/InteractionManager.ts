@@ -40,6 +40,9 @@ type ActiveEvent = {
 const _prevPosition = new THREE.Vector3()
 const _delta = new THREE.Vector3()
 const _zero = new THREE.Vector3()
+const _candidatePosition = new THREE.Vector3()
+const _lineDirection = new THREE.Vector3()
+const _parentToCandidate = new THREE.Vector3()
 
 const spaceHoldMax = 20
 let spaceHoldCurr = 0
@@ -306,18 +309,40 @@ export class InteractionManager {
         const node = this.selection.firstTarget("TransformNode")
         if (!node) return
         const slotIndex = getSlotIndex(node.location)
+        const hasParentConstraint = node.parent !== node
+        const parentPosition = hasParentConstraint
+            ? node.parent.position.clone()
+            : undefined
+        const lineLengthSq = hasParentConstraint
+            ? _lineDirection
+                  .subVectors(node.position, node.parent.position)
+                  .lengthSq()
+            : 0
         this.orbitControls.enabled = false
         const prevEnableTransform = this.transformControls.enabled
         this.transformControls.enabled = false
 
         const handlePointerMove = (moveEvent: PointerEvent) => {
+            const shiftPress = moveEvent.shiftKey
             // get xz pos
             const hit = this.raycastHelper.castFromEventToPlane(moveEvent)
             if (!hit) return
 
             // add offset to pt
             _prevPosition.copy(node.position)
-            node.position.copy(hit).add(startOffset)
+            _candidatePosition.copy(hit).add(startOffset)
+
+            if (moveEvent.shiftKey && parentPosition && lineLengthSq > 0) {
+                const t = _parentToCandidate
+                    .subVectors(_candidatePosition, parentPosition)
+                    .dot(_lineDirection)
+
+                node.position
+                    .copy(parentPosition)
+                    .addScaledVector(_lineDirection, t / lineLengthSq)
+            } else {
+                node.position.copy(_candidatePosition)
+            }
 
             //get delta
             _delta.subVectors(node.position, _prevPosition)
@@ -449,7 +474,7 @@ export class InteractionManager {
     }
 
     handleKeyboardDown = (keyEvent: KeyboardEvent) => {
-        console.log(keyEvent)
+        // console.log(keyEvent)
         if (keyEvent.key === "Delete") {
             if (keyEvent.repeat) return
             controls.deleteFistObject()
