@@ -32,14 +32,14 @@
 
 - [ ] section cut
     - [ ] select color on line
-    - [ ] move section constrain
+    - [w] move section constrain
     - [ ] move line constrain
     - [ ] update section on move
     - [ ] delete segment
     - [ ] delete section
     - [ ] descendants
     - [ ] bvh section lineweight, evaluator.debug.edges
-    - [ ] section cut geometry
+    - [w] section cut geometry
 - [w] initial transform storage\*
 - [w] parent/child relationship
 - [x] selected glitch
