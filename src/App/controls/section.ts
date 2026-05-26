@@ -1,10 +1,13 @@
 import * as THREE from "three"
+import { LineMaterial } from "three/addons/lines/LineMaterial.js"
+import { LineSegments2 } from "three/addons/lines/LineSegments2.js"
+import { LineSegmentsGeometry } from "three/addons/lines/LineSegmentsGeometry.js"
 import { drafter, scene, interactionManager } from "../main"
 import { constants } from "../constants"
 import { getSlotIndex } from "../objects/textures/GlobalTreeTexture"
 import type { TransformNode } from "../draft/TransformNode"
 import * as rand from "../utils/random"
-import { evaluateCSG, boolean } from "../utils/csg"
+import { evaluateCSG, boolean, csgEvaluator } from "../utils/csg"
 import type { SectionSegment } from "../interaction/selectionManager"
 import { getNodeLocationFromSlot } from "../objects/textures/GlobalTreeTexture"
 
@@ -77,15 +80,9 @@ export function cutNode(node: TransformNode) {
 
     // get brush from instance
     const instanceBrush = instanceItem.brush
-    instanceBrush.matrixAutoUpdate = false
     const prevMatrix = instanceBrush.matrix.clone()
     instanceBrush.matrix.copy(node.compoundMatrix)
     instanceBrush.updateMatrixWorld(true)
-
-    // get brush from sectionCutter
-    const boxBrush = sectionCutter.brush
-    boxBrush.matrixAutoUpdate = false
-    boxBrush.matrix.identity()
 
     // determine Box Matrix
     const dir = new THREE.Vector3()
@@ -100,6 +97,8 @@ export function cutNode(node: TransformNode) {
     const scale = new THREE.Matrix4().makeScale(size, size, size)
     const rotate = new THREE.Matrix4().makeRotationY(angle)
     const move2 = new THREE.Matrix4().makeTranslation(midPoint)
+    const boxBrush = sectionCutter.brush
+    boxBrush.matrix.identity()
     boxBrush.matrix.copy(move2).multiply(rotate).multiply(scale).multiply(move1)
     boxBrush.updateMatrixWorld(true)
 
@@ -115,12 +114,13 @@ export function cutNode(node: TransformNode) {
         brush1 = evaluateCSG(instanceBrush, boxBrush, boolean.intersection)
     } catch (err) {
         console.error("evaluateCSG fail", err)
+        cleanUp()
         return
     }
 
-    //remove matrix world
-    instanceBrush.matrix.copy(prevMatrix)
-    instanceBrush.updateMatrixWorld(true)
+    // //remove matrix world
+    // instanceBrush.matrix.copy(prevMatrix)
+    // instanceBrush.updateMatrixWorld(true)
 
     // add instance
     const side1ID = drafter.instanceItems.nextIndex()
@@ -157,6 +157,90 @@ export function cutNode(node: TransformNode) {
     // add new line segment
     const segmentIndex = sectionCutter.addSegmentVector(start, end, nodeSlot)
     sectionCutter.segmentNodeChildrenSlots[segmentIndex / 2] = side1Slot
+
+    //Section face
+    csgEvaluator.debug.enabled = true
+    let face1Brush
+    let faceEdges = new LineSegments2(
+        new LineSegmentsGeometry(),
+        new LineMaterial()
+    )
+    try {
+        //faces
+        face1Brush = evaluateCSG(
+            boxBrush,
+            instanceBrush,
+            boolean.hollowIntersection
+        )
+        // lines
+        const edges = csgEvaluator.debug.intersectionEdges
+        const positions = edges.flatMap((e) => [
+            e.start.x,
+            e.start.y,
+            e.start.z,
+            e.end.x,
+            e.end.y,
+            e.end.z,
+        ])
+        faceEdges.geometry.setPositions(positions)
+    } catch (err) {
+        console.error("evaluateCSG fail", err)
+        cleanUp()
+        return
+    }
+
+    // geo is created using boxBrush transform. we must undo and apply from new node and node
+    // let faceMatrix = face1Brush.matrix.clone()
+    let faceMatrix = new THREE.Matrix4()
+        .copy(newNode.compoundMatrix)
+        .multiply(new THREE.Matrix4().copy(node.compoundMatrix).invert())
+        .multiply(face1Brush.matrix)
+
+    //face
+    const face1 = new THREE.Mesh(
+        face1Brush.geometry,
+        // drafter.materials.mesh
+        new THREE.MeshBasicMaterial({
+            color: 0xd8abd8,
+            side: THREE.DoubleSide,
+            depthWrite: false,
+            depthTest: false, // nice result on/off
+            polygonOffset: true,
+            polygonOffsetFactor: 1,
+            polygonOffsetUnits: 1,
+        })
+    )
+    face1.renderOrder = 2
+    face1.matrixAutoUpdate = false
+    face1.matrix = faceMatrix
+
+    //edges
+    faceEdges.material = new LineMaterial({
+        color: 0x000000,
+        depthTest: true,
+        depthWrite: false,
+        linewidth: 2,
+    })
+    faceEdges.material.resolution.set(window.innerWidth, window.innerHeight)
+    faceEdges.onBeforeRender = () => {
+        faceEdges.material.resolution.set(window.innerWidth, window.innerHeight)
+    }
+    faceEdges.matrixAutoUpdate = false
+    faceEdges.matrix = faceMatrix
+
+    // add to scene...
+    drafter.scene.add(face1)
+    drafter.scene.add(faceEdges)
+
+    //cleanup
+    cleanUp()
+    function cleanUp() {
+        // remove csg debug for edges
+        csgEvaluator.debug.enabled = false
+        //remove matrix world
+        instanceBrush.matrix.copy(prevMatrix)
+        instanceBrush.updateMatrixWorld(true)
+    }
 }
 
 export function deleteSegment(line: SectionSegment) {

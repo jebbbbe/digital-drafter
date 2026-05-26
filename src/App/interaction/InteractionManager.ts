@@ -19,6 +19,7 @@ import { SelectionManager } from "./selectionManager"
 import type { SelectObject } from "./selectionManager"
 import { ListenerManager } from "./ListenerManager"
 import { ThreeControllersManager } from "./controllers"
+import { getNodeLocationFromSlot } from "../objects/textures/GlobalTreeTexture"
 
 type InteractionManagerArgs = {
     camera: THREE.Camera
@@ -199,21 +200,21 @@ export class InteractionManager {
                 target: { object, index },
             } as SelectObject)
 
-            const start = new THREE.Vector3()
-            const end = new THREE.Vector3()
-            this.drafter.sectionCutter.getSegmentAsVector(index, start, end)
+            // const start = new THREE.Vector3()
+            // const end = new THREE.Vector3()
+            // this.drafter.sectionCutter.getSegmentAsVector(index, start, end)
 
-            const totalDist = start.distanceToSquared(end)
-            const threshold = totalDist / 16
-            let mode: "start" | "end" | "both" = "both"
-            if (point.distanceToSquared(start) <= threshold) {
-                mode = "start"
-            } else if (point.distanceToSquared(end) <= threshold) {
-                mode = "end"
-            }
+            // const totalDist = start.distanceToSquared(end)
+            // const threshold = totalDist / 16
+            // let mode: "start" | "end" | "both" = "both"
+            // if (point.distanceToSquared(start) <= threshold) {
+            // mode = "start"
+            // } else if (point.distanceToSquared(end) <= threshold) {
+            // mode = "end"
+            // }
 
             this.detachTransformControls()
-            this.attachSegmentMoveKey(startHit, mode)
+            this.attachSegmentMoveKey(startHit)
         } else {
             // hit Node
             // find node from raycast
@@ -333,6 +334,7 @@ export class InteractionManager {
         if (!line) return
         const index = line.index
         const prevHit = new THREE.Vector3().copy(startHit)
+        const sectionCutter = this.drafter.sectionCutter
 
         this.controllers.pauseControls()
 
@@ -344,15 +346,30 @@ export class InteractionManager {
             p1 = _zero
         }
 
+        // origin
+        const segmentSlot = index / 2
+        const slot = sectionCutter.segmentNodeChildrenSlots[segmentSlot]
+        if (slot === -1) return
+        const location = getNodeLocationFromSlot(slot)
+        const node = this.drafter.tree.findNode(location)
+        if (node === undefined) return
+        const parent = node.parent
+        if (node === undefined) return
+
         const handlePointerMove = (moveEvent: PointerEvent) => {
-            const hit = this.raycastHelper.castFromEventToPlane(moveEvent)
-            if (!hit) return
+            const shiftHeld = moveEvent.shiftKey
+            if (shiftHeld) {
+                console.warn("not implemented")
+            } else {
+                const hit = this.raycastHelper.castFromEventToPlane(moveEvent)
+                if (!hit) return
 
-            _delta.subVectors(hit, prevHit)
-            if (_delta.lengthSq() === 0) return
+                _delta.subVectors(hit, prevHit)
+                if (_delta.lengthSq() === 0) return
 
-            this.drafter.sectionCutter.moveSegmentVector(p1, p2, index)
-            prevHit.copy(hit)
+                sectionCutter.moveSegmentVector(p1, p2, index)
+                prevHit.copy(hit)
+            }
         }
 
         const handlePointerUp = () => {

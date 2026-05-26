@@ -33,11 +33,13 @@ export const boolean = {
     difference: SUBTRACTION,
     differenceOther: REVERSE_SUBTRACTION,
     intersection: INTERSECTION,
+    hollowIntersection: HOLLOW_INTERSECTION,
 } as const
 
-export const evaluator = new Evaluator()
+export const csgEvaluator = new Evaluator()
 //@ts-ignore
-evaluator.useCDTClipping = true
+csgEvaluator.useCDTClipping = true
+csgEvaluator.debug.enabled = false
 
 export function evaluateCSG(
     A: Brush,
@@ -45,6 +47,6 @@ export function evaluateCSG(
     operation: CSGOperation = boolean.difference,
     result: Brush = new Brush()
 ): Brush {
-    evaluator.evaluate(A, B, operation, result)
+    csgEvaluator.evaluate(A, B, operation, result)
     return result
 }

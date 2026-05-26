@@ -58,7 +58,7 @@ export class Drafter {
         this.debug.enable = debug
         if (debug) this.setUpDebug()
         const mesh = this.sectionCutter.mesh
-        mesh.renderOrder = 3
+        mesh.renderOrder = 4
         this.scene.add(mesh)
         this.interactivObjects.push(mesh)
     }

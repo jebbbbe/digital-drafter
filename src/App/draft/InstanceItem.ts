@@ -44,6 +44,8 @@ export function createInstanceItem(
     capacity: number = InstanceCount
 ): InstanceItem {
     const geometries = brushCleaner(geometry)
+    geometries.brush.matrixAutoUpdate = false
+
     const localTransform = geometries.localTransform
 
     let mesh = new THREE.InstancedMesh(
@@ -95,7 +97,7 @@ export function createInstanceItem(
 
     //render order
     mesh.renderOrder = 0
-    line.renderOrder = 2
+    line.renderOrder = 3
     dash.renderOrder = 1
     proj.renderOrder = 1
     fold.renderOrder = 1

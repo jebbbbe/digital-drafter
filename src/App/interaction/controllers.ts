@@ -26,6 +26,12 @@ export class ThreeControllersManager {
         this.transformControls.showY = false
         this.transformControls.translationSnap = 0.25
     }
+    setGizmoRotate() {
+        this.transformControls.setMode("rotate")
+        this.transformControls.showX = false
+        this.transformControls.showY = true
+        this.transformControls.showZ = false
+    }
 
     handleTransformDraggingChanged = (e: { value: unknown }) => {
         this.orbitControls.enabled = !Boolean(e.value)

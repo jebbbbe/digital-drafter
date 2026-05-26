@@ -1,7 +1,7 @@
 import * as THREE from "three"
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js"
 import { BufferGeometryUtils } from "three/addons"
-import { evaluator } from "../../utils/csg"
+import { csgEvaluator } from "../../utils/csg"
 import {
     ADDITION,
     SUBTRACTION,
@@ -57,8 +57,8 @@ export function makeCustomBVHShape(): THREE.BufferGeometry {
 
     // console.log({ geo1, brush1, geo2, brush2 })
 
-    // const result = evaluator.evaluate(brush1, brush2, ADDITION)
-    const result = evaluator.evaluate(brush1, brush2, SUBTRACTION)
+    // const result = csgEvaluator.evaluate(brush1, brush2, ADDITION)
+    const result = csgEvaluator.evaluate(brush1, brush2, SUBTRACTION)
 
     if (!result) return geo1
     return result.geometry
@@ -86,7 +86,7 @@ export function makeCustomBVHHierarchyShape(): THREE.BufferGeometry {
     root.add(group)
     root.updateMatrixWorld(true)
 
-    const result = evaluator.evaluateHierarchy(root)
+    const result = csgEvaluator.evaluateHierarchy(root)
 
     if (!result) return rootGeo
     return result.geometry
@@ -99,9 +99,9 @@ export function makeAsterix(s = 10): THREE.BufferGeometry {
     const b1 = new Brush(g1)
     const b2 = new Brush(g2)
     const b3 = new Brush(g3)
-    const s1 = evaluator.evaluate(b1, b2, ADDITION)
+    const s1 = csgEvaluator.evaluate(b1, b2, ADDITION)
     // asym test
-    let result = evaluator.evaluate(b3, s1, ADDITION)
+    let result = csgEvaluator.evaluate(b3, s1, ADDITION)
 
     if (!result) return g1
     return result.geometry
@@ -113,7 +113,7 @@ export function makeAsterixCenter(s = 10): THREE.BufferGeometry {
     const g4 = new THREE.BoxGeometry(s / 3, s / 3, s / 3)
     const b4 = new Brush(g4)
     b4.updateMatrixWorld(true)
-    result = evaluator.evaluate(result, b4, ADDITION)
+    result = csgEvaluator.evaluate(result, b4, ADDITION)
 
     if (!result) return makeCube()
     return result.geometry
@@ -127,7 +127,7 @@ export function makeAsterixAsym(s = 10): THREE.BufferGeometry {
     // b4.matrixAutoUpdate = false
     b4.position.x = s / 2
     b4.updateMatrixWorld(true)
-    result = evaluator.evaluate(result, b4, ADDITION)
+    result = csgEvaluator.evaluate(result, b4, ADDITION)
 
     if (!result) return makeCube()
     return result.geometry
@@ -143,9 +143,9 @@ export function makeBadSphere(s = 0.5): THREE.BufferGeometry {
     const b3 = new Brush(g3)
     const b4 = new Brush(g4)
 
-    let result = evaluator.evaluate(b4, b1, SUBTRACTION)
-    result = evaluator.evaluate(result, b2, SUBTRACTION)
-    result = evaluator.evaluate(result, b3, SUBTRACTION)
+    let result = csgEvaluator.evaluate(b4, b1, SUBTRACTION)
+    result = csgEvaluator.evaluate(result, b2, SUBTRACTION)
+    result = csgEvaluator.evaluate(result, b3, SUBTRACTION)
 
     if (!result) return g1
     return result.geometry
@@ -168,7 +168,7 @@ export function createWeirdSphereoid(iter = 1): THREE.BufferGeometry {
             const tmp = brush.clone()
             tmp.position.copy(new THREE.Vector3(x, y, z))
             tmp.updateMatrixWorld()
-            brush = evaluator.evaluate(brush, tmp, ADDITION)
+            brush = csgEvaluator.evaluate(brush, tmp, ADDITION)
         }
         brush.scale.set(oneThird, oneThird, oneThird)
         brush.updateMatrixWorld()
@@ -312,7 +312,7 @@ export function createMengerSpongeCSG(iter = 1): THREE.BufferGeometry {
     rootBrush.updateMatrixWorld()
     holesBrush.updateMatrixWorld()
 
-    const result = evaluator.evaluate(rootBrush, holesBrush, SUBTRACTION)
+    const result = csgEvaluator.evaluate(rootBrush, holesBrush, SUBTRACTION)
     if (!result) {
         return _defaultBox.clone()
     }
