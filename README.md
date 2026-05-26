@@ -19,21 +19,29 @@
 - [ ] recursive function only calc compundMatrix, not baseMatrix as well
 - [ ] see if notes on matrix prefix can be used here?
 - [ ] dynamic draw usage
+- [ ] boolean BVH
 
 ### v0.4.0
 
-- [w] parent/child relationship
+- [ ] Interface
+    - [ ] rm react dynamic import, use module splitting
+    - [ ] point angle snap
+    - [ ] better theme loader, with functions
+    - [ ] window select multiple
+    - [ ] selected texture img
+
+- [ ] section cut
+    - [ ] select color on line
+    - [ ] move section constrain
+    - [ ] move line constrain
+    - [ ] update section on move
+    - [ ] delete segment
+    - [ ] delete section
+    - [ ] descendants
+    - [ ] bvh section lineweight, evaluator.debug.edges
+    - [ ] section cut geometry
 - [w] initial transform storage\*
-- [ ] rm react dynamic import, use module splitting
-- [ ] point angle snap
-- [ ] boolean BVH
-- [ ] moveline-> update Section.
-- [ ] move cut-> update section line
-- [ ] bvh section lineweight, evaluator.debug.edges
-- [ ] better theme loader, with functions
-- [ ] window select multiple
-- [ ] select color on line
-- [ ] selected texture img
+- [w] parent/child relationship
 - [x] selected glitch
 - [x] escape key deselect
 
