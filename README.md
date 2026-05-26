@@ -4,7 +4,7 @@
 
 - [ ] save and load
 - [ ] electron
-- [ ] drawable interection shape
+- [ ] drawable intersection shape
 - [ ] svg/dwg export
 - [ ] draw on mesh
 - [ ] mesh upload
@@ -15,16 +15,16 @@
 ### v0.5.0
 
 - [ ] perf compare batched mesh? update geo...?
-- [ ] do update range at the end of recusive by keeping trak of dirty locations.
-- [ ] recuseive funciton only calc compundMatrix, not baseMatrix as well
+- [ ] do update range at the end of recursive by keeping track of dirty locations.
+- [ ] recursive function only calc compundMatrix, not baseMatrix as well
 - [ ] see if notes on matrix prefix can be used here?
 - [ ] dynamic draw usage
 
 ### v0.4.0
 
 - [w] parent/child relationship
-- [w] intal transform storage\*
-- [ ] rm react dynamic import, use module spliting
+- [w] initial transform storage\*
+- [ ] rm react dynamic import, use module splitting
 - [ ] point angle snap
 - [ ] boolean BVH
 - [ ] moveline-> update Section.
@@ -34,17 +34,16 @@
 - [ ] window select multiple
 - [ ] select color on line
 - [ ] selected texture img
-- [X] selected glitch
-- [X] escape key deselect
-
+- [x] selected glitch
+- [x] escape key deselect
 
 ### v0.3.0
 
 - [x] undo git squash
 - [x] mobile css
 - [x] keyboard events
-- [x] seciton cut fix
-- [x] parent offset transform, gometry center transform
+- [x] section cut fix
+- [x] parent offset transform, geometry center transform
 - [x] new ui layout
 - [x] add new geometry
 - [x] selection manager.
@@ -54,7 +53,7 @@
 - [x] fold line geo
 - [x] global data texture
 - [x] perf monitor
-- [x] render doc injeciton
+- [x] render doc injection
 - [s] how to deal with recursive children in diff buckets...?
 - [x] prune/ add node buttons
 - [x] rot/scale root
@@ -63,9 +62,9 @@
 
 ### v0.2.0
 
-- [s] pref compare instanve v non instanced lw material in threetools
-- [s] instanceable screenspace lineweight material
-- [x] instanceable lineweight material
+- [s] pref compare instance v non instanced lw material in threetools
+- [s] instantiable screenspace lineweight material
+- [x] instantiable lineweight material
 - [x] vercel deployment
 - [x] dashed lines
 - [x] themes
@@ -78,11 +77,11 @@
 
 # three.js contrib
 
-- finsih matrix2 implementation
+- finish matrix2 implementation
 - generic line Instance Material
 - example comparing all line materials with notes
-- lines addons dont use instancce matrix correctly
-- all line addons are already isntanced, they are correct :(
+- lines addons dont use instance matrix correctly
+- all line addons are already instanced, they are correct :(
 
 # line2
 
@@ -93,17 +92,17 @@ https://blog.fastforwardlabs.com/2017/10/04/first-look-using-three.js-for-2d-dat
 
 # \*
 
-before continuing with section cut logic, there a a few crutal issues:
+before continuing with section cut logic, there a a few crucial issues:
 
-- how inital transform is set on root nodes
+- how initial transform is set on root nodes
 - pos offset from parent in xyz, works for section, but gizmo placement is wrong, will need for boolean logic later
 - how to deal with both transform issue in TransoformNode type
 - add a arent/ child relationship type in TransoformNode
     - rotate, normal rotation
     - mirror, flip UP axis in rotate
-    - arc, rotate entire node, will need aditonal geometry
+    - arc, rotate entire node, will need additional geometry
     - slide, constrain node pos to current Line position
-    - section, seciton cut
+    - section, section cut
     - boolean, bool fns
 - this will let us get specific updates, allow dsf search for specific changes
-- when doing dfs, switch how base, compund matrix is calc'd
+- when doing dfs, switch how base, compound matrix is calc'd
