@@ -10,6 +10,7 @@ import * as rand from "../utils/random"
 import { evaluateCSG, boolean, csgEvaluator } from "../utils/csg"
 import type { SectionSegment } from "../interaction/selectionManager"
 import { getNodeLocationFromSlot } from "../objects/textures/GlobalTreeTexture"
+import { Group } from "three/examples/jsm/libs/tween.module.js"
 
 export function cutNodeFromSelection() {
     const node = interactionManager.selection.firstTarget("TransformNode")
@@ -211,8 +212,6 @@ export function cutNode(node: TransformNode) {
         })
     )
     face1.renderOrder = 2
-    face1.matrixAutoUpdate = false
-    face1.matrix = faceMatrix
 
     //edges
     faceEdges.material = new LineMaterial({
@@ -225,12 +224,15 @@ export function cutNode(node: TransformNode) {
     faceEdges.onBeforeRender = () => {
         faceEdges.material.resolution.set(window.innerWidth, window.innerHeight)
     }
-    faceEdges.matrixAutoUpdate = false
-    faceEdges.matrix = faceMatrix
 
     // add to scene...
-    drafter.scene.add(face1)
-    drafter.scene.add(faceEdges)
+    let group = new THREE.Group()
+    group.add(face1)
+    group.add(faceEdges)
+    group.matrixAutoUpdate = false
+    group.matrix = faceMatrix
+
+    drafter.scene.add(group)
 
     //cleanup
     cleanUp()
