@@ -251,10 +251,18 @@ export function deleteSegment(line: SectionSegment) {
     const sectionCutter = drafter.sectionCutter
     const slot = sectionCutter.segmentNodeChildrenSlots[segmentSlot]
     sectionCutter.deleteSegment(index)
+
     if (slot === -1) return
     const location = getNodeLocationFromSlot(slot)
+    const node = drafter.tree.findNode(location)
+
+    if (!node) return
+    const children = node.children as TransformNode[]
+
+    for (let i = 0; i < children.length; i++) {
+        drafter.detachNode(children[i])
+    }
+
     // const removedInstanceIDs = this.drafter.removeNode(location)
     drafter.pruneNode(location)
-
-    //TODO: remove section children, dont prune node, remvoe it.
 }
