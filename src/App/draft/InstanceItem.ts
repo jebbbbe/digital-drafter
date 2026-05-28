@@ -29,6 +29,9 @@ export type InstanceItem = {
         line:
             | InstancedLineSegments<THREE.LineBasicMaterial>
             | THREE.InstancedMesh
+        outline:
+            | InstancedLineSegments<THREE.LineBasicMaterial>
+            | THREE.InstancedMesh
         proj: InstancedLineSegments<InstancedProjectionMaterial>
         dash: InstancedLineSegments<THREE.LineDashedMaterial>
         fold: InstancedLineSegments
@@ -54,7 +57,7 @@ export function createInstanceItem(
         capacity
     )
 
-    let line
+    let line, outline
 
     if (activeMaterialLib === "gl_Line") {
         line = new InstancedLineSegments<THREE.LineBasicMaterial>(
@@ -62,17 +65,40 @@ export function createInstanceItem(
             materials.line,
             capacity
         )
+        outline = new InstancedLineSegments<THREE.LineBasicMaterial>(
+            geometries.lineGeometry,
+            materials.outline,
+            capacity
+        )
     } else {
         const lineMaterial = materials.line.clone() as DataTextureLineMaterial
         const lineGeometry = new DataTextureLineSegmentsGeometry(
             geometries.lineGeometry
         )
-        line = new THREE.InstancedMesh(lineGeometry, lineMaterial, capacity)
-
         lineMaterial.segments = lineGeometry.dataTexture
         lineMaterial.resolution.set(window.innerWidth, window.innerHeight)
+        line = new THREE.InstancedMesh(lineGeometry, lineMaterial, capacity)
         line.onBeforeRender = () => {
             lineMaterial.resolution.set(window.innerWidth, window.innerHeight)
+        }
+
+        const outLineMaterial =
+            materials.outline.clone() as DataTextureLineMaterial
+        const outLineGeometry = new DataTextureLineSegmentsGeometry(
+            geometries.lineGeometry
+        )
+        outLineMaterial.segments = outLineGeometry.dataTexture
+        outLineMaterial.resolution.set(window.innerWidth, window.innerHeight)
+        outline = new THREE.InstancedMesh(
+            outLineGeometry,
+            outLineMaterial,
+            capacity
+        )
+        outline.onBeforeRender = () => {
+            outLineMaterial.resolution.set(
+                window.innerWidth,
+                window.innerHeight
+            )
         }
     }
 
@@ -98,6 +124,7 @@ export function createInstanceItem(
     //render order
     mesh.renderOrder = 0
     line.renderOrder = 3
+    outline.renderOrder = -1
     dash.renderOrder = 1
     proj.renderOrder = 1
     fold.renderOrder = 1
@@ -109,6 +136,7 @@ export function createInstanceItem(
     )
     mesh.geometry.setAttribute("nodeSlot", nodeSlot)
     line.geometry.setAttribute("nodeSlot", nodeSlot)
+    outline.geometry.setAttribute("nodeSlot", nodeSlot)
     dash.geometry.setAttribute("nodeSlot", nodeSlot)
     proj.geometry.setAttribute("nodeSlot", nodeSlot)
     fold.geometry.setAttribute("nodeSlot", nodeSlot)
@@ -116,6 +144,7 @@ export function createInstanceItem(
     // set frustumCulled
     mesh.frustumCulled = false
     line.frustumCulled = false
+    outline.frustumCulled = false
     dash.frustumCulled = false
     proj.frustumCulled = false
     fold.frustumCulled = false
@@ -127,6 +156,7 @@ export function createInstanceItem(
     // copy all info to isntancces.
     mesh.userData.id = id
     line.userData = mesh.userData
+    outline.userData = mesh.userData
     dash.userData = mesh.userData
     proj.userData = mesh.userData
     fold.userData = mesh.userData
@@ -135,12 +165,13 @@ export function createInstanceItem(
     const display = constants.themes.objects[constants.theme].display as any
     mesh.visible = display.mesh.visible
     line.visible = display.line.visible
+    outline.visible = display.line.visible
     dash.visible = display.dash.visible
     proj.visible = display.projection.visible
     fold.visible = display.fold.visible
 
     const group = new THREE.Group()
-    group.add(mesh, line, proj, dash, fold)
+    group.add(mesh, line, outline, proj, dash, fold)
 
     const newInstanceItem = {
         brush: geometries.brush, // original geometries brush
@@ -154,6 +185,7 @@ export function createInstanceItem(
         instances: {
             mesh,
             line,
+            outline,
             dash,
             proj,
             fold,
@@ -179,6 +211,7 @@ export function setInstanceCount(instance: InstanceItem, count?: number): void {
     if (count !== undefined) instance.count = count
     instance.instances.mesh.count = instance.count
     instance.instances.line.count = instance.count
+    instance.instances.outline.count = instance.count
     instance.instances.dash.count = instance.count
     instance.instances.proj.count = instance.count
     instance.instances.fold.count = instance.count

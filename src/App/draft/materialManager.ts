@@ -53,6 +53,12 @@ if (activeMaterialLib === "gl_Line") {
             depthWrite: false,
         })
     )
+    matlib.outline = patchNodeMatrix(
+        new THREE.LineBasicMaterial({
+            color: 0xff0000, //display.line.color,
+            depthWrite: false,
+        })
+    )
     matlib.mesh = patchNodeMatrix(
         new THREE.MeshBasicMaterial({
             color: display.mesh.color,
@@ -67,6 +73,14 @@ if (activeMaterialLib === "gl_Line") {
         new DataTextureLineMaterial({
             color: display.line.color,
             linewidth: 1,
+            capStyle: 2,
+            depthWrite: false,
+        })
+    )
+    matlib.outline = patchNodeMatrix(
+        new DataTextureLineMaterial({
+            color: display.line.color, //0xff0000
+            linewidth: 3.5,
             capStyle: 2,
             depthWrite: false,
         })

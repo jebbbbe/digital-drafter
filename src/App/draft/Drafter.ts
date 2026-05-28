@@ -68,11 +68,13 @@ export class Drafter {
             const size = this.globalTreeTexture.textureSize
             this.materials.mesh.treeData = text
             this.materials.line.treeData = text
+            this.materials.outline.treeData = text
             this.materials.dash.treeData = text
             this.materials.projection.treeData = text
             this.materials.fold.treeData = text
             this.materials.mesh.treeDataSize = size
             this.materials.line.treeDataSize = size
+            this.materials.outline.treeDataSize = size
             this.materials.dash.treeDataSize = size
             this.materials.projection.treeDataSize = size
             this.materials.fold.treeDataSize = size
@@ -82,7 +84,11 @@ export class Drafter {
                 // @ts-ignore
                 instanceItem.instances.line.material.treeData = text
                 // @ts-ignore
+                instanceItem.instances.outline.material.treeData = text
+                // @ts-ignore
                 instanceItem.instances.line.material.treeDataSize = size
+                // @ts-ignore
+                instanceItem.instances.outline.material.treeDataSize = size
             }
         } catch {}
     }
