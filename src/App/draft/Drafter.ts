@@ -26,6 +26,7 @@ import {
 } from "../objects/textures/GlobalTreeTexture"
 import { matlib } from "./materialManager"
 import { SectionCutter } from "../objects/meshes/SectionCutter"
+import { NodeAttachments } from "./NodeAttachments"
 
 export class Drafter {
     tree = new TransformTree()
@@ -51,7 +52,7 @@ export class Drafter {
         enable: false,
     }
     sectionCutter = new SectionCutter(this.materials.section)
-
+    attachments = new NodeAttachments()
     constructor(scene: THREE.Scene, debug: boolean = false) {
         this.scene = scene
         this.assignTexture()

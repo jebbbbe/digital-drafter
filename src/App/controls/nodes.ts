@@ -2,7 +2,6 @@ import * as THREE from "three"
 import * as rand from "../utils/random"
 import { drafter, interactionManager } from "../main"
 import type { TransformNode } from "../draft/TransformNode"
-import { getSlotIndex } from "../objects/textures/GlobalTreeTexture"
 import {
     enableRootStub,
     syncLevaDisplayStub,
@@ -126,10 +125,13 @@ export function pruneNodeFromSelection() {
 }
 
 export function pruneNode(node: TransformNode) {
-    const nodeSlot = getSlotIndex(node.location)
-    drafter.sectionCutter.deleteFromNodeSlot(nodeSlot)
+    const attachment = drafter.attachments.getByKind(node, "segment")[0]
+    if (attachment !== undefined) {
+        drafter.attachments.remove(node, attachment)
+        drafter.sectionCutter.deleteSegment(attachment.index)
+    }
+
     drafter.pruneNode(node)
-    // drafter.removeNode(node)
 }
 
 export function moveNodeFromSelection(pos: { x: number; z: number }) {
@@ -217,9 +219,13 @@ export function insertGeometry(geo: THREE.BufferGeometry) {
 export function detachNodeFromSelection() {
     const node = interactionManager.selection.firstTarget("TransformNode")
     if (!node) return
-    
-    const nodeSlot = getSlotIndex(node.location)
-    drafter.sectionCutter.deleteFromNodeSlot(nodeSlot)
+
+    const attachment = drafter.attachments.getByKind(node, "segment")[0]
+    if (attachment !== undefined) {
+        drafter.attachments.remove(node, attachment)
+        drafter.sectionCutter.deleteSegment(attachment.index)
+    }
+
     drafter.detachNode(node)
 
     // update stub panel
@@ -227,5 +233,4 @@ export function detachNodeFromSelection() {
 
     // todo the rotation value derived from this are wong due to how rebaseDetachedMatrixNodeToRoot gets the new matrix..
     syncLevaDisplayStub(getNodevalues(node))
-
 }

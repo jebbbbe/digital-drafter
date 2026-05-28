@@ -1,21 +1,33 @@
 import * as THREE from "three"
 import { Brush } from "three-bvh-csg"
+import type { TransformNode } from "../../draft/TransformNode"
 
 type MapItem = {
     lines: number[]
 }
 
+/*
+type MapItem = {
+    lines: number[] // array of indexs
+    segmentSelect: number[] // array of indexs
+    sectionGroup: THREE.GROUP
+}
+map.get(slotIndex) -> mapItem
+
+
+
+
+*/
+
 export class SectionCutter {
     mesh!: THREE.LineSegments
     itemSize = 3
     stride = this.itemSize * 2 // 2 3d points
-    // map nodes to its section Lines
-    locationMap = new Map<number, MapItem>()
-    // map lines to their nodeSlot
     array = new Float32Array(128 * this.stride)
-    segmentNodeSlots = new Int32Array(this.array.length / this.stride).fill(-1)
-    segmentNodeChildrenSlots = new Int32Array(this.array.length / this.stride).fill(-1)
     count = 0
+    // to get Nodes
+    nodeMap = new Map<number, TransformNode>()
+
     // for csg
     box = new THREE.BoxGeometry()
     brush = new Brush(this.box)
@@ -32,40 +44,6 @@ export class SectionCutter {
         this.brush.matrixAutoUpdate = false
     }
 
-    mapAdd(nodeSlot: number, segmentIndex: number) {
-        const mapItem: MapItem | undefined = this.locationMap.get(nodeSlot)
-        if (mapItem === undefined) {
-            this.locationMap.set(nodeSlot, { lines: [segmentIndex] } as MapItem)
-        } else {
-            mapItem.lines.push(segmentIndex)
-        }
-    }
-
-    mapDelete(nodeSlot: number, segmentIndex: number) {
-        const mapItem: MapItem | undefined = this.locationMap.get(nodeSlot)
-        if (mapItem !== undefined) {
-            const idx = mapItem.lines.indexOf(segmentIndex)
-            mapItem.lines.splice(idx, 1)
-            if (mapItem.lines.length === 0) {
-                this.locationMap.delete(nodeSlot)
-            }
-        }
-    }
-
-    mapReplace(
-        nodeSlot: number,
-        fromSegmentIndex: number,
-        toSegmentIndex: number
-    ) {
-        const mapItem: MapItem | undefined = this.locationMap.get(nodeSlot)
-        if (mapItem !== undefined) {
-            const idx = mapItem.lines.indexOf(fromSegmentIndex)
-            if (idx !== -1) {
-                mapItem.lines[idx] = toSegmentIndex
-            }
-        }
-    }
-
     resize(minSize = this.array.length * 2) {
         // increase buffer size
         let nextSize = this.array.length
@@ -77,18 +55,6 @@ export class SectionCutter {
         const nextArray = new Float32Array(nextSize)
         nextArray.set(this.array)
         this.array = nextArray
-
-        const nextSegmentNodeSlots = new Int32Array(
-            nextSize / this.stride
-        ).fill(-1)
-        nextSegmentNodeSlots.set(this.segmentNodeSlots)
-        this.segmentNodeSlots = nextSegmentNodeSlots
-
-        const nextSegmentNodeChildrenSlots = new Int32Array(
-            nextSize / this.stride
-        ).fill(-1)
-        nextSegmentNodeChildrenSlots.set(this.segmentNodeChildrenSlots)
-        this.segmentNodeChildrenSlots = nextSegmentNodeChildrenSlots
 
         this.mesh.geometry.setAttribute(
             "position",
@@ -132,11 +98,10 @@ export class SectionCutter {
     addSegmentVector(
         a: THREE.Vector3,
         b: THREE.Vector3,
-        nodeSlot?: number
+        node: TransformNode
     ): number {
         const index = this.count
         const offset = index * this.itemSize
-        const segmentSlot = index / 2
 
         if (offset + this.stride > this.array.length) {
             this.resize(offset + this.stride)
@@ -148,17 +113,13 @@ export class SectionCutter {
         this.mesh.geometry.setDrawRange(0, this.count)
         this.markUpdate()
 
-        // add to map
-        this.segmentNodeSlots[segmentSlot] = nodeSlot ?? -1
-        if (nodeSlot !== undefined) this.mapAdd(nodeSlot, index)
-
+        this.nodeMap.set(index, node)
         return index
     }
 
-    addSegmentArray(a: number[], nodeSlot?: number): number {
+    addSegmentArray(a: number[], node: TransformNode): number {
         const index = this.count
         const offset = index * this.itemSize
-        const segmentSlot = index / 2
         if (offset + this.stride > this.array.length) {
             this.resize(offset + this.stride)
         }
@@ -168,9 +129,8 @@ export class SectionCutter {
         this.count += 2
         this.mesh.geometry.setDrawRange(0, this.count)
         this.markUpdate()
-        // add to map
-        this.segmentNodeSlots[segmentSlot] = nodeSlot ?? -1
-        if (nodeSlot !== undefined) this.mapAdd(nodeSlot, index)
+
+        this.nodeMap.set(index, node)
         return index
     }
 
@@ -210,69 +170,26 @@ export class SectionCutter {
         this.markUpdate()
     }
 
-    moveFromNodeSlot(a: THREE.Vector3, b: THREE.Vector3, nodeSlot: number) {
-        const move = [0, 0, 0, 0, 0, 0]
-        a.toArray(move, 0)
-        b.toArray(move, this.itemSize)
-
-        const mapItem = this.locationMap.get(nodeSlot)
-        if (mapItem) {
-            const lines = mapItem.lines
-            for (let i = 0; i < lines.length; i++) {
-                const index = lines[i]
-                this.moveSegmentArray(move, index)
-            }
-        }
-    }
-
-    deleteFromNodeSlot(nodeSlot: number) {
-        console.log("deleteFromNodeSlot")
-        while (true) {
-            const mapItem = this.locationMap.get(nodeSlot)
-            if (!mapItem || mapItem.lines.length === 0) break
-            this.deleteSegment(mapItem.lines[0], false)
-        }
-        this.markUpdate()
-    }
-
     deleteSegment(index: number, mark: boolean = true) {
         if (index < 0 || index + 1 >= this.count) {
             return
         }
-
         const offset = index * this.itemSize
         const lastIndex = this.count - 2
         const lastOffset = lastIndex * this.itemSize
-        const lastSegmentSlot = lastIndex / 2
-        const segmentSlot = index / 2
-
+        const movedNode = this.nodeMap.get(lastIndex)
         if (index !== lastIndex) {
             this.array.copyWithin(offset, lastOffset, lastOffset + this.stride)
+            if (movedNode !== undefined) {
+                this.nodeMap.set(index, movedNode)
+            } else {
+                this.nodeMap.delete(index)
+            }
         }
-
         this.array.fill(0, lastOffset, lastOffset + this.stride)
+        this.nodeMap.delete(lastIndex)
         this.count -= 2
         this.mesh.geometry.setDrawRange(0, this.count)
         if (mark) this.markUpdate()
-
-        const nodeSlot = this.segmentNodeSlots[segmentSlot]
-        const movedNodeSlot = this.segmentNodeSlots[lastSegmentSlot]
-        const movedNodeChildrenSlot =
-            this.segmentNodeChildrenSlots[lastSegmentSlot]
-
-        if (nodeSlot !== -1) {
-            this.mapDelete(nodeSlot, index)
-        }
-
-        if (index !== lastIndex) {
-            this.segmentNodeSlots[segmentSlot] = movedNodeSlot
-            this.segmentNodeChildrenSlots[segmentSlot] = movedNodeChildrenSlot
-            if (movedNodeSlot !== -1) {
-                this.mapReplace(movedNodeSlot, lastIndex, index)
-            }
-        }
-
-        this.segmentNodeSlots[lastSegmentSlot] = -1
-        this.segmentNodeChildrenSlots[lastSegmentSlot] = -1
     }
 }

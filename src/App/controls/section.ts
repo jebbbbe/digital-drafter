@@ -10,7 +10,7 @@ import * as rand from "../utils/random"
 import { evaluateCSG, boolean, csgEvaluator } from "../utils/csg"
 import type { SectionSegment } from "../interaction/selectionManager"
 import { getNodeLocationFromSlot } from "../objects/textures/GlobalTreeTexture"
-import { Group } from "three/examples/jsm/libs/tween.module.js"
+import { createSegmentAttachment } from "../draft/NodeAttachments"
 
 export function cutNodeFromSelection() {
     const node = interactionManager.selection.firstTarget("TransformNode")
@@ -27,8 +27,17 @@ export function cutNode(node: TransformNode) {
     // add new line segment
     const sectionCutter = drafter.sectionCutter
 
-    const nodeSlot = getSlotIndex(node.location)
-    const mapItem = drafter.sectionCutter.locationMap.get(nodeSlot)
+    // see if children have cuts
+    let noCuts = true
+    const children = node.children
+    for (let i = 0; i < children.length; i++) {
+        const child = children[i]
+        const len = drafter.attachments.getByKind(child, "segment").length
+        if (len !== 0) {
+            noCuts = false
+            break
+        }
+    }
 
     _offset.z = rand.random(-0.25, 0.25)
     const t = rand.random(0, Math.PI * 2)
@@ -44,7 +53,7 @@ export function cutNode(node: TransformNode) {
     
     */
 
-    if (mapItem === undefined) {
+    if (noCuts) {
         if (node.parent !== node) {
             // not a root
             _dir.subVectors(node.parent.position, node.position)
@@ -151,13 +160,16 @@ export function cutNode(node: TransformNode) {
     // add new root!
     const newNode = drafter.addLeafNode(side1Root)
     if (!newNode) return
-    //set child location on segment
-    const side1Slot = getSlotIndex(newNode.location)
-    // add ref here for deletion/edit of children
 
     // add new line segment
-    const segmentIndex = sectionCutter.addSegmentVector(start, end, nodeSlot)
-    sectionCutter.segmentNodeChildrenSlots[segmentIndex / 2] = side1Slot
+    const segmentIndex = sectionCutter.addSegmentVector(start, end, newNode)
+
+    // node attachment
+    const segmentAttachment = createSegmentAttachment(
+        sectionCutter,
+        segmentIndex
+    )
+    drafter.attachments.add(newNode, segmentAttachment)
 
     //Section face
     csgEvaluator.debug.enabled = true
@@ -247,22 +259,17 @@ export function cutNode(node: TransformNode) {
 
 export function deleteSegment(line: SectionSegment) {
     const index = line.index
-    const segmentSlot = index / 2
     const sectionCutter = drafter.sectionCutter
-    const slot = sectionCutter.segmentNodeChildrenSlots[segmentSlot]
+    const node = sectionCutter.nodeMap.get(index)
+    if (!node) return
+
     sectionCutter.deleteSegment(index)
 
-    if (slot === -1) return
-    const location = getNodeLocationFromSlot(slot)
-    const node = drafter.tree.findNode(location)
-
-    if (!node) return
     const children = node.children as TransformNode[]
 
     for (let i = 0; i < children.length; i++) {
         drafter.detachNode(children[i])
     }
 
-    // const removedInstanceIDs = this.drafter.removeNode(location)
-    drafter.pruneNode(location)
+    drafter.pruneNode(node)
 }

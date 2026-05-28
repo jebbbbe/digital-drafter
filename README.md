@@ -31,15 +31,23 @@
     - [ ] selected texture img
 
 - [ ] section cut
+    - [ ] multi select?
+    - [x] attachments class
+    - [ ] update atachments in dfs?
+    - [ ] put face geometry in attachments
+    - [ ] move node attachments with a vec3 Diff
+
     - [ ] select color on line
     - [w] move section constrain
     - [ ] move line constrain
     - [ ] update section on move
-    - [ ] delete segment
+    - [x] delete segment
     - [ ] delete section
-    - [ ] descendants
-    - [ ] bvh section lineweight, evaluator.debug.edges
-    - [w] section cut geometry
+    - [x] descendants
+    - [x] detach
+    - [x] bvh section lineweight, evaluator.debug.edges
+    - [x] section cut geometry
+
 - [w] initial transform storage\*
 - [w] parent/child relationship
 - [x] selected glitch

@@ -108,11 +108,24 @@ export class InteractionManager {
             _delta.subVectors(node.position, _prevPosition)
             if (_delta.lengthSq() === 0) return
 
-            this.drafter.sectionCutter.moveFromNodeSlot(
-                _delta,
-                _delta,
-                slotIndex
-            )
+            //  move all children segments
+            // if we always lock move difs for section transform nodes, im not sure we will need this?, would have to pass dif fthru defs tho
+            const children = node.children
+            for (let i = 0; i < children.length; i++) {
+                const child = children[i]
+                const attachment = this.drafter.attachments.getByKind(
+                    child,
+                    "segment"
+                )[0]
+                if (attachment === undefined) continue
+                const index = attachment.index
+                this.drafter.sectionCutter.moveSegmentVector(
+                    _delta,
+                    _delta,
+                    index
+                )
+            }
+
             this.drafter.updatePatchedNode(node)
             syncLevaDisplayStub(controls.getNodevalues(node))
         }
@@ -303,12 +316,22 @@ export class InteractionManager {
             // update recusive on node
             this.drafter.updatePatchedNode(node)
 
-            // update Section Lines of Node
-            this.drafter.sectionCutter.moveFromNodeSlot(
-                _delta,
-                _delta,
-                slotIndex
-            )
+            //  move all children nodes
+            const children = node.children
+            for (let i = 0; i < children.length; i++) {
+                const child = children[i]
+                const attachment = this.drafter.attachments.getByKind(
+                    child,
+                    "segment"
+                )[0]
+                if (attachment === undefined) continue
+                const index = attachment.index
+                this.drafter.sectionCutter.moveSegmentVector(
+                    _delta,
+                    _delta,
+                    index
+                )
+            }
 
             // updateGizmoPosition
             this.controllers.setGizmoPosition(node.position)
@@ -347,14 +370,10 @@ export class InteractionManager {
         }
 
         // origin
-        const segmentSlot = index / 2
-        const slot = sectionCutter.segmentNodeChildrenSlots[segmentSlot]
-        if (slot === -1) return
-        const location = getNodeLocationFromSlot(slot)
-        const node = this.drafter.tree.findNode(location)
+        const node = this.drafter.sectionCutter.nodeMap.get(index)
         if (node === undefined) return
         const parent = node.parent
-        if (node === undefined) return
+        if (parent === undefined) return
 
         const handlePointerMove = (moveEvent: PointerEvent) => {
             const shiftHeld = moveEvent.shiftKey
