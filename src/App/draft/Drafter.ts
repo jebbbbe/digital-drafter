@@ -398,6 +398,35 @@ export class Drafter {
         }
         return Array.from(emptyIds)
     }
+
+    detachNode(target: TransformNode | NodeLocation) {
+        const location = "location" in target ? target.location : target
+        const node = this.tree.findNode(location) as TransformNode | undefined
+        if (!node) return
+        const isRoot = node === node.parent
+        // already an orphan
+        if (isRoot) return
+
+        let instanceItem = this.instanceItems[location.id]
+        if (!instanceItem) return
+
+        const parent = node.parent
+        const siblings = parent.children
+        const idx = siblings.indexOf(node)
+        if (idx === -1) return
+        // remove parent
+        siblings.splice(idx, 1)
+        node.parent = node
+        node.type = "root"
+
+        // make base matrix match root pattern
+        rebaseDetachedMatrixNodeToRoot(node, instanceItem.localTransform)
+
+        // we dont really need to do dfs as node didnt move...
+        // this.updatePatchedNode(node)the
+        // we do need to update teh texture to make the proj lines go away
+        this.setNodeTextureAt(node)
+    }
     /* path node props directly before passing, this updates draw geo*/
     updatePatchedNode(patchedNode: TransformNode) {
         //
@@ -523,6 +552,26 @@ function setInstanceBuffersIndex(
     setUintAttributeAt(instanceItem.buffers.nodeSlot, index, slot)
     // set updateRanges for faster gpu patch
     updateBufferRanges(index, instanceItem.buffers)
+}
+
+const _detachWorldBase = new THREE.Matrix4()
+const _detachInverseLocal = new THREE.Matrix4()
+const _detachRotation = new THREE.Quaternion()
+const _detachScale = new THREE.Vector3()
+const _detachUnusedPosition = new THREE.Vector3()
+
+function rebaseDetachedMatrixNodeToRoot(
+    node: TransformNode,
+    localTransform: THREE.Matrix4
+) {
+    _detachInverseLocal.copy(localTransform).invert()
+    _detachWorldBase.copy(node.compoundMatrix).multiply(_detachInverseLocal)
+    _detachWorldBase.decompose(
+        _detachUnusedPosition,
+        _detachRotation,
+        _detachScale
+    )
+    node.baseMatrix.compose(node.position, _detachRotation, _detachScale)
 }
 
 /*

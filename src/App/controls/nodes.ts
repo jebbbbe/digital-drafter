@@ -3,6 +3,10 @@ import * as rand from "../utils/random"
 import { drafter, interactionManager } from "../main"
 import type { TransformNode } from "../draft/TransformNode"
 import { getSlotIndex } from "../objects/textures/GlobalTreeTexture"
+import {
+    enableRootStub,
+    syncLevaDisplayStub,
+} from "../../components/Leva/LevaStore"
 
 const PI = Math.PI
 const PIo2 = PI / 2
@@ -208,4 +212,20 @@ export function insertGeometry(geo: THREE.BufferGeometry) {
     const node = drafter.addRootNode(rootNode)
     if (!node) return
     interactionManager.attachInsertGeometry(node)
+}
+
+export function detachNodeFromSelection() {
+    const node = interactionManager.selection.firstTarget("TransformNode")
+    if (!node) return
+    
+    const nodeSlot = getSlotIndex(node.location)
+    drafter.sectionCutter.deleteFromNodeSlot(nodeSlot)
+    drafter.detachNode(node)
+
+    // update stub panel
+    enableRootStub()
+
+    // todo the rotation value derived from this are wong due to how rebaseDetachedMatrixNodeToRoot gets the new matrix..
+    syncLevaDisplayStub(getNodevalues(node))
+
 }

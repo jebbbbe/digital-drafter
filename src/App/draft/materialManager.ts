@@ -80,7 +80,7 @@ if (activeMaterialLib === "gl_Line") {
     matlib.outline = patchNodeMatrix(
         new DataTextureLineMaterial({
             color: display.line.color, //0xff0000
-            linewidth: 3.5,
+            linewidth: 1.75,
             capStyle: 2,
             depthWrite: false,
         })
