@@ -4,6 +4,8 @@ import { button, buttonGroup, folder, Leva, useControls } from "leva"
 import { constants } from "../App/constants"
 import { geometryTitles } from "../App/objects/geometries/library"
 
+const isDev = import.meta.env.DEV
+
 function Controls() {
     function getLevaTheme(themeKey: string) {
         const theme = constants.themes.objects[
@@ -60,20 +62,24 @@ function Controls() {
             }),
         })
 
-        const Debug = folder(
-            {
-                showStats: {
-                    label: "Show Stats",
-                    value: false,
-                    onChange: wControls.setStatsVisible,
-                },
-                "Reset Camera": button(controls.resetCamera),
-                "Toggle Camera Rotation": button(controls.toggleCameraRotation),
-                // Export,
-                Actions,
-            },
-            { collapsed: true, color: "#d30000" }
-        )
+        const Debug = isDev
+            ? folder(
+                  {
+                      showStats: {
+                          label: "Show Stats",
+                          value: false,
+                          onChange: wControls.setStatsVisible,
+                      },
+                      "Reset Camera": button(controls.resetCamera),
+                      "Toggle Camera Rotation": button(
+                          controls.toggleCameraRotation
+                      ),
+                      // Export,
+                      Actions,
+                  },
+                  { collapsed: false, color: "#d30000" }
+              )
+            : undefined
 
         const Display = folder(
             {
@@ -195,7 +201,6 @@ function Controls() {
             },
             { collapsed: true }
         )
-
         const Settings = folder(
             {
                 theme: {
@@ -286,6 +291,9 @@ function Controls() {
             "Section Cut": button(() => controls.cutNodeFromSelection(), {
                 disabled: true,
             }),
+            "Detach View": button(() => controls.detachNodeFromSelection(), {
+                disabled: true,
+            }),
         })
 
         return {
@@ -305,7 +313,7 @@ function Controls() {
             Selection,
             "Save Image": button(() => controls.downloadImage()),
             Settings,
-            Debug,
+            ...(Debug ? { Debug } : {}),
         }
     }, [])
 

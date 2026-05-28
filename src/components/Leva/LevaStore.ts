@@ -28,6 +28,7 @@ export const panelPaths = {
     stubAdd: "Selection.Add View",
     stubDelete: "Selection.Delete View",
     stubCut: "Selection.Section Cut",
+    stubDetach: "Selection.Detach View",
 }
 
 type DisplayTheme = {
@@ -115,6 +116,7 @@ export function setStubDisabled(disabled: boolean = true) {
     levaStore.setSettingsAtPath(panelPaths.stubAdd, { disabled })
     levaStore.setSettingsAtPath(panelPaths.stubDelete, { disabled })
     levaStore.setSettingsAtPath(panelPaths.stubCut, { disabled })
+    levaStore.setSettingsAtPath(panelPaths.stubDetach, { disabled })
 }
 export const enableStub = () => setStubDisabled(false)
 export const disableStub = () => setStubDisabled(true)
@@ -130,6 +132,7 @@ export function setStubLeafDisabled(disabled: boolean = true) {
     levaStore.setSettingsAtPath(panelPaths.stubAdd, { disabled })
     levaStore.setSettingsAtPath(panelPaths.stubDelete, { disabled })
     levaStore.setSettingsAtPath(panelPaths.stubCut, { disabled })
+    levaStore.setSettingsAtPath(panelPaths.stubDetach, { disabled })
 }
 export const enableLeafStub = () => setStubLeafDisabled(false)
 export const disableLeafStub = () => setStubLeafDisabled(true)

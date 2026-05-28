@@ -226,6 +226,7 @@ export class SectionCutter {
     }
 
     deleteFromNodeSlot(nodeSlot: number) {
+        console.log("deleteFromNodeSlot")
         while (true) {
             const mapItem = this.locationMap.get(nodeSlot)
             if (!mapItem || mapItem.lines.length === 0) break
