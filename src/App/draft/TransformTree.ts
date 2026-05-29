@@ -19,7 +19,7 @@ export type Node<T = object> = T & {
  * Each bucket mirrors the active range of an instance matrix buffer so nodes can
  * be found with the same `{ id, index }` pair returned by raycasts or instance
  * bookkeeping. Parent and child links are stored as object references while the
- * packed buckets keep locaiton and removal fast.
+ * packed buckets keep location and removal fast.
  */
 export class TransformTree {
     freelist: FreeList<PackedArray<Node>>
@@ -35,9 +35,9 @@ export class TransformTree {
     }
 
     /**
-     * Retrieves a Node from the tree using an instance locaiton.
+     * Retrieves a Node from the tree using an instance location.
      *
-     * @param locaiton - Contains the bucket id and index of the instance.
+     * @param location - Contains the bucket id and index of the instance.
      * @returns The matching Node, or undefined if not found.
      *
      * @example
@@ -46,12 +46,12 @@ export class TransformTree {
      *   // use node
      * }
      */
-    findNode(locaiton: NodeLocation): Node | undefined {
-        const array = this.freelist[locaiton.id]
+    findNode(location: NodeLocation): Node | undefined {
+        const array = this.freelist[location.id]
         if (!array) return
-        if (locaiton.index < 0 || locaiton.index >= array.count) return
+        if (location.index < 0 || location.index >= array.count) return
 
-        return array[locaiton.index]
+        return array[location.index]
     }
 
     /**
@@ -184,7 +184,7 @@ export class TransformTree {
      * Loads a bucket from an existing packed node array.
      *
      * The bucket capacity is rounded up from the node count, and every node is
-     * rewritten so its locaiton matches the loaded bucket slot.
+     * rewritten so its location matches the loaded bucket slot.
      *
      * @param nodes - Packed node array to load into a fresh bucket.
      * @returns The current tree for chaining.
