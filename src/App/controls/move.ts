@@ -20,20 +20,7 @@ export function attachNodeMove(
     node: TransformNode,
     startHit: THREE.Vector3
 ): MoveListener | undefined {
-    // const node = interactionManager.selection.firstNode()
     if (!node) return
-
-    const isRoot = node === node.parent
-
-    // set leva panel values
-    levaStore.syncLevaDisplayStub(getNodevalues(node))
-
-    // enable ui buttons
-    if (isRoot) {
-        levaStore.enableRootStub()
-    } else {
-        levaStore.enableLeafStub()
-    }
 
     const prevHit = new THREE.Vector3().copy(startHit)
     const hasParentConstraint = node.parent !== node
@@ -88,6 +75,8 @@ export function attachNodeMove(
         const children = node.children
         for (let i = 0; i < children.length; i++) {
             const child = children[i]
+			if(child.type !== "sectionChild") continue
+
             const attachment = interactionManager.drafter.attachments.getByKind(
                 child,
                 "segment"

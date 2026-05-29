@@ -8,6 +8,9 @@ import { pruneNode, detachNode } from "./nodes"
 import { deleteSegment } from "./section"
 import { interactionManager } from "../main"
 import { attachSegmentMove, attachNodeMove } from "./move"
+import * as levaStore from "../../components/Leva/LevaStore"
+import { getNodevalues } from "./nodes"
+
 
 type ControlFn = (object: SelectObject, ...args: any[]) => unknown
 
@@ -15,9 +18,17 @@ function noop(o: SelectObject) {
     console.warn("noop", o)
 }
 
-function moveNode(object: SelectObject, startHit: THREE.Vector3) {
+function moveLeaf(object: SelectObject, startHit: THREE.Vector3) {
     const node = object.target as TransformNode
-    // not sure abt keeping method here...
+	levaStore.syncLevaDisplayStub(getNodevalues(node))
+	levaStore.enableLeafStub()
+    return attachNodeMove(node, startHit)
+}
+
+function moveRoot(object: SelectObject, startHit: THREE.Vector3) {
+	const node = object.target as TransformNode
+	levaStore.syncLevaDisplayStub(getNodevalues(node))
+	levaStore.enableRootStub()
     return attachNodeMove(node, startHit)
 }
 
@@ -40,10 +51,10 @@ const fnLib = {
             // return interactionManager.attachSegmentMove(line, startHit)
             return attachSegmentMove(line, startHit)
         },
-        leaf: moveNode,
-        root: moveNode,
-        sectionChild: moveNode,
-        sectionParent: moveNode,
+        leaf: moveLeaf,
+        root: moveRoot,
+        sectionChild: moveLeaf,
+        sectionParent: moveLeaf,
     },
     // prune:{},
     delete: {
