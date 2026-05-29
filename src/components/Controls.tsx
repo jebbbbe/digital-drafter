@@ -268,30 +268,21 @@ function Controls() {
                 min: 0.05,
                 max: 5,
                 disabled: true,
-                // onEditEnd: controls.scaleRootFromSelection,
                 onChange: wControls.scaleRootFromSelection,
             },
-            // buttonGroup: buttonGroup({
-            //     label: "",
-            //     opts: {
-            //         Add: controls.addLeafNearbyRandomlyFromSelection,
-            //         Delete: controls.pruneNodeFromSelection,
-            //         Cut: controls.cutNodeFromSelection,
-            //     },
-            // }),
             "Add View": button(
                 () => controls.addLeafNearbyRandomlyFromSelection(),
                 {
                     disabled: true,
                 }
             ),
-            "Delete View": button(() => controls.pruneNodeFromSelection(), {
+            "Delete View": button(() => controls.deleteFirstObject(), {
                 disabled: true,
             }),
             "Section Cut": button(() => controls.cutNodeFromSelection(), {
                 disabled: true,
             }),
-            "Detach View": button(() => controls.detachNodeFromSelection(), {
+            "Detach View": button(() => controls.detachFirstObject(), {
                 disabled: true,
             }),
         })

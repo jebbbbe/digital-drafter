@@ -33,7 +33,7 @@ export function addTestNode(x: number = 10, z: number = 5): void {
 }
 
 export function addLeafNearbyRandomlyFromSelection() {
-    const node = interactionManager.selection.firstTarget("TransformNode")
+    const node = interactionManager.selection.firstNode()
     if (!node) return
     // addLeafNearbyRandomly(node)
     addLeafNearbyRandomlyNicely(node)
@@ -117,13 +117,6 @@ export function addLeafNearbyRandomlyNicely(node: TransformNode) {
     }
 }
 
-export function pruneNodeFromSelection() {
-    const node = interactionManager.selection.firstTarget("TransformNode")
-    if (!node) return
-    interactionManager.deselectALL()
-    pruneNode(node)
-}
-
 export function pruneNode(node: TransformNode) {
     const attachment = drafter.attachments.getByKind(node, "segment")[0]
     if (attachment !== undefined) {
@@ -135,16 +128,18 @@ export function pruneNode(node: TransformNode) {
 }
 
 export function moveNodeFromSelection(pos: { x: number; z: number }) {
-    const node = interactionManager.selection.firstTarget("TransformNode")
+    const node = interactionManager.selection.firstNode()
     if (!node) return
 
     node.position.set(pos.x, 0, pos.z)
     drafter.updatePatchedNode(node)
     interactionManager.controllers.setGizmoPosition(node.position)
+
+    console.log(pos)
 }
 
 export function rotateRootFromSelection(rot: { x: number; y: number }) {
-    const rootNode = interactionManager.selection.firstTarget("TransformNode")
+    const rootNode = interactionManager.selection.firstNode()
     if (!rootNode) return
     if (rootNode !== rootNode.parent) return
 
@@ -162,7 +157,7 @@ export function rotateRootFromSelection(rot: { x: number; y: number }) {
 }
 
 export function scaleRootFromSelection(n: number) {
-    const rootNode = interactionManager.selection.firstTarget("TransformNode")
+    const rootNode = interactionManager.selection.firstTarget("leaf")
     if (!rootNode) return
     if (rootNode !== rootNode.parent) return
 
@@ -217,9 +212,12 @@ export function insertGeometry(geo: THREE.BufferGeometry) {
 }
 
 export function detachNodeFromSelection() {
-    const node = interactionManager.selection.firstTarget("TransformNode")
+    const node = interactionManager.selection.firstNode()
     if (!node) return
+    detachNode(node)
+}
 
+export function detachNode(node: TransformNode) {
     const attachment = drafter.attachments.getByKind(node, "segment")[0]
     if (attachment !== undefined) {
         drafter.attachments.remove(node, attachment)

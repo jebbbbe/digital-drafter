@@ -12,12 +12,13 @@ export type TransformType =
     | "mirror" // mirrored output
     | "slide" // pos constrained
     // requires pos offset matrix
-    | "section" // section cut 
     | "intersect" // boolean logic
     // low priotiy  requires aditonal args
     // | "arc" // rotated on page
     // | "scale" // scale object larger.
     // | "perspecctive" // do a perspecctive camera transform on node?
+    | "sectionChild" // section cut
+    | "sectionParent" // section cut
 
 type TransformData = {
     position: THREE.Vector3

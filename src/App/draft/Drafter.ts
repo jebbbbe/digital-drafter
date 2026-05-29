@@ -192,6 +192,11 @@ export class Drafter {
         this.tree.removeBucket(id)
         this.globalTreeTexture.decBlockCount()
     }
+    // findNode(location: NodeLocation): Node | undefined
+    findNode(location: NodeLocation) {
+        const node = this.tree.findNode(location) as TransformNode | undefined
+        return node
+    }
 
     addRootNode(rootNode: Partial<TransformNode>) {
         // get id for insertion
@@ -509,13 +514,19 @@ function calculateBaseMatrixChild(node: TransformNode) {
                 node.baseMatrix
             )
             break
-        case "section":
+        case "sectionChild":
             calculateProjectionMatrix(
                 node.parent.position,
                 node.position,
                 node.baseMatrix
             )
             break
+        default:
+            calculateProjectionMatrix(
+                node.parent.position,
+                node.position,
+                node.baseMatrix
+            )
     }
 }
 

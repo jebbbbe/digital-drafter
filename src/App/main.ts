@@ -231,7 +231,7 @@ export function init(container: HTMLElement): () => void {
     addTrees(drafter, initalTrees)
     ;(globalThis as any).drafter = drafter
 
-    testNode = drafter.tree.findNode({ id: 0, index: 2 })
+    testNode = drafter.findNode({ id: 0, index: 2 })
 
     // const [loadedCubeModel] = await assetsLoader
     // if (!loadedCubeModel) {

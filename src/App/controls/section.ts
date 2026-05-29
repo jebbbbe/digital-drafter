@@ -11,9 +11,11 @@ import { evaluateCSG, boolean, csgEvaluator } from "../utils/csg"
 import type { SectionSegment } from "../interaction/selectionManager"
 import { getNodeLocationFromSlot } from "../objects/textures/GlobalTreeTexture"
 import { createSegmentAttachment } from "../draft/NodeAttachments"
+import { createSectionAttachment } from "../draft/NodeAttachments"
 
 export function cutNodeFromSelection() {
-    const node = interactionManager.selection.firstTarget("TransformNode")
+    const node = interactionManager.selection.firstNode()
+    console.log(node)
     if (!node) return
     cutNode(node)
 }
@@ -128,10 +130,6 @@ export function cutNode(node: TransformNode) {
         return
     }
 
-    // //remove matrix world
-    // instanceBrush.matrix.copy(prevMatrix)
-    // instanceBrush.updateMatrixWorld(true)
-
     // add instance
     const side1ID = drafter.instanceItems.nextIndex()
     drafter.newInstance(brush1.geometry)
@@ -154,7 +152,7 @@ export function cutNode(node: TransformNode) {
         position: side1pos,
         location: { id: side1ID, index: -1 },
         parent: node,
-        type: "section",
+        type: "sectionChild",
     }
 
     // add new root!
@@ -246,6 +244,11 @@ export function cutNode(node: TransformNode) {
 
     drafter.scene.add(group)
 
+    const attachment = createSectionAttachment(group)
+    drafter.attachments.add(newNode, attachment)
+
+    // change type on parent node
+    node.type = "sectionParent"
     //cleanup
     cleanUp()
     function cleanUp() {

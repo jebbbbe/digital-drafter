@@ -20,6 +20,8 @@ import type { SelectObject } from "./selectionManager"
 import { ListenerManager } from "./ListenerManager"
 import { ThreeControllersManager } from "./controllers"
 import { getNodeLocationFromSlot } from "../objects/textures/GlobalTreeTexture"
+import type { TransformType } from "../draft/TransformNode"
+import type { SelectType } from "./selectionManager"
 
 type InteractionManagerArgs = {
     camera: THREE.Camera
@@ -39,6 +41,17 @@ const _parentToCandidate = new THREE.Vector3()
 
 const spaceHoldMax = 20
 let spaceHoldCurr = 0
+
+type NodeSelectType = Exclude<SelectType, "SectionSegment">
+const nodeKindMap: Record<TransformType, NodeSelectType> = {
+    root: "root",
+    rotate: "leaf",
+    mirror: "leaf",
+    slide: "leaf",
+    intersect: "leaf",
+    sectionParent: "sectionParent",
+    sectionChild: "sectionChild",
+}
 
 export class InteractionManager {
     domElement: HTMLCanvasElement
@@ -204,27 +217,13 @@ export class InteractionManager {
 
         if (first.object === this.drafter.sectionCutter.mesh) {
             // hit section cutter
-            const { point, index, object }: any = intersects[0]
-            point.y = 0 // force
+            const { index, object }: any = intersects[0]
 
             // add selection
             this.selection.push({
-                type: "SectionSegment",
+                kind: "SectionSegment",
                 target: { object, index },
             } as SelectObject)
-
-            // const start = new THREE.Vector3()
-            // const end = new THREE.Vector3()
-            // this.drafter.sectionCutter.getSegmentAsVector(index, start, end)
-
-            // const totalDist = start.distanceToSquared(end)
-            // const threshold = totalDist / 16
-            // let mode: "start" | "end" | "both" = "both"
-            // if (point.distanceToSquared(start) <= threshold) {
-            // mode = "start"
-            // } else if (point.distanceToSquared(end) <= threshold) {
-            // mode = "end"
-            // }
 
             this.detachTransformControls()
             this.attachSegmentMoveKey(startHit)
@@ -234,15 +233,15 @@ export class InteractionManager {
             const id = first.object.userData.id
             const index = first.instanceId
             const location = { id, index } as NodeLocation
-            // prettier-ignore
-            const node = this.drafter.tree.findNode(location) as  TransformNode | undefined
+
+            // add node to selection
+            const node = this.drafter.findNode(location)
             if (!node) return
 
-            // add selection
-            this.selection.push({
-                type: "TransformNode",
-                target: node,
-            })
+            // create SelectObject
+            const object = { target: node } as SelectObject
+            object.kind = nodeKindMap[node.type]
+            this.selection.push(object)
 
             const isRoot = node === node.parent
 
@@ -267,11 +266,14 @@ export class InteractionManager {
         }
     }
 
+    attachMoveObject() {
+        // fn pick
+    }
+
     //events
     attachNodeMove(startOffset: THREE.Vector3) {
-        const node = this.selection.firstTarget("TransformNode")
+        const node = this.selection.firstNode()
         if (!node) return
-        const slotIndex = getSlotIndex(node.location)
         const hasParentConstraint = node.parent !== node
         const parentPosition = hasParentConstraint
             ? node.parent.position.clone()
@@ -352,7 +354,7 @@ export class InteractionManager {
     }
 
     attachSegmentMoveKey(startHit: THREE.Vector3, mode: string = "both") {
-        const line = this.selection.firstTarget("SectionSegment")
+        const line = this.selection.firstSegment()
         console.log(line)
         if (!line) return
         const index = line.index
@@ -409,7 +411,7 @@ export class InteractionManager {
 
         this.selection.clear()
         this.selection.push({
-            type: "TransformNode",
+            kind: "leaf",
             target: node,
         })
 
@@ -449,17 +451,17 @@ export class InteractionManager {
         // console.log(keyEvent)
         if (keyEvent.key === "Delete") {
             if (keyEvent.repeat) return
-            controls.deleteFistObject()
+            controls.deleteFirstObject()
         } else if (keyEvent.key === " ") {
             if (spaceHoldCurr < spaceHoldMax) {
                 spaceHoldCurr++
-                const node = this.selection.firstTarget("TransformNode")
+                const node = this.selection.firstNode()
                 if (!node) return
                 controls.addLeafNearbyRandomlyNicely(node)
             }
         } else if (keyEvent.key === "Escape") {
             if (keyEvent.repeat) return
-            this.deselectALL()
+            this.deselectAll()
         }
     }
 
@@ -471,7 +473,7 @@ export class InteractionManager {
         }
     }
 
-    deselectALL() {
+    deselectAll() {
         // hide transform controls
         this.detachTransformControls()
         //clear selecction geo
