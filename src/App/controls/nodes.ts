@@ -6,6 +6,7 @@ import {
     enableRootStub,
     syncLevaDisplayStub,
 } from "../../components/Leva/LevaStore"
+import { attachInsertGeometry } from "./move"
 
 const PI = Math.PI
 const PIo2 = PI / 2
@@ -208,7 +209,7 @@ export function insertGeometry(geo: THREE.BufferGeometry) {
     }
     const node = drafter.addRootNode(rootNode)
     if (!node) return
-    interactionManager.attachInsertGeometry(node)
+    attachInsertGeometry(node)
 }
 
 export function detachNodeFromSelection() {

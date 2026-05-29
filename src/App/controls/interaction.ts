@@ -1,3 +1,4 @@
+import type * as THREE from "three"
 import type {
     SelectObject,
     SectionSegment,
@@ -6,9 +7,18 @@ import type { TransformNode } from "../draft/TransformNode"
 import { pruneNode, detachNode } from "./nodes"
 import { deleteSegment } from "./section"
 import { interactionManager } from "../main"
+import { attachSegmentMove, attachNodeMove } from "./move"
+
+type ControlFn = (object: SelectObject, ...args: any[]) => unknown
 
 function noop(o: SelectObject) {
     console.warn("noop", o)
+}
+
+function moveNode(object: SelectObject, startHit: THREE.Vector3) {
+    const node = object.target as TransformNode
+    // not sure abt keeping method here...
+    return attachNodeMove(node, startHit)
 }
 
 function deleteNodeFromObject(object: SelectObject) {
@@ -24,7 +34,17 @@ function detachNodeFromObject(object: SelectObject) {
 
 const fnLib = {
     // add:{},
-    // move:{},
+    move: {
+        SectionSegment: (object: SelectObject, startHit: THREE.Vector3) => {
+            const line = object.target as SectionSegment
+            // return interactionManager.attachSegmentMove(line, startHit)
+            return attachSegmentMove(line, startHit)
+        },
+        leaf: moveNode,
+        root: moveNode,
+        sectionChild: moveNode,
+        sectionParent: moveNode,
+    },
     // prune:{},
     delete: {
         SectionSegment: (object: SelectObject) => {
@@ -47,12 +67,15 @@ const fnLib = {
 
 function runTypedfn(
     key: keyof typeof fnLib,
-    object: SelectObject = interactionManager.selection.first()
+    object: SelectObject = interactionManager.selection.first(),
+    ...args: any[]
 ) {
     if (!object) return
     console.log({ object })
-    fnLib[key][object.kind](object)
+    return (fnLib[key][object.kind] as ControlFn)(object, ...args)
 }
 
 export const deleteFirstObject = (o?: SelectObject) => runTypedfn("delete", o)
 export const detachFirstObject = (o?: SelectObject) => runTypedfn("detach", o)
+export const moveFirstObject = (o?: SelectObject, ...args: any[]) =>
+    runTypedfn("move", o, ...args)

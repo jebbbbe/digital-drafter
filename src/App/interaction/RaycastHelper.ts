@@ -43,8 +43,8 @@ export class RaycastHelper {
 
     castFromEventToPlane(
         e: MouseEvent,
-        plane: THREE.Plane = _groundPlane,
-        target: THREE.Vector3 = _planeHit
+        target: THREE.Vector3 = _planeHit,
+        plane: THREE.Plane = _groundPlane
     ) {
         const rect = this.domElem.getBoundingClientRect?.() ?? {
             left: 0,

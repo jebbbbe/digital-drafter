@@ -1,27 +1,19 @@
 import * as THREE from "three"
-import { OrbitControls } from "three/examples/jsm/Addons.js"
-import { TransformControls } from "three/examples/jsm/controls/TransformControls.js"
-import { Drafter } from "../draft/Drafter"
 import type { TransformNode } from "../draft/TransformNode"
 import type { NodeLocation } from "../draft/TransformTree"
-import { getSlotIndex } from "../objects/textures/GlobalTreeTexture"
-import { RaycastHelper } from "./RaycastHelper"
-import {
-    disableStub,
-    enableLeafStub,
-    enableRootStub,
-    syncLevaDisplayStub,
-    setLevaInsertDefault,
-} from "../../components/Leva/LevaStore"
-import { controls } from "../controls/controls"
-
-import { SelectionManager } from "./selectionManager"
+import type { OrbitControls } from "three/examples/jsm/Addons.js"
+import type { Drafter } from "../draft/Drafter"
 import type { SelectObject } from "./selectionManager"
-import { ListenerManager } from "./ListenerManager"
-import { ThreeControllersManager } from "./controllers"
-import { getNodeLocationFromSlot } from "../objects/textures/GlobalTreeTexture"
 import type { TransformType } from "../draft/TransformNode"
 import type { SelectType } from "./selectionManager"
+import { TransformControls } from "three/examples/jsm/controls/TransformControls.js"
+import { RaycastHelper } from "./RaycastHelper"
+import { SelectionManager } from "./selectionManager"
+import { ListenerManager } from "./ListenerManager"
+import { ThreeControllersManager } from "./controllers"
+import * as levaStore from "../../components/Leva/LevaStore"
+import { controls } from "../controls/controls"
+import { moveFirstObject } from "../controls/interaction"
 
 type InteractionManagerArgs = {
     camera: THREE.Camera
@@ -32,12 +24,15 @@ type InteractionManagerArgs = {
     targets?: THREE.Object3D[]
 }
 
+type MoveListener = {
+    move: Function
+    up: Function
+}
+
+const startHit = new THREE.Vector3()
+
 const _prevPosition = new THREE.Vector3()
 const _delta = new THREE.Vector3()
-const _zero = new THREE.Vector3()
-const _candidatePosition = new THREE.Vector3()
-const _lineDirection = new THREE.Vector3()
-const _parentToCandidate = new THREE.Vector3()
 
 const spaceHoldMax = 20
 let spaceHoldCurr = 0
@@ -108,10 +103,15 @@ export class InteractionManager {
     }
 
     // Transform Controls
-    attachTransformControls(node: TransformNode) {
+    attachTransformControls(object: SelectObject) {
         if (!this.useTransformControls) return
 
-        const slotIndex = getSlotIndex(node.location)
+        if (object.kind === "SectionSegment") {
+            this.detachTransformControls()
+            return
+        }
+
+        const node = object.target as TransformNode
 
         this.controllers.setGizmoPosition(node.position)
 
@@ -140,7 +140,7 @@ export class InteractionManager {
             }
 
             this.drafter.updatePatchedNode(node)
-            syncLevaDisplayStub(controls.getNodevalues(node))
+            levaStore.syncLevaDisplayStub(controls.getNodevalues(node))
         }
 
         this.listeners.addActiveEvent(
@@ -189,46 +189,28 @@ export class InteractionManager {
 
         // nothing hit!
         if (intersects.length === 0) {
-            // detach transform controls
-            if (this.useTransformControls) {
-                this.detachTransformControls()
-            }
-            // remove previous seleciton
-            this.selection.clear()
-
-            // clear leva panel
-            syncLevaDisplayStub({
-                positionValue: { x: 0, z: 0 },
-                rotateValue: { x: 0, y: 0 },
-                scaleValue: 1.0,
-            })
-            disableStub()
+            this.deselectAll()
             return
         }
 
         const first = intersects[0]
         // console.log(first)
 
-        const startHit = this.raycastHelper.castFromEventToPlane(e)
+        this.raycastHelper.castFromEventToPlane(e, startHit)
         if (!startHit) return
 
         //clear seleciton
         this.selection.clear()
 
+        let selectedObject // select obj ref
         if (first.object === this.drafter.sectionCutter.mesh) {
             // hit section cutter
             const { index, object }: any = intersects[0]
-
-            // add selection
-            this.selection.push({
+            selectedObject = {
                 kind: "SectionSegment",
                 target: { object, index },
-            } as SelectObject)
-
-            this.detachTransformControls()
-            this.attachSegmentMoveKey(startHit)
+            } as SelectObject
         } else {
-            // hit Node
             // find node from raycast
             const id = first.object.userData.id
             const index = first.instanceId
@@ -239,212 +221,16 @@ export class InteractionManager {
             if (!node) return
 
             // create SelectObject
-            const object = { target: node } as SelectObject
-            object.kind = nodeKindMap[node.type]
-            this.selection.push(object)
-
-            const isRoot = node === node.parent
-
-            // set leva panel values
-            syncLevaDisplayStub(controls.getNodevalues(node))
-
-            // enable ui buttons
-            if (isRoot) {
-                enableRootStub()
-            } else {
-                enableLeafStub()
-            }
-
-            // moveOffset
-            const moveOffset = startHit
-                ? new THREE.Vector3().subVectors(node.position, startHit)
-                : new THREE.Vector3()
-
-            // attach events
-            this.attachNodeMove(moveOffset)
-            this.attachTransformControls(node)
+            selectedObject = { target: node } as SelectObject
+            selectedObject.kind = nodeKindMap[node.type]
         }
-    }
-
-    attachMoveObject() {
-        // fn pick
-    }
-
-    //events
-    attachNodeMove(startOffset: THREE.Vector3) {
-        const node = this.selection.firstNode()
-        if (!node) return
-        const hasParentConstraint = node.parent !== node
-        const parentPosition = hasParentConstraint
-            ? node.parent.position.clone()
-            : undefined
-        const lineLengthSq = hasParentConstraint
-            ? _lineDirection
-                  .subVectors(node.position, node.parent.position)
-                  .lengthSq()
-            : 0
-        this.controllers.pauseControls()
-
-        const handlePointerMove = (moveEvent: PointerEvent) => {
-            // get xz pos
-            const hit = this.raycastHelper.castFromEventToPlane(moveEvent)
-            if (!hit) return
-
-            // add offset to pt
-            _prevPosition.copy(node.position)
-            _candidatePosition.copy(hit).add(startOffset)
-
-            const constrainMove =
-                moveEvent.shiftKey && parentPosition && lineLengthSq > 0
-
-            if (constrainMove) {
-                const t = _parentToCandidate
-                    .subVectors(_candidatePosition, parentPosition)
-                    .dot(_lineDirection)
-
-                node.position
-                    .copy(parentPosition)
-                    .addScaledVector(_lineDirection, t / lineLengthSq)
-            } else {
-                node.position.copy(_candidatePosition)
-            }
-
-            //get delta
-            _delta.subVectors(node.position, _prevPosition)
-
-            // no move exit early
-            if (_delta.lengthSq() === 0) return
-
-            // update recusive on node
-            this.drafter.updatePatchedNode(node)
-
-            //  move all children nodes
-            const children = node.children
-            for (let i = 0; i < children.length; i++) {
-                const child = children[i]
-                const attachment = this.drafter.attachments.getByKind(
-                    child,
-                    "segment"
-                )[0]
-                if (attachment === undefined) continue
-                const index = attachment.index
-                this.drafter.sectionCutter.moveSegmentVector(
-                    _delta,
-                    _delta,
-                    index
-                )
-            }
-
-            // updateGizmoPosition
-            this.controllers.setGizmoPosition(node.position)
-            // update leva values
-            syncLevaDisplayStub(controls.getNodevalues(node))
-        }
-
-        const handlePointerUp = () => {
-            syncLevaDisplayStub(controls.getNodevalues(node))
-            this.listeners.removeActiveEvent("pointermove")
-            this.listeners.removeActiveEvent("pointerup")
-            this.controllers.resumeControls()
-        }
-
+        this.selection.push(selectedObject)
+        this.attachTransformControls(selectedObject)
+        const moveFns = moveFirstObject(undefined, startHit) as MoveListener
+        if (moveFns === undefined) return
         // prettier-ignore
-        this.listeners.addActiveEvent("pointermove", "pointermove", handlePointerMove)
-        this.listeners.addActiveEvent("pointerup", "pointerup", handlePointerUp)
-    }
-
-    attachSegmentMoveKey(startHit: THREE.Vector3, mode: string = "both") {
-        const line = this.selection.firstSegment()
-        console.log(line)
-        if (!line) return
-        const index = line.index
-        const prevHit = new THREE.Vector3().copy(startHit)
-        const sectionCutter = this.drafter.sectionCutter
-
-        this.controllers.pauseControls()
-
-        let p1 = _delta
-        let p2 = _delta
-        if (mode === "start") {
-            p2 = _zero
-        } else if (mode === "end") {
-            p1 = _zero
-        }
-
-        // origin
-        const node = this.drafter.sectionCutter.nodeMap.get(index)
-        if (node === undefined) return
-        const parent = node.parent
-        if (parent === undefined) return
-
-        const handlePointerMove = (moveEvent: PointerEvent) => {
-            const shiftHeld = moveEvent.shiftKey
-            if (shiftHeld) {
-                console.warn("not implemented")
-            } else {
-                const hit = this.raycastHelper.castFromEventToPlane(moveEvent)
-                if (!hit) return
-
-                _delta.subVectors(hit, prevHit)
-                if (_delta.lengthSq() === 0) return
-
-                sectionCutter.moveSegmentVector(p1, p2, index)
-                prevHit.copy(hit)
-            }
-        }
-
-        const handlePointerUp = () => {
-            this.listeners.removeActiveEvent("pointermove")
-            this.listeners.removeActiveEvent("pointerup")
-            this.controllers.resumeControls()
-        }
-
-        // prettier-ignore
-        this.listeners.addActiveEvent("pointermove", "pointermove", handlePointerMove)
-        // prettier-ignore
-        this.listeners.addActiveEvent("pointerup", "pointerup", handlePointerUp)
-    }
-
-    attachInsertGeometry(node: TransformNode) {
-        const insertPointerMoveEvent = "insert.pointermove"
-        const insertPointerUpEvent = "insert.pointerup"
-
-        this.selection.clear()
-        this.selection.push({
-            kind: "leaf",
-            target: node,
-        })
-
-        let hasStartedInsert = false
-
-        const handlePointerUp = () => {
-            syncLevaDisplayStub(controls.getNodevalues(node))
-            setLevaInsertDefault()
-            this.selection.clear()
-            this.listeners.removeActiveEvent(insertPointerMoveEvent)
-            this.listeners.removeActiveEvent(insertPointerUpEvent)
-        }
-
-        const handlePointerMove = (moveEvent: PointerEvent) => {
-            const hit = this.raycastHelper.castFromEventToPlane(moveEvent)
-            if (!hit) return
-
-            if (!hasStartedInsert) {
-                hasStartedInsert = true
-                this.listeners.addActiveEvent(
-                    insertPointerUpEvent,
-                    "pointerup",
-                    handlePointerUp,
-                    window
-                )
-            }
-
-            node.position.copy(hit)
-            this.drafter.updatePatchedNode(node)
-        }
-
-        // prettier-ignore
-        this.listeners.addActiveEvent( insertPointerMoveEvent, "pointermove", handlePointerMove, window )
+        this.listeners.addActiveEvent("pointermove", "pointermove", moveFns.move)
+        this.listeners.addActiveEvent("pointerup", "pointerup", moveFns.up)
     }
 
     handleKeyboardDown = (keyEvent: KeyboardEvent) => {
@@ -479,12 +265,12 @@ export class InteractionManager {
         //clear selecction geo
         this.selection.clear()
         // detach leva
-        syncLevaDisplayStub({
+        levaStore.syncLevaDisplayStub({
             positionValue: { x: 0, z: 0 },
             rotateValue: { x: 0, y: 0 },
             scaleValue: 1.0,
         })
-        disableStub()
+        levaStore.disableStub()
         // detach mouse events
         this.listeners.activeEvents["pointerup"]?.listener()
         // this.listeners.removeActiveEvent("pointerup")
