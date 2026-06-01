@@ -7,10 +7,14 @@ import type { TransformNode } from "../draft/TransformNode"
 import { pruneNode, detachNode } from "./nodes"
 import { deleteSegment } from "./section"
 import { interactionManager } from "../main"
-import { attachSegmentMove, attachNodeMove } from "./move"
+import {
+    attachSegmentMove,
+    attachNodeMove,
+    attachSectionParentMove,
+    attachSectionChildMove,
+} from "./move"
 import * as levaStore from "../../components/Leva/LevaStore"
 import { getNodevalues } from "./nodes"
-
 
 type ControlFn = (object: SelectObject, ...args: any[]) => unknown
 
@@ -20,15 +24,8 @@ function noop(o: SelectObject) {
 
 function moveLeaf(object: SelectObject, startHit: THREE.Vector3) {
     const node = object.target as TransformNode
-	levaStore.syncLevaDisplayStub(getNodevalues(node))
-	levaStore.enableLeafStub()
-    return attachNodeMove(node, startHit)
-}
-
-function moveRoot(object: SelectObject, startHit: THREE.Vector3) {
-	const node = object.target as TransformNode
-	levaStore.syncLevaDisplayStub(getNodevalues(node))
-	levaStore.enableRootStub()
+    levaStore.syncLevaDisplayStub(getNodevalues(node))
+    levaStore.enableLeafStub()
     return attachNodeMove(node, startHit)
 }
 
@@ -52,9 +49,24 @@ const fnLib = {
             return attachSegmentMove(line, startHit)
         },
         leaf: moveLeaf,
-        root: moveRoot,
-        sectionChild: moveLeaf,
-        sectionParent: moveLeaf,
+        root: (object: SelectObject, startHit: THREE.Vector3) => {
+            const node = object.target as TransformNode
+            levaStore.syncLevaDisplayStub(getNodevalues(node))
+            levaStore.enableRootStub()
+            return attachNodeMove(node, startHit)
+        },
+        sectionChild: (object: SelectObject, startHit: THREE.Vector3) => {
+            const node = object.target as TransformNode
+            levaStore.syncLevaDisplayStub(getNodevalues(node))
+            levaStore.enableRootStub()
+            return attachSectionChildMove(node, startHit)
+        },
+        sectionParent: (object: SelectObject, startHit: THREE.Vector3) => {
+            const node = object.target as TransformNode
+            levaStore.syncLevaDisplayStub(getNodevalues(node))
+            levaStore.enableRootStub()
+            return attachSectionParentMove(node, startHit)
+        },
     },
     // prune:{},
     delete: {

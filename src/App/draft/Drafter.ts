@@ -24,9 +24,11 @@ import {
     GlobalTreeTexture,
     getSlotIndex,
 } from "../objects/textures/GlobalTreeTexture"
-import { matlib } from "./materialManager"
+import { activeMaterialLib, matlib } from "./materialManager"
 import { SectionCutter } from "../objects/meshes/SectionCutter"
 import { NodeAttachments } from "./NodeAttachments"
+import { brushCleaner } from "../objects/geometries/brushCleaner"
+import { DataTextureLineSegmentsGeometry } from "../objects/geometries/DataTextureLineSegmentsGeometry"
 
 export class Drafter {
     tree = new TransformTree()
@@ -145,10 +147,70 @@ export class Drafter {
         return newInstanceItem
     }
 
-    patchInstance() {
-        // todo
-        // use to update geometries.
-        // not sure best interface yet.
+    patchInstanceGeometry(
+        id: number,
+        geometry: THREE.BufferGeometry
+    ): InstanceItem | undefined {
+        // get item
+        const instanceItem = this.instanceItems[id]
+        if (!instanceItem) return
+
+        const geometries = brushCleaner(geometry)
+        const { mesh, line, outline, dash, proj } = instanceItem.instances
+        const nodeSlot = mesh.geometry.getAttribute(
+            "nodeSlot"
+        ) as THREE.BufferAttribute
+
+        if (activeMaterialLib === "gl_Line") {
+            line.geometry.dispose()
+            line.geometry = geometries.lineGeometry
+            outline.geometry.dispose()
+            outline.geometry = geometries.lineGeometry
+        } else {
+            const nextLineGeometry = new DataTextureLineSegmentsGeometry(
+                geometries.lineGeometry
+            )
+            const nextOutlineGeometry = new DataTextureLineSegmentsGeometry(
+                geometries.lineGeometry
+            )
+
+            line.geometry.dispose()
+            line.geometry = nextLineGeometry
+            outline.geometry.dispose()
+            outline.geometry = nextOutlineGeometry
+
+            ;(
+                line.material as THREE.ShaderMaterial & {
+                    segments: THREE.DataTexture | null
+                }
+            ).segments = nextLineGeometry.dataTexture
+
+            ;(
+                outline.material as THREE.ShaderMaterial & {
+                    segments: THREE.DataTexture | null
+                }
+            ).segments = nextOutlineGeometry.dataTexture
+        }
+        mesh.geometry.dispose()
+        mesh.geometry = geometries.meshGeometry
+        dash.geometry.dispose()
+        dash.geometry = geometries.lineGeometry
+        proj.geometry.dispose()
+        proj.geometry = geometries.projGeometry
+        dash.computeLineDistances()
+
+        //set node slot
+        mesh.geometry.setAttribute("nodeSlot", nodeSlot)
+        line.geometry.setAttribute("nodeSlot", nodeSlot)
+        outline.geometry.setAttribute("nodeSlot", nodeSlot)
+        dash.geometry.setAttribute("nodeSlot", nodeSlot)
+        proj.geometry.setAttribute("nodeSlot", nodeSlot)
+
+        geometries.brush.matrixAutoUpdate = false
+        instanceItem.brush = geometries.brush
+        instanceItem.geometry = geometry
+        computeBoundingSphere(instanceItem)
+        return instanceItem
     }
 
     findReusableInstance(
@@ -413,7 +475,7 @@ export class Drafter {
         // already an orphan
         if (isRoot) return
 
-        let instanceItem = this.instanceItems[location.id]
+        const instanceItem = this.instanceItems[location.id]
         if (!instanceItem) return
 
         const parent = node.parent
@@ -515,6 +577,7 @@ function calculateBaseMatrixChild(node: TransformNode) {
             )
             break
         case "sectionChild":
+            console.log("sectionChild")
             calculateProjectionMatrix(
                 node.parent.position,
                 node.position,

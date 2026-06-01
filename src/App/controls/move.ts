@@ -1,9 +1,11 @@
 import * as THREE from "three"
 import type { TransformNode } from "../draft/TransformNode"
 import type { SectionSegment } from "../interaction/selectionManager"
-import { interactionManager } from "../main"
+import { interactionManager, drafter } from "../main"
 import { getNodevalues } from "./nodes"
+import { rotatePointOnXZPlane, getXZRotationAngle } from "../utils/rotation"
 import * as levaStore from "../../components/Leva/LevaStore"
+import { updateCutNode } from "./section"
 
 type MoveListener = {
     move: Function
@@ -16,9 +18,10 @@ const _candidatePosition = new THREE.Vector3()
 const _lineDirection = new THREE.Vector3()
 const _parentToCandidate = new THREE.Vector3()
 
-export function attachNodeMove(
+function moveNodeGeneric(
     node: TransformNode,
-    startHit: THREE.Vector3
+    startHit: THREE.Vector3,
+    attachmentUpdate: Function = () => {}
 ): MoveListener | undefined {
     if (!node) return
 
@@ -71,24 +74,7 @@ export function attachNodeMove(
         // update recusive on node
         interactionManager.drafter.updatePatchedNode(node)
 
-        //  move all children nodes
-        const children = node.children
-        for (let i = 0; i < children.length; i++) {
-            const child = children[i]
-			if(child.type !== "sectionChild") continue
-
-            const attachment = interactionManager.drafter.attachments.getByKind(
-                child,
-                "segment"
-            )[0]
-            if (attachment === undefined) continue
-            const index = attachment.index
-            interactionManager.drafter.sectionCutter.moveSegmentVector(
-                _delta,
-                _delta,
-                index
-            )
-        }
+        attachmentUpdate(node)
 
         // updateGizmoPosition
         interactionManager.controllers.setGizmoPosition(node.position)
@@ -108,6 +94,92 @@ export function attachNodeMove(
         up: handlePointerUp,
     }
 }
+
+export const attachNodeMove = (n: TransformNode, h: THREE.Vector3) =>
+    moveNodeGeneric(n, h)
+
+function updateSectionParentAttachments(node: TransformNode) {
+    //  move all children nodes
+    const children = node.children
+    for (let i = 0; i < children.length; i++) {
+        const child = children[i]
+        if (child.type !== "sectionChild") continue
+
+        const attachment = interactionManager.drafter.attachments.getByKind(
+            child,
+            "segment"
+        )[0]
+        if (attachment === undefined) continue
+
+        // child.position.add(_delta) // Hmmmm
+        const index = attachment.index
+        interactionManager.drafter.sectionCutter.moveSegmentVector(
+            _delta,
+            _delta,
+            index
+        )
+    }
+}
+
+export const attachSectionParentMove = (n: TransformNode, h: THREE.Vector3) =>
+    moveNodeGeneric(n, h, updateSectionParentAttachments)
+
+const _newPosition = new THREE.Vector3()
+function updateSectionChildAttachments(node: TransformNode) {
+    const delta = _delta // globally scoped in this file, bad org fix later
+
+    // rotate about
+    const prevPos = node.position
+    const parentPos = node.parent.position
+    _newPosition.addVectors(prevPos, delta)
+    const rotateAngle = getXZRotationAngle(parentPos, prevPos, _newPosition)
+
+    //update SEGMENT attachment
+    const segment = interactionManager.drafter.attachments.getByKind(
+        node,
+        "segment"
+    )[0]
+    if (segment === undefined) return
+
+    const index = segment.index
+    const [a, b] = drafter.sectionCutter.getSegmentAsVector(index)
+    rotatePointOnXZPlane(a, rotateAngle, parentPos, a)
+    rotatePointOnXZPlane(b, rotateAngle, parentPos, b)
+    drafter.sectionCutter.patchSegmentVector(a, b, index)
+
+    updateCutNode(a, b, node)
+
+    //update FACE attachment
+    // const faceGroup = interactionManager.drafter.attachments.getByKind(
+    //     node,
+    //     "section"
+    // )[0]
+
+    return
+    //  move all children nodes
+    const children = node.children
+    for (let i = 0; i < children.length; i++) {
+        const child = children[i]
+        if (child.type !== "sectionChild") continue
+
+        const attachment = interactionManager.drafter.attachments.getByKind(
+            child,
+            "segment"
+        )[0]
+        if (attachment === undefined) continue
+
+        // child.position.add(_delta) // Hmmmm
+        const index = attachment.index
+        interactionManager.drafter.sectionCutter.moveSegmentVector(
+            _delta,
+            _delta,
+            index
+        )
+    }
+}
+
+export const attachSectionChildMove = (n: TransformNode, h: THREE.Vector3) =>
+    moveNodeGeneric(n, h, updateSectionChildAttachments)
 
 export function attachSegmentMove(
     line: SectionSegment,
