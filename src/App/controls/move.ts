@@ -17,6 +17,7 @@ const _delta = new THREE.Vector3()
 const _candidatePosition = new THREE.Vector3()
 const _lineDirection = new THREE.Vector3()
 const _parentToCandidate = new THREE.Vector3()
+const _segmentLineDirection = new THREE.Vector3()
 
 function moveNodeGeneric(
     node: TransformNode,
@@ -118,6 +119,9 @@ function updateSectionParentAttachments(node: TransformNode) {
             _delta,
             index
         )
+
+        const [a, b] = drafter.sectionCutter.getSegmentAsVector(index)
+        updateCutNode(a, b, child)
     }
 }
 
@@ -147,35 +151,10 @@ function updateSectionChildAttachments(node: TransformNode) {
     rotatePointOnXZPlane(b, rotateAngle, parentPos, b)
     drafter.sectionCutter.patchSegmentVector(a, b, index)
 
+    //update FACE attachment
     updateCutNode(a, b, node)
 
-    //update FACE attachment
-    // const faceGroup = interactionManager.drafter.attachments.getByKind(
-    //     node,
-    //     "section"
-    // )[0]
-
     return
-    //  move all children nodes
-    const children = node.children
-    for (let i = 0; i < children.length; i++) {
-        const child = children[i]
-        if (child.type !== "sectionChild") continue
-
-        const attachment = interactionManager.drafter.attachments.getByKind(
-            child,
-            "segment"
-        )[0]
-        if (attachment === undefined) continue
-
-        // child.position.add(_delta) // Hmmmm
-        const index = attachment.index
-        interactionManager.drafter.sectionCutter.moveSegmentVector(
-            _delta,
-            _delta,
-            index
-        )
-    }
 }
 
 export const attachSectionChildMove = (n: TransformNode, h: THREE.Vector3) =>
@@ -192,38 +171,44 @@ export function attachSegmentMove(
 
     interactionManager.controllers.pauseControls()
 
-    let p1 = _delta
-    let p2 = _delta
-
-    /*
-    if (mode === "start") {
-        p2 = _zero
-    } else if (mode === "end") {
-        p1 = _zero
-    }
-    */
+    const p1 = _delta
+    const p2 = _delta
 
     // origin
-    const node = interactionManager.drafter.sectionCutter.nodeMap.get(index)
-    if (node === undefined) return
-    const parent = node.parent
-    if (parent === undefined) return
+    const sectionChild =
+        interactionManager.drafter.sectionCutter.nodeMap.get(index)
+    if (sectionChild === undefined) return
+    const sectionParent = sectionChild.parent
+    if (sectionParent === undefined) return
+
+    _segmentLineDirection.subVectors(
+        sectionChild.position,
+        sectionParent.position
+    )
+    const lineLengthSq = _segmentLineDirection.lengthSq()
 
     const handlePointerMove = (moveEvent: PointerEvent) => {
-        const shiftHeld = moveEvent.shiftKey
-        if (shiftHeld) {
-            console.warn("not implemented")
-        } else {
-            const hit =
-                interactionManager.raycastHelper.castFromEventToPlane(moveEvent)
-            if (!hit) return
+        const hit =
+            interactionManager.raycastHelper.castFromEventToPlane(moveEvent)
+        if (!hit) return
 
-            _delta.subVectors(hit, prevHit)
-            if (_delta.lengthSq() === 0) return
+        // normal move
+        _delta.subVectors(hit, prevHit)
+        if (_delta.lengthSq() === 0) return
 
-            sectionCutter.moveSegmentVector(p1, p2, index)
-            prevHit.copy(hit)
-        }
+        // constrained move
+        const deltaAlongLine = _delta.dot(_segmentLineDirection) / lineLengthSq
+        _delta
+            .copy(_segmentLineDirection)
+            .multiplyScalar(deltaAlongLine)
+        if (_delta.lengthSq() === 0) return
+
+        sectionCutter.moveSegmentVector(p1, p2, index)
+
+        const [a, b] = drafter.sectionCutter.getSegmentAsVector(index)
+        updateCutNode(a, b, sectionChild)
+
+        prevHit.copy(hit)
     }
 
     const handlePointerUp = () => {

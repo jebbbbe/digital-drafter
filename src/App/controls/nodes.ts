@@ -6,8 +6,8 @@ import {
     enableRootStub,
     syncLevaDisplayStub,
 } from "../../components/Leva/LevaStore"
+import { disposeGroup } from "../objects/meshes/group"
 import { attachInsertGeometry } from "./move"
-
 const PI = Math.PI
 const PIo2 = PI / 2
 const _position = new THREE.Vector3()
@@ -41,7 +41,7 @@ export function addLeafNearbyRandomlyFromSelection() {
 }
 
 export function addLeafNearbyRandomly(node: TransformNode) {
-    const r = rand.randomItem([2, 4, 6])
+    const r = rand.randomItem([2, 4])
     const t = rand.randomItem([
         0,
         PI / 4,
@@ -119,10 +119,17 @@ export function addLeafNearbyRandomlyNicely(node: TransformNode) {
 }
 
 export function pruneNode(node: TransformNode) {
-    const attachment = drafter.attachments.getByKind(node, "segment")[0]
-    if (attachment !== undefined) {
-        drafter.attachments.remove(node, attachment)
-        drafter.sectionCutter.deleteSegment(attachment.index)
+    const segmentAttachment = drafter.attachments.getByKind(node, "segment")[0]
+    if (segmentAttachment !== undefined) {
+        drafter.attachments.remove(node, segmentAttachment)
+        drafter.sectionCutter.deleteSegment(segmentAttachment.index)
+    }
+
+    const faceAttachment = drafter.attachments.getByKind(node, "section")[0]
+    if (faceAttachment !== undefined) {
+        drafter.attachments.remove(node, faceAttachment)
+        const group = faceAttachment.object
+        disposeGroup(group)
     }
 
     drafter.pruneNode(node)
@@ -219,10 +226,18 @@ export function detachNodeFromSelection() {
 }
 
 export function detachNode(node: TransformNode) {
-    const attachment = drafter.attachments.getByKind(node, "segment")[0]
-    if (attachment !== undefined) {
-        drafter.attachments.remove(node, attachment)
-        drafter.sectionCutter.deleteSegment(attachment.index)
+
+    const segmentAttachment = drafter.attachments.getByKind(node, "segment")[0]
+    if (segmentAttachment !== undefined) {
+        drafter.attachments.remove(node, segmentAttachment)
+        drafter.sectionCutter.deleteSegment(segmentAttachment.index)
+    }
+
+    const faceAttachment = drafter.attachments.getByKind(node, "section")[0]
+    if (faceAttachment !== undefined) {
+        drafter.attachments.remove(node, faceAttachment)
+        const group = faceAttachment.object
+        disposeGroup(group)
     }
 
     drafter.detachNode(node)

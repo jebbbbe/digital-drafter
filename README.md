@@ -31,6 +31,7 @@
     - [ ] selected texture img
 
 - [ ] section cut
+
     - [ ] multi select?
     - [x] attachments class
     - [ ] update atachments in dfs?
@@ -39,10 +40,10 @@
 
     - [ ] select color on line
     - [w] move section constrain
-    - [ ] move line constrain
-    - [ ] update section on move
+    - [x] move line constrain
+    - [x] update section on move
     - [x] delete segment
-    - [ ] delete section
+    - [x] delete section
     - [x] descendants
     - [x] detach
     - [x] bvh section lineweight, evaluator.debug.edges
