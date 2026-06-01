@@ -25,20 +25,22 @@
 
 - [ ] Interface
     - [ ] rm react dynamic import, use module splitting
-    - [ ] point angle snap
     - [ ] better theme loader, with functions
     - [ ] window select multiple
     - [ ] selected texture img
 
-- [ ] section cut
-
-    - [ ] multi select?
-    - [x] attachments class
-    - [ ] update atachments in dfs?
-    - [ ] put face geometry in attachments
-    - [ ] move node attachments with a vec3 Diff
-
+- [ ] section cut	
+	- [ ] three/react - import/returns?
+	- [ ] transform controls- leva proxy link
+	- [ ] transform controls- fix scale
+	- [ ] transform controls, pass to moveObject
+    - [ ] transform controls - gizmo origin from multiple selects
+	- [ ] move attachments direcly to node
+	- [ ] move all specal move fns to dfs
     - [ ] select color on line
+    - [x] move node attachments with a vec3 Diff
+    - [x] put face geometry in attachments
+    - [x] attachments class
     - [w] move section constrain
     - [x] move line constrain
     - [x] update section on move
