@@ -18,6 +18,26 @@ export function walkSubtree(
     }
 }
 
+export function walkSeenSubtree(
+    root: TransformNode,
+    seen: Set<TransformNode>,
+    visit: (node: TransformNode, ...args: any[]) => void
+): void {
+    if (seen.has(root)) return
+    const stack: TransformNode[] = [root]
+    while (stack.length > 0) {
+        const node = stack.pop()!
+        seen.add(node)
+        visit(node)
+
+        const { children } = node
+        for (let i = children.length - 1; i >= 0; i--) {
+            if (seen.has(children[i])) continue
+            stack.push(children[i])
+        }
+    }
+}
+
 export function getSubTreeProps(
     root: TransformNode,
     prop: keyof TransformNode
