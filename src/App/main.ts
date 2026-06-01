@@ -12,6 +12,7 @@ import type { TransformNode } from "./draft/TransformNode"
 import type { NodeLocation } from "./draft/TransformTree"
 // import { createBvhBooleanTest, type BvhBooleanTest } from "./test/bvhBooleanTest"
 import { geometryLibrary } from "./objects/geometries/library"
+import { cutNode } from "./controls/section"
 
 let isAppReady = false
 let statsEnabled = false
@@ -247,6 +248,17 @@ export function init(container: HTMLElement): () => void {
         drafter,
     })
     interactionManager.addEventListeners()
+
+	// Secction Cut Node Tests
+    let nodeToCut
+    nodeToCut = drafter.findNode({ id: 0, index: 4 })
+    if (nodeToCut) cutNode(nodeToCut)
+    nodeToCut = drafter.findNode({ id: 0, index: 6 })
+    if (nodeToCut) cutNode(nodeToCut)
+    nodeToCut = drafter.findNode({ id: 1, index: 4 })
+    if (nodeToCut) cutNode(nodeToCut)
+    nodeToCut = drafter.findNode({ id: 2, index: 5 })
+    if (nodeToCut) cutNode(nodeToCut)
 
     layout.addResizeListener(renderer, camera, render)
 
