@@ -92,7 +92,7 @@ export function makeCustomBVHHierarchyShape(): THREE.BufferGeometry {
     return result.geometry
 }
 
-export function makeAsterix(s = 10): THREE.BufferGeometry {
+export function makeAsterisk(s = 10): THREE.BufferGeometry {
     const g1 = new THREE.BoxGeometry(s, 1, 1)
     const g2 = new THREE.BoxGeometry(1, s, 1)
     const g3 = new THREE.BoxGeometry(1, 1, s)
@@ -107,8 +107,8 @@ export function makeAsterix(s = 10): THREE.BufferGeometry {
     return result.geometry
 }
 
-export function makeAsterixCenter(s = 10): THREE.BufferGeometry {
-    let result = new Brush(makeAsterix(s))
+export function makeAsteriskCenter(s = 10): THREE.BufferGeometry {
+    let result = new Brush(makeAsterisk(s))
 
     const g4 = new THREE.BoxGeometry(s / 3, s / 3, s / 3)
     const b4 = new Brush(g4)
@@ -119,8 +119,8 @@ export function makeAsterixCenter(s = 10): THREE.BufferGeometry {
     return result.geometry
 }
 
-export function makeAsterixAsym(s = 10): THREE.BufferGeometry {
-    let result = new Brush(makeAsterix(s))
+export function makeAsteriskAsym(s = 10): THREE.BufferGeometry {
+    let result = new Brush(makeAsterisk(s))
 
     const g4 = new THREE.BoxGeometry(s / 3, s / 3, s / 3)
     const b4 = new Brush(g4)

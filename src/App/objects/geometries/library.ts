@@ -1,26 +1,26 @@
 import {
     makeCube,
-    makeAsterix,
+    makeAsterisk,
     makeCustomBVHShape,
-    makeAsterixAsym,
-    makeAsterixCenter,
+    makeAsteriskAsym,
+    makeAsteriskCenter,
 } from "./geometry"
 
 export const geometryLibrary = {
     cube: makeCube(),
     rectangle: makeCube(1, 0.5, 0.5),
-    asterix: makeAsterix(10),
-    asterixBox: makeAsterix(0.1),
-    asterixBlob: makeAsterixCenter(10),
-    asterixAsymetrical: makeAsterixAsym(10),
+    asterisk: makeAsterisk(10),
+    asteriskBox: makeAsterisk(0.1),
+    asteriskBlob: makeAsteriskCenter(10),
+    asteriskAsymetrical: makeAsteriskAsym(10),
     custom: makeCustomBVHShape(),
 }
 
 export const geometryTitles = {
     Cube: geometryLibrary.cube,
     Rectangle: geometryLibrary.rectangle,
-    Asterix: geometryLibrary.asterix,
-    "Asterix Box": geometryLibrary.asterixBox,
-    "Asterix Tree": geometryLibrary.asterixBlob,
+    Asterisk: geometryLibrary.asterisk,
+    "Asterisk Box": geometryLibrary.asteriskBox,
+    "Asterisk Tree": geometryLibrary.asteriskBlob,
     Custom: geometryLibrary.custom,
 }
