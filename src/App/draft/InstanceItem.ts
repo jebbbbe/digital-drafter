@@ -47,8 +47,6 @@ export function createInstanceItem(
     capacity: number = InstanceCount
 ): InstanceItem {
     const geometries = brushCleaner(geometry)
-    geometries.brush.matrixAutoUpdate = false
-
     const localTransform = geometries.localTransform
 
     let mesh = new THREE.InstancedMesh(

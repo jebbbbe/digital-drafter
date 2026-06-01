@@ -23,6 +23,7 @@ export function brushCleaner(
         geometry.deleteAttribute("uv")
         geometry.deleteAttribute("normal")
     }
+	brush.matrixAutoUpdate = false
 
     if (settings.mergeVertices) {
         geometry = BufferGeometryUtils.mergeVertices(
