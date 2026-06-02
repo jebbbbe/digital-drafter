@@ -101,8 +101,13 @@ function moveNodeGeneric(
     }
 }
 
+export function applyAllAttachments(node: TransformNode) {
+    updateSectionChildAttachments(node)
+    updateSectionParentAttachments(node)
+}
+
 export const attachNodeMove = (n: TransformNode, h: THREE.Vector3) =>
-    moveNodeGeneric(n, h)
+    moveNodeGeneric(n, h, applyAllAttachments)
 
 export const moveNodeToPosition = (
     node: TransformNode,
@@ -116,10 +121,7 @@ function updateSectionParentAttachments(node: TransformNode) {
         const child = children[i]
         if (child.type !== "sectionChild") continue
 
-        const attachment = interactionManager.drafter.attachments.getByKind(
-            child,
-            "segment"
-        )[0]
+        const attachment = child.attachments.segment
         if (attachment === undefined) continue
 
         // child.position.add(_delta) // Hmmmm
@@ -153,11 +155,8 @@ function updateSectionChildAttachments(node: TransformNode) {
     _newPosition.addVectors(prevPos, delta)
     const rotateAngle = getXZRotationAngle(parentPos, prevPos, _newPosition)
 
-    //update SEGMENT attachment
-    const segment = interactionManager.drafter.attachments.getByKind(
-        node,
-        "segment"
-    )[0]
+    const segment = node.attachments.segment
+
     if (segment === undefined) return
 
     const index = segment.index

@@ -26,7 +26,6 @@ import {
 } from "../objects/textures/GlobalTreeTexture"
 import { activeMaterialLib, matlib } from "./materialManager"
 import { SectionCutter } from "../objects/meshes/SectionCutter"
-import { NodeAttachments } from "./NodeAttachments"
 import { brushCleaner } from "../objects/geometries/brushCleaner"
 import { DataTextureLineSegmentsGeometry } from "../objects/geometries/DataTextureLineSegmentsGeometry"
 
@@ -54,7 +53,6 @@ export class Drafter {
         enable: false,
     }
     sectionCutter = new SectionCutter(this.materials.section)
-    attachments = new NodeAttachments()
     constructor(scene: THREE.Scene, debug: boolean = false) {
         this.scene = scene
         this.assignTexture()

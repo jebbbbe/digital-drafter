@@ -71,18 +71,23 @@ const fnLib = {
             levaStore.enableRootStub()
             return attachNodeMove(node, startHit)
         },
-        sectionChild: (object: SelectObject, startHit: THREE.Vector3) => {
+        sectionChild: moveLeaf,
+        /*
+		(object: SelectObject, startHit: THREE.Vector3) => {
             const node = object.target as TransformNode
             levaStore.syncLevaDisplayStub(getNodevalues(node))
             levaStore.enableRootStub()
             return attachSectionChildMove(node, startHit)
         },
-        sectionParent: (object: SelectObject, startHit: THREE.Vector3) => {
+		*/
+        sectionParent: moveLeaf,
+        /* (object: SelectObject, startHit: THREE.Vector3) => {
             const node = object.target as TransformNode
             levaStore.syncLevaDisplayStub(getNodevalues(node))
             levaStore.enableRootStub()
             return attachSectionParentMove(node, startHit)
         },
+		*/
     },
     gizmoSetup: {
         SectionSegment: (object: SelectObject) =>

@@ -1,4 +1,6 @@
 import * as THREE from "three"
+import type { Object3D } from "three"
+import type { SectionCutter } from "../objects/meshes/SectionCutter"
 import type { Node } from "./TransformTree"
 
 /*
@@ -20,14 +22,51 @@ export type TransformType =
     | "sectionChild" // section cut
     | "sectionParent" // section cut
 
+// / refrences to extranal geometries for specific nodes
+export type NodeAttachments = {
+    segment?: SegmentAttachment
+    section?: SectionAttachment
+}
+
 type TransformData = {
     position: THREE.Vector3
     baseMatrix: THREE.Matrix4
     compoundMatrix: THREE.Matrix4
     type: TransformType
+
+    mirror: boolean
+    attachments: NodeAttachments
 }
 
 export type TransformNode = Node<TransformData>
+export type SegmentAttachment = {
+    object: SectionCutter
+    index: number
+}
+
+export type SectionAttachment = {
+    object: Object3D
+}
+
+export type IntersectionAttachment = {
+    intersections: TransformNode[]
+}
+
+export function createSegmentAttachment(
+    object: SectionCutter,
+    index: number
+): SegmentAttachment {
+    return {
+        object,
+        index,
+    }
+}
+
+export function createSectionAttachment(object: Object3D): SectionAttachment {
+    return {
+        object,
+    }
+}
 
 export function createTransformNode(
     node: Partial<TransformNode> = {}
@@ -48,6 +87,8 @@ export function createTransformNode(
         parent,
         children: node.children ?? [],
         type,
+        mirror: node.mirror ?? false,
+        attachments: node.attachments ?? {},
     })
 
     if (node.parent !== undefined && node.parent !== newNode) {

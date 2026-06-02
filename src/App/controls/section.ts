@@ -5,13 +5,15 @@ import { LineSegmentsGeometry } from "three/addons/lines/LineSegmentsGeometry.js
 import { drafter, scene, interactionManager } from "../main"
 import { constants } from "../constants"
 import { getSlotIndex } from "../objects/textures/GlobalTreeTexture"
-import type { TransformNode } from "../draft/TransformNode"
+import {
+    createSectionAttachment,
+    createSegmentAttachment,
+    type TransformNode,
+} from "../draft/TransformNode"
 import * as rand from "../utils/random"
 import { evaluateCSG, boolean, csgEvaluator } from "../utils/csg"
 import type { SectionSegment } from "../interaction/selectionManager"
 import { getNodeLocationFromSlot } from "../objects/textures/GlobalTreeTexture"
-import { createSegmentAttachment } from "../draft/NodeAttachments"
-import { createSectionAttachment } from "../draft/NodeAttachments"
 import type { InstanceItem } from "../draft/InstanceItem"
 
 export function cutNodeFromSelection() {
@@ -116,8 +118,8 @@ export function cutNode(sectionParent: TransformNode) {
     const children = sectionParent.children
     for (let i = 0; i < children.length; i++) {
         const child = children[i]
-        const len = drafter.attachments.getByKind(child, "segment").length
-        if (len !== 0) {
+        const segment = child.attachments.segment
+        if (segment !== undefined) {
             noCuts = false
             break
         }
@@ -230,7 +232,7 @@ export function cutNode(sectionParent: TransformNode) {
         sectionCutter,
         segmentIndex
     )
-    drafter.attachments.add(sectionChild, segmentAttachment)
+    sectionChild.attachments.segment = segmentAttachment
 
     // geo is created using boxBrush transform. we must undo and apply from new node and node
     // let faceMatrix = face1Brush.matrix.clone()
@@ -279,7 +281,7 @@ export function cutNode(sectionParent: TransformNode) {
     drafter.scene.add(group)
 
     const attachment = createSectionAttachment(group)
-    drafter.attachments.add(sectionChild, attachment)
+    sectionChild.attachments.section = attachment
 
     // change type on parent node
     sectionParent.type = "sectionParent"
@@ -298,9 +300,10 @@ export function updateCutNode(
     const instanceItem = drafter.instanceItems[parentId]
     if (!instanceItem) return
 
-    // update instance geometry
-    const group = drafter.attachments.getByKind(sectionChild, "section")[0]
-        .object
+    const attachment = sectionChild.attachments.section
+    if (!attachment) return
+
+    const group = attachment.object
     const [face1, faceEdges] = group.children as [THREE.Mesh, LineSegments2]
 
     const cutResult = cutGeometry(
@@ -335,6 +338,7 @@ export function deleteSegment(line: SectionSegment) {
     if (!node) return
 
     sectionCutter.deleteSegment(index)
+    node.attachments.segment = undefined
 
     const children = node.children as TransformNode[]
 

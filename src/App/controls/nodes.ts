@@ -119,15 +119,15 @@ export function addLeafNearbyRandomlyNicely(node: TransformNode) {
 }
 
 export function pruneNode(node: TransformNode) {
-    const segmentAttachment = drafter.attachments.getByKind(node, "segment")[0]
+    const segmentAttachment = node.attachments.segment
     if (segmentAttachment !== undefined) {
-        drafter.attachments.remove(node, segmentAttachment)
+        node.attachments.segment = undefined
         drafter.sectionCutter.deleteSegment(segmentAttachment.index)
     }
 
-    const faceAttachment = drafter.attachments.getByKind(node, "section")[0]
+    const faceAttachment = node.attachments.section
     if (faceAttachment !== undefined) {
-        drafter.attachments.remove(node, faceAttachment)
+        node.attachments.section = undefined
         const group = faceAttachment.object
         disposeGroup(group)
     }
@@ -229,15 +229,15 @@ export function detachNodeFromSelection() {
 }
 
 export function detachNode(node: TransformNode) {
-    const segmentAttachment = drafter.attachments.getByKind(node, "segment")[0]
+    const segmentAttachment = node.attachments.segment
     if (segmentAttachment !== undefined) {
-        drafter.attachments.remove(node, segmentAttachment)
+        node.attachments.segment = undefined
         drafter.sectionCutter.deleteSegment(segmentAttachment.index)
     }
 
-    const faceAttachment = drafter.attachments.getByKind(node, "section")[0]
+    const faceAttachment = node.attachments.section
     if (faceAttachment !== undefined) {
-        drafter.attachments.remove(node, faceAttachment)
+        node.attachments.section = undefined
         const group = faceAttachment.object
         disposeGroup(group)
     }

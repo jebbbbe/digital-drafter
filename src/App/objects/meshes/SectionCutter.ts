@@ -182,6 +182,10 @@ export class SectionCutter {
             this.array.copyWithin(offset, lastOffset, lastOffset + this.stride)
             if (movedNode !== undefined) {
                 this.nodeMap.set(index, movedNode)
+                const attachment = movedNode.attachments.segment
+                if (attachment !== undefined) {
+                    attachment.index = index
+                }
             } else {
                 this.nodeMap.delete(index)
             }
