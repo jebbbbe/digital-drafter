@@ -201,6 +201,9 @@ export function getNodevalues(node: TransformNode): NodeMatrixValues {
             y: -THREE.MathUtils.radToDeg(_extractEuler.z),
         }
         values.scaleValue = _scale.x
+    } else {
+        values.rotateValue = { x: 0, y: 0 }
+        values.scaleValue = 1.0
     }
     return values
 }
@@ -226,7 +229,6 @@ export function detachNodeFromSelection() {
 }
 
 export function detachNode(node: TransformNode) {
-
     const segmentAttachment = drafter.attachments.getByKind(node, "segment")[0]
     if (segmentAttachment !== undefined) {
         drafter.attachments.remove(node, segmentAttachment)

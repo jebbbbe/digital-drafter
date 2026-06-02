@@ -1,4 +1,4 @@
-import type * as THREE from "three"
+import * as THREE from "three"
 import type {
     SelectObject,
     SectionSegment,
@@ -12,6 +12,11 @@ import {
     attachNodeMove,
     attachSectionParentMove,
     attachSectionChildMove,
+    setupSegmentGizmo,
+    moveNodeToPosition,
+    moveSectionParentToPosition,
+    moveSectionChildToPosition,
+    moveSegmentToPosition,
 } from "./move"
 import * as levaStore from "../../components/Leva/LevaStore"
 import { getNodevalues } from "./nodes"
@@ -20,6 +25,17 @@ type ControlFn = (object: SelectObject, ...args: any[]) => unknown
 
 function noop(o: SelectObject) {
     console.warn("noop", o)
+}
+
+function setupNodeGizmo(object: SelectObject) {
+    const node = object.target as TransformNode
+    interactionManager.controllers.setGizmoTranslate()
+    interactionManager.controllers.setGizmoPosition(node.position)
+}
+
+function listenNodeGizmo(object: SelectObject) {
+    const node = object.target as TransformNode
+    moveNodeToPosition(node, interactionManager.controllers.getGizmoPosition())
 }
 
 function moveLeaf(object: SelectObject, startHit: THREE.Vector3) {
@@ -68,6 +84,39 @@ const fnLib = {
             return attachSectionParentMove(node, startHit)
         },
     },
+    gizmoSetup: {
+        SectionSegment: (object: SelectObject) =>
+            setupSegmentGizmo(object.target as SectionSegment),
+        leaf: setupNodeGizmo,
+        root: setupNodeGizmo,
+        sectionChild: setupNodeGizmo,
+        sectionParent: setupNodeGizmo,
+    },
+    gizmoListener: {
+        SectionSegment: (object: SelectObject) => {
+            const line = object.target as SectionSegment
+            moveSegmentToPosition(
+                line,
+                interactionManager.controllers.getGizmoPosition()
+            )
+        },
+        leaf: listenNodeGizmo,
+        root: listenNodeGizmo,
+        sectionChild: (object: SelectObject) => {
+            const node = object.target as TransformNode
+            moveSectionChildToPosition(
+                node,
+                interactionManager.controllers.getGizmoPosition()
+            )
+        },
+        sectionParent: (object: SelectObject) => {
+            const node = object.target as TransformNode
+            moveSectionParentToPosition(
+                node,
+                interactionManager.controllers.getGizmoPosition()
+            )
+        },
+    },
     // prune:{},
     delete: {
         SectionSegment: (object: SelectObject) => {
@@ -101,3 +150,8 @@ export const deleteFirstObject = (o?: SelectObject) => runTypedfn("delete", o)
 export const detachFirstObject = (o?: SelectObject) => runTypedfn("detach", o)
 export const moveFirstObject = (o?: SelectObject, ...args: any[]) =>
     runTypedfn("move", o, ...args)
+export const gizmoSetupFirstObject = (o?: SelectObject) => () =>
+    runTypedfn("gizmoSetup", o)
+
+export const gizmoListenerFirstObject = (o?: SelectObject) => () =>
+    runTypedfn("gizmoListener", o)

@@ -1,5 +1,4 @@
 import * as THREE from "three"
-import type { TransformNode } from "../draft/TransformNode"
 import type { NodeLocation } from "../draft/TransformTree"
 import type { OrbitControls } from "three/examples/jsm/Addons.js"
 import type { Drafter } from "../draft/Drafter"
@@ -13,7 +12,11 @@ import { ListenerManager } from "./ListenerManager"
 import { ThreeControllersManager } from "./controllers"
 import * as levaStore from "../../components/Leva/LevaStore"
 import { controls } from "../controls/controls"
-import { moveFirstObject } from "../controls/interaction"
+import {
+    gizmoListenerFirstObject,
+    gizmoSetupFirstObject,
+    moveFirstObject,
+} from "../controls/interaction"
 
 type InteractionManagerArgs = {
     camera: THREE.Camera
@@ -30,9 +33,6 @@ type MoveListener = {
 }
 
 const startHit = new THREE.Vector3()
-
-const _prevPosition = new THREE.Vector3()
-const _delta = new THREE.Vector3()
 
 const spaceHoldMax = 20
 let spaceHoldCurr = 0
@@ -106,51 +106,19 @@ export class InteractionManager {
     attachTransformControls(object: SelectObject) {
         if (!this.useTransformControls) return
 
-        if (object.kind === "SectionSegment") {
-            this.detachTransformControls()
-            return
-        }
+        const gizmoSetup = gizmoSetupFirstObject(object)
+        const gizmoListener = gizmoListenerFirstObject(object)
+        if (!gizmoSetup || !gizmoListener) return
 
-        const node = object.target as TransformNode
-
-        this.controllers.setGizmoPosition(node.position)
-
-        const handleObjectChange = () => {
-            _prevPosition.copy(node.position)
-            node.position.copy(this.controllers.getGizmoPosition())
-            _delta.subVectors(node.position, _prevPosition)
-            if (_delta.lengthSq() === 0) return
-
-            //  move all children segments
-            // if we always lock move difs for section transform nodes, im not sure we will need this?, would have to pass dif fthru defs tho
-            const children = node.children
-            for (let i = 0; i < children.length; i++) {
-                const child = children[i]
-                const attachment = this.drafter.attachments.getByKind(
-                    child,
-                    "segment"
-                )[0]
-                if (attachment === undefined) continue
-                const index = attachment.index
-                this.drafter.sectionCutter.moveSegmentVector(
-                    _delta,
-                    _delta,
-                    index
-                )
-            }
-
-            this.drafter.updatePatchedNode(node)
-            levaStore.syncLevaDisplayStub(controls.getNodevalues(node))
-        }
+        gizmoSetup()
+        this.controllers.attachTransformProxy()
 
         this.listeners.addActiveEvent(
             "transformObjectChange",
             "objectChange",
-            handleObjectChange,
+            gizmoListener,
             this.controllers.transformControls
         )
-
-        this.controllers.attachTransformProxy()
     }
     detachTransformControls() {
         this.listeners.removeActiveEvent("transformObjectChange")
@@ -226,7 +194,7 @@ export class InteractionManager {
         }
         this.selection.push(selectedObject)
         this.attachTransformControls(selectedObject)
-        const moveFns = moveFirstObject(undefined, startHit) as MoveListener
+        const moveFns = moveFirstObject(selectedObject, startHit) as MoveListener
         if (moveFns === undefined) return
         // prettier-ignore
         this.listeners.addActiveEvent("pointermove", "pointermove", moveFns.move)
