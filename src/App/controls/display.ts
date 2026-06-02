@@ -126,7 +126,7 @@ export function setGizmoColors(colors: {
     zAxis: string
     active: string
 }): void {
-    interactionManager.transformControls.setColors(
+    interactionManager.controllers.transformControls.setColors(
         colors.xAxis,
         colors.yAxis,
         colors.zAxis,
