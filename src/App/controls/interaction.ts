@@ -94,7 +94,6 @@ function runTypedfn(
     ...args: any[]
 ) {
     if (!object) return
-    console.log({ object })
     return (fnLib[key][object.kind] as ControlFn)(object, ...args)
 }
 

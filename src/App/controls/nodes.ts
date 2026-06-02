@@ -165,7 +165,7 @@ export function rotateRootFromSelection(rot: { x: number; y: number }) {
 }
 
 export function scaleRootFromSelection(n: number) {
-    const rootNode = interactionManager.selection.firstTarget("leaf")
+    const rootNode = interactionManager.selection.firstTarget("root")
     if (!rootNode) return
     if (rootNode !== rootNode.parent) return
 

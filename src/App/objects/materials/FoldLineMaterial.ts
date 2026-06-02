@@ -21,6 +21,8 @@ export class FoldLineMaterial extends THREE.LineBasicMaterial {
         const params = structuredClone(parameters)
         delete params.treeData
         delete params.treeDataSize
+        delete params.foldDistance
+        delete params.foldSize
         super(params)
 
         this.customUniforms = {
