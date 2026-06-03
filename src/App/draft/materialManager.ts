@@ -43,15 +43,6 @@ const matlib = {
         depthTest: true,
         depthWrite: false,
     }),
-    sectionFace: new THREE.MeshBasicMaterial({
-        color: 0xffffff, //0xd8abd8,
-        side: THREE.DoubleSide,
-        depthWrite: false,
-        depthTest: false, // nice result on/off
-        polygonOffset: true,
-        polygonOffsetFactor: 1,
-        polygonOffsetUnits: 1,
-    }),
     sectionEdge: new LineMaterial({
         color: 0x000000,
         depthTest: false,
@@ -112,16 +103,15 @@ if (activeMaterialLib === "gl_Line") {
 }
 
 const orders = {
-    mesh: 0,
-    line: 3,
-    outline: -1,
-    dash: 1,
-    proj: 1,
-    fold: 1,
+    mesh: 1,
+    line: 4,
+    outline: 0,
+    dash: 3,
+    proj: 3,
+    fold: 3,
     //attachments
-    sectionLine: 4,
-    sectionFace: 1,
-    sectionEdge: 1,
+    sectionLine: 5,
+    sectionEdge: 2,
 }
 
 export { matlib, activeMaterialLib, orders }

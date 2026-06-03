@@ -3,17 +3,15 @@ import { LineSegments2 } from "three/addons/lines/LineSegments2.js"
 import { LineSegmentsGeometry } from "three/addons/lines/LineSegmentsGeometry.js"
 import { matlib, orders } from "../../draft/materialManager"
 
+type DisposableObject3D = THREE.Object3D & {
+    geometry?: THREE.BufferGeometry
+}
+
 export class SectionFaceGroup extends THREE.Group {
-    face: THREE.Mesh
     edges: LineSegments2
 
-    constructor(
-        faceGeometry: THREE.BufferGeometry = new THREE.BufferGeometry()
-    ) {
+    constructor() {
         super()
-
-        this.face = new THREE.Mesh(faceGeometry, matlib.sectionFace)
-        this.face.renderOrder = orders.sectionFace
 
         this.edges = new LineSegments2(
             new LineSegmentsGeometry(),
@@ -28,14 +26,8 @@ export class SectionFaceGroup extends THREE.Group {
             )
         }
 
-        this.add(this.face)
         this.add(this.edges)
         this.matrixAutoUpdate = false
-    }
-
-    setFaceGeometry(faceGeometry: THREE.BufferGeometry) {
-        this.face.geometry.dispose()
-        this.face.geometry = faceGeometry
     }
 
     setMatrix(faceMatrix: THREE.Matrix4) {
@@ -44,8 +36,10 @@ export class SectionFaceGroup extends THREE.Group {
     }
 
     dispose() {
-        this.face.geometry.dispose()
-        this.edges.geometry.dispose()
+        this.traverse((object) => {
+            const disposableObject = object as DisposableObject3D
+            disposableObject.geometry?.dispose()
+        })
         this.removeFromParent()
     }
 }
