@@ -6,7 +6,7 @@ import {
     patchDashedLine,
     patchNodeMatrix,
 } from "../objects/materials/nodeWrapper"
-
+import { LineMaterial } from "three/addons/lines/LineMaterial.js"
 import { FoldLineMaterial } from "../objects/materials/FoldLineMaterial"
 
 type ActiveMaterialLib = "gl_Line" | "linewidth"
@@ -42,6 +42,21 @@ const matlib = {
         color: display.section.color,
         depthTest: true,
         depthWrite: false,
+    }),
+    sectionFace: new THREE.MeshBasicMaterial({
+        color: 0xffffff, //0xd8abd8,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+        depthTest: false, // nice result on/off
+        polygonOffset: true,
+        polygonOffsetFactor: 1,
+        polygonOffsetUnits: 1,
+    }),
+    sectionEdge: new LineMaterial({
+        color: 0x000000,
+        depthTest: false,
+        depthWrite: false,
+        linewidth: 2.5,
     }),
 } as any
 
@@ -95,5 +110,4 @@ if (activeMaterialLib === "gl_Line") {
         })
     )
 }
-
 export { matlib, activeMaterialLib }

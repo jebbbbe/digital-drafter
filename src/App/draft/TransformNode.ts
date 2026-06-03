@@ -1,6 +1,6 @@
 import * as THREE from "three"
-import type { Object3D } from "three"
 import type { SectionCutter } from "../objects/meshes/SectionCutter"
+import type { SectionFaceGroup } from "../objects/meshes/sectionFaceGroup"
 import type { Node } from "./TransformTree"
 
 /*
@@ -44,7 +44,7 @@ export type SegmentAttachment = {
 }
 
 export type SectionAttachment = {
-    object: Object3D
+    object: SectionFaceGroup
 }
 
 export type IntersectionAttachment = {
@@ -61,7 +61,7 @@ export function createSegmentAttachment(
     }
 }
 
-export function createSectionAttachment(object: Object3D): SectionAttachment {
+export function createSectionAttachment(object: SectionFaceGroup): SectionAttachment {
     return {
         object,
     }

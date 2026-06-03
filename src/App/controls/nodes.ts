@@ -6,7 +6,6 @@ import {
     enableRootStub,
     syncLevaDisplayStub,
 } from "../../components/Leva/LevaStore"
-import { disposeGroup } from "../objects/meshes/group"
 import { attachInsertGeometry } from "./move"
 const PI = Math.PI
 const PIo2 = PI / 2
@@ -128,8 +127,7 @@ export function pruneNode(node: TransformNode) {
     const faceAttachment = node.attachments.section
     if (faceAttachment !== undefined) {
         node.attachments.section = undefined
-        const group = faceAttachment.object
-        disposeGroup(group)
+        faceAttachment.object.dispose()
     }
 
     drafter.pruneNode(node)
@@ -238,8 +236,7 @@ export function detachNode(node: TransformNode) {
     const faceAttachment = node.attachments.section
     if (faceAttachment !== undefined) {
         node.attachments.section = undefined
-        const group = faceAttachment.object
-        disposeGroup(group)
+        faceAttachment.object.dispose()
     }
 
     drafter.detachNode(node)

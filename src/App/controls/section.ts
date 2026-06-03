@@ -1,10 +1,6 @@
 import * as THREE from "three"
-import { LineMaterial } from "three/addons/lines/LineMaterial.js"
 import { LineSegments2 } from "three/addons/lines/LineSegments2.js"
-import { LineSegmentsGeometry } from "three/addons/lines/LineSegmentsGeometry.js"
-import { drafter, scene, interactionManager } from "../main"
-import { constants } from "../constants"
-import { getSlotIndex } from "../objects/textures/GlobalTreeTexture"
+import { drafter, interactionManager } from "../main"
 import {
     createSectionAttachment,
     createSegmentAttachment,
@@ -13,8 +9,8 @@ import {
 import * as rand from "../utils/random"
 import { evaluateCSG, boolean, csgEvaluator } from "../utils/csg"
 import type { SectionSegment } from "../interaction/selectionManager"
-import { getNodeLocationFromSlot } from "../objects/textures/GlobalTreeTexture"
 import type { InstanceItem } from "../draft/InstanceItem"
+import { SectionFaceGroup } from "../objects/meshes/sectionFaceGroup"
 
 export function cutNodeFromSelection() {
     const node = interactionManager.selection.firstNode()
@@ -177,19 +173,20 @@ export function cutNode(sectionParent: TransformNode) {
     const instanceItem = drafter.instanceItems[id]
     if (!instanceItem) return
 
-    const faceEdges = new LineSegments2(
-        new LineSegmentsGeometry(),
-        new LineMaterial()
-    )
+    const sectionFace = new SectionFaceGroup()
     const cutResult = cutGeometry(
         _start,
         _end,
         instanceItem,
         sectionParent,
-        faceEdges
+        sectionFace.edges
     )
-    if (!cutResult) return
+    if (!cutResult) {
+        sectionFace.dispose()
+        return
+    }
     const { brush1, face1Brush } = cutResult
+    sectionFace.setFaceGeometry(face1Brush.geometry)
 
     // add instance
     const side1ID = drafter.instanceItems.nextIndex()
@@ -218,7 +215,10 @@ export function cutNode(sectionParent: TransformNode) {
 
     // add new root!
     const sectionChild = drafter.addLeafNode(side1Root)
-    if (!sectionChild) return
+    if (!sectionChild) {
+        sectionFace.dispose()
+        return
+    }
 
     // add new line segment
     const segmentIndex = sectionCutter.addSegmentVector(
@@ -243,44 +243,11 @@ export function cutNode(sectionParent: TransformNode) {
         )
         .multiply(face1Brush.matrix)
 
-    //face
-    const face1 = new THREE.Mesh(
-        face1Brush.geometry,
-        // drafter.materials.mesh
-        new THREE.MeshBasicMaterial({
-            color: 0xd8abd8,
-            side: THREE.DoubleSide,
-            depthWrite: false,
-            depthTest: false, // nice result on/off
-            polygonOffset: true,
-            polygonOffsetFactor: 1,
-            polygonOffsetUnits: 1,
-        })
-    )
-    face1.renderOrder = 2
+    sectionFace.setMatrix(faceMatrix)
 
-    //edges
-    faceEdges.material = new LineMaterial({
-        color: 0x000000,
-        depthTest: true,
-        depthWrite: false,
-        linewidth: 2,
-    })
-    faceEdges.material.resolution.set(window.innerWidth, window.innerHeight)
-    faceEdges.onBeforeRender = () => {
-        faceEdges.material.resolution.set(window.innerWidth, window.innerHeight)
-    }
+    drafter.scene.add(sectionFace)
 
-    // add to scene...
-    let group = new THREE.Group()
-    group.add(face1)
-    group.add(faceEdges)
-    group.matrixAutoUpdate = false
-    group.matrix = faceMatrix
-
-    drafter.scene.add(group)
-
-    const attachment = createSectionAttachment(group)
+    const attachment = createSectionAttachment(sectionFace)
     sectionChild.attachments.section = attachment
 
     // mark parent node as the source of a section cut
@@ -304,22 +271,20 @@ export function updateCutNode(
     if (!attachment) return
 
     const group = attachment.object
-    const [face1, faceEdges] = group.children as [THREE.Mesh, LineSegments2]
 
     const cutResult = cutGeometry(
         start,
         end,
         instanceItem,
         sectionParent,
-        faceEdges
+        group.edges
     )
     if (!cutResult) return
     const { brush1, face1Brush } = cutResult
 
     drafter.patchInstanceGeometry(childId, brush1.geometry)
 
-    face1.geometry.dispose()
-    face1.geometry = face1Brush.geometry
+    group.setFaceGeometry(face1Brush.geometry)
 
     // matrix
     let faceMatrix = new THREE.Matrix4()
@@ -328,7 +293,7 @@ export function updateCutNode(
             new THREE.Matrix4().copy(sectionParent.compoundMatrix).invert()
         )
         .multiply(face1Brush.matrix)
-    group.matrix = faceMatrix
+    group.setMatrix(faceMatrix)
 }
 
 export function deleteSegment(line: SectionSegment) {
