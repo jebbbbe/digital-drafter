@@ -7,11 +7,9 @@ import { Brush } from "three-bvh-csg"
 const defaultGeoProcess = {
     mergeTolerance: 1e-2,
     edgeAngle: 3,
-    removeAttributes: true,
-    mergeVertices: true,
-    computeNormals: true,
+    mergeVertices: false,
     removeProjVertices: true, // 60ms v 220ms speed up
-    applyLocalTranform: !true,
+    applyLocalTranform: false,
 }
 
 export function brushCleaner(
@@ -19,23 +17,7 @@ export function brushCleaner(
     settings = defaultGeoProcess
 ) {
     const brush = new Brush(geometry.clone())
-    if (settings.removeAttributes) {
-        geometry.deleteAttribute("uv")
-        geometry.deleteAttribute("normal")
-    }
-	brush.matrixAutoUpdate = false
-
-    if (settings.mergeVertices) {
-        geometry = BufferGeometryUtils.mergeVertices(
-            geometry,
-            settings.mergeTolerance
-        )
-    }
-
-    if (settings.computeNormals) {
-        geometry.computeVertexNormals()
-    }
-
+    brush.matrixAutoUpdate = false
     const localTransform = new THREE.Matrix4()
     normalizeGeometryBox(geometry, localTransform)
 
@@ -46,7 +28,18 @@ export function brushCleaner(
     }
 
     const meshGeometry = geometry
-    const lineGeometry = new THREE.EdgesGeometry(geometry, settings.edgeAngle)
+
+    let preLineGeometry = geometry
+    if (settings.mergeVertices) {
+        preLineGeometry = BufferGeometryUtils.mergeVertices(
+            geometry,
+            settings.mergeTolerance
+        )
+    }
+    const lineGeometry = new THREE.EdgesGeometry(
+        preLineGeometry,
+        settings.edgeAngle
+    )
 
     let projGeometry: THREE.BufferGeometry = lineGeometry.clone()
     if (settings.removeProjVertices) {
