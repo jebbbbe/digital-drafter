@@ -582,6 +582,8 @@ function calculateBaseMatrixChild(node: TransformNode) {
     if (node.mirror) {
         node.baseMatrix.premultiply(_mirrorXZ)
     }
+	if(node.sectionChild){}
+
 }
 
 function calculateCompoundMatrix(

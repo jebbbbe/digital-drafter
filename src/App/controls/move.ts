@@ -22,6 +22,7 @@ const _segmentMidPoint = new THREE.Vector3()
 const _segmentDirection = new THREE.Vector3()
 const _segmentQuaternion = new THREE.Quaternion()
 const _segmentZAxis = new THREE.Vector3(0, 0, -1)
+const _sectionChildPosition = new THREE.Vector3()
 
 function applyNodeMove(
     node: TransformNode,
@@ -102,8 +103,8 @@ function moveNodeGeneric(
 }
 
 export function applyAllAttachments(node: TransformNode) {
-    updateSectionChildAttachments(node)
-    updateSectionParentAttachments(node)
+    if (node.sectionParent) updateSectionParentAttachments(node)
+    if (node.sectionChild) updateSectionChildAttachments(node)
 }
 
 export const attachNodeMove = (n: TransformNode, h: THREE.Vector3) =>
@@ -145,22 +146,30 @@ export const moveSectionParentToPosition = (
     nextPosition: THREE.Vector3
 ) => applyNodeMove(node, nextPosition, updateSectionParentAttachments)
 
-const _newPosition = new THREE.Vector3()
 function updateSectionChildAttachments(node: TransformNode) {
-    const delta = _delta // globally scoped in this file, bad org fix later
-
-    // rotate about
-    const prevPos = node.position
-    const parentPos = node.parent.position
-    _newPosition.addVectors(prevPos, delta)
-    const rotateAngle = getXZRotationAngle(parentPos, prevPos, _newPosition)
-
     const segment = node.attachments.segment
-
     if (segment === undefined) return
 
+    const parentPos = node.parent.position
     const index = segment.index
     const [a, b] = drafter.sectionCutter.getSegmentAsVector(index)
+
+    _segmentDirection.subVectors(b, a).setY(0)
+    if (_segmentDirection.lengthSq() === 0) return
+
+    _segmentDirection.normalize()
+    _sectionChildPosition.set(
+        parentPos.x - _segmentDirection.z,
+        parentPos.y,
+        parentPos.z + _segmentDirection.x
+    )
+
+    const rotateAngle = getXZRotationAngle(
+        parentPos,
+        _sectionChildPosition,
+        node.position
+    )
+
     rotatePointOnXZPlane(a, rotateAngle, parentPos, a)
     rotatePointOnXZPlane(b, rotateAngle, parentPos, b)
     drafter.sectionCutter.patchSegmentVector(a, b, index)
