@@ -282,6 +282,9 @@ function Controls() {
             "Section Cut": button(() => controls.cutNodeFromSelection(), {
                 disabled: true,
             }),
+            "Mirror View": button(() => controls.mirrorFirstObject(), {
+                disabled: true,
+            }),
             "Detach View": button(() => controls.detachFirstObject(), {
                 disabled: true,
             }),

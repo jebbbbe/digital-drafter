@@ -6,7 +6,7 @@ import type {
 import type { TransformNode } from "../draft/TransformNode"
 import { pruneNode, detachNode } from "./nodes"
 import { deleteSegment } from "./section"
-import { interactionManager } from "../main"
+import { drafter, interactionManager } from "../main"
 import {
     attachSegmentMove,
     attachNodeMove,
@@ -54,6 +54,13 @@ function deleteNodeFromObject(object: SelectObject) {
 function detachNodeFromObject(object: SelectObject) {
     const node = object.target as TransformNode
     detachNode(node)
+}
+
+function mirrorNode(object: SelectObject) {
+    const node = object.target as TransformNode
+    node.mirror = !node.mirror
+    console.log(node.mirror)
+    drafter.updatePatchedNode(node)
 }
 
 const fnLib = {
@@ -140,6 +147,13 @@ const fnLib = {
         sectionChild: detachNodeFromObject,
         sectionParent: detachNodeFromObject,
     },
+    mirror: {
+        SectionSegment: noop,
+        leaf: mirrorNode,
+        root: mirrorNode,
+        sectionChild: mirrorNode,
+        sectionParent: mirrorNode,
+    },
 }
 
 function runTypedfn(
@@ -160,3 +174,5 @@ export const gizmoSetupFirstObject = (o?: SelectObject) => () =>
 
 export const gizmoListenerFirstObject = (o?: SelectObject) => () =>
     runTypedfn("gizmoListener", o)
+
+export const mirrorFirstObject = (o?: SelectObject) => runTypedfn("mirror", o)

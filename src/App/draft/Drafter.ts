@@ -176,13 +176,11 @@ export class Drafter {
             line.geometry = nextLineGeometry
             outline.geometry.dispose()
             outline.geometry = nextOutlineGeometry
-
             ;(
                 line.material as THREE.ShaderMaterial & {
                     segments: THREE.DataTexture | null
                 }
             ).segments = nextLineGeometry.dataTexture
-
             ;(
                 outline.material as THREE.ShaderMaterial & {
                     segments: THREE.DataTexture | null
@@ -542,6 +540,13 @@ export class Drafter {
 const _position = new THREE.Vector3()
 const _quaternion = new THREE.Quaternion()
 const _scale = new THREE.Vector3()
+// prettier-ignore
+const _mirrorXZ = new THREE.Matrix4().set(
+	1, 0, 0, 0,
+	0,-1, 0, 0,
+	0, 0, 1, 0,
+	0, 0, 0, 1
+);
 
 function calculateBaseMatrix(node: TransformNode) {
     calculateBaseMatrixChild(node)
@@ -567,13 +572,6 @@ function calculateBaseMatrixChild(node: TransformNode) {
                 node.baseMatrix
             )
             break
-        case "mirror":
-            calculateMirroredProjectionMatrix(
-                node.parent.position,
-                node.position,
-                node.baseMatrix
-            )
-            break
         case "sectionChild":
             console.log("sectionChild")
             calculateProjectionMatrix(
@@ -588,6 +586,10 @@ function calculateBaseMatrixChild(node: TransformNode) {
                 node.position,
                 node.baseMatrix
             )
+    }
+
+    if (node.mirror) {
+        node.baseMatrix.premultiply(_mirrorXZ)
     }
 }
 
