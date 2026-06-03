@@ -10,12 +10,8 @@ import { drafter, interactionManager } from "../main"
 import {
     attachSegmentMove,
     attachNodeMove,
-    attachSectionParentMove,
-    attachSectionChildMove,
     setupSegmentGizmo,
     moveNodeToPosition,
-    moveSectionParentToPosition,
-    moveSectionChildToPosition,
     moveSegmentToPosition,
 } from "./move"
 import * as levaStore from "../../components/Leva/LevaStore"
@@ -99,20 +95,8 @@ const fnLib = {
         },
         leaf: listenNodeGizmo,
         root: listenNodeGizmo,
-        sectionChild: (object: SelectObject) => {
-            const node = object.target as TransformNode
-            moveSectionChildToPosition(
-                node,
-                interactionManager.controllers.getGizmoPosition()
-            )
-        },
-        sectionParent: (object: SelectObject) => {
-            const node = object.target as TransformNode
-            moveSectionParentToPosition(
-                node,
-                interactionManager.controllers.getGizmoPosition()
-            )
-        },
+        sectionChild: listenNodeGizmo,
+        sectionParent: listenNodeGizmo,
     },
     // prune:{},
     delete: {

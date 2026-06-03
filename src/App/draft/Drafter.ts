@@ -28,6 +28,7 @@ import { activeMaterialLib, matlib } from "./materialManager"
 import { SectionCutter } from "../objects/meshes/SectionCutter"
 import { brushCleaner } from "../objects/geometries/brushCleaner"
 import { DataTextureLineSegmentsGeometry } from "../objects/geometries/DataTextureLineSegmentsGeometry"
+import { updateSectionChildAttachments } from "../controls/move"
 
 export class Drafter {
     tree = new TransformTree()
@@ -582,8 +583,6 @@ function calculateBaseMatrixChild(node: TransformNode) {
     if (node.mirror) {
         node.baseMatrix.premultiply(_mirrorXZ)
     }
-	if(node.sectionChild){}
-
 }
 
 function calculateCompoundMatrix(
@@ -601,6 +600,11 @@ function calculateCompoundMatrix(
         node.compoundMatrix
             .copy(node.baseMatrix)
             .multiply(node.parent.compoundMatrix)
+    }
+    if (node.sectionChild) {
+        // this will update section cust recusivly, but it is SLOW
+        // console.log(node.location)
+        updateSectionChildAttachments(node)
     }
 }
 
