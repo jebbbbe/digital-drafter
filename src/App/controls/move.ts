@@ -120,7 +120,7 @@ function updateSectionParentAttachments(node: TransformNode) {
     const children = node.children
     for (let i = 0; i < children.length; i++) {
         const child = children[i]
-        if (child.sectionChild) continue
+        if (!	child.sectionChild) continue
 
         const attachment = child.attachments.segment
         if (attachment === undefined) continue
