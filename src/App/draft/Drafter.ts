@@ -565,7 +565,7 @@ function calculateBaseMatrixChild(node: TransformNode) {
             node.baseMatrix.decompose(_position, _quaternion, _scale)
             node.baseMatrix.compose(node.position, _quaternion, _scale)
             break
-        case "rotate":
+        case "leaf":
             calculateProjectionMatrix(
                 node.parent.position,
                 node.position,
@@ -579,7 +579,6 @@ function calculateBaseMatrixChild(node: TransformNode) {
                 node.baseMatrix
             )
     }
-
     if (node.mirror) {
         node.baseMatrix.premultiply(_mirrorXZ)
     }

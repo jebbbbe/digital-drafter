@@ -9,7 +9,7 @@ which update fns to use
 */
 export type TransformType =
     | "root" // no relationship, root node
-    | "rotate" // standard
+    | "leaf" // standard
     //
     // | "mirror" // mirrored output
     // | "slide" // pos constrained
@@ -72,7 +72,7 @@ export function createTransformNode(
 ): TransformNode {
     const newNode = {} as TransformNode
     const parent = node.parent ?? newNode
-    const type = node.parent === newNode ? "root" : (node.type ?? "rotate")
+    const type = node.parent === newNode ? "root" : (node.type ?? "leaf")
 
     Object.assign(newNode, {
         position: node.position ?? new THREE.Vector3(),
