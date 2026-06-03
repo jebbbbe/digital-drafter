@@ -213,7 +213,7 @@ export function cutNode(sectionParent: TransformNode) {
         position: side1pos,
         location: { id: side1ID, index: -1 },
         parent: sectionParent,
-        type: "sectionChild",
+        sectionChild: true,
     }
 
     // add new root!
@@ -283,8 +283,8 @@ export function cutNode(sectionParent: TransformNode) {
     const attachment = createSectionAttachment(group)
     sectionChild.attachments.section = attachment
 
-    // change type on parent node
-    sectionParent.type = "sectionParent"
+    // mark parent node as the source of a section cut
+    sectionParent.sectionParent = true
 }
 
 export function updateCutNode(

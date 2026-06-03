@@ -1,9 +1,9 @@
 import * as THREE from "three"
+import type { TransformNode } from "../draft/TransformNode"
 import type { NodeLocation } from "../draft/TransformTree"
 import type { OrbitControls } from "three/examples/jsm/Addons.js"
 import type { Drafter } from "../draft/Drafter"
 import type { SelectObject } from "./selectionManager"
-import type { TransformType } from "../draft/TransformNode"
 import type { SelectType } from "./selectionManager"
 import { TransformControls } from "three/examples/jsm/controls/TransformControls.js"
 import { RaycastHelper } from "./RaycastHelper"
@@ -38,14 +38,12 @@ const spaceHoldMax = 20
 let spaceHoldCurr = 0
 
 type NodeSelectType = Exclude<SelectType, "SectionSegment">
-const nodeKindMap: Record<TransformType, NodeSelectType> = {
-    root: "root",
-    rotate: "leaf",
-    mirror: "leaf",
-    slide: "leaf",
-    intersect: "leaf",
-    sectionParent: "sectionParent",
-    sectionChild: "sectionChild",
+
+function getNodeSelectType(node: TransformNode): NodeSelectType {
+    if (node.sectionChild) return "sectionChild"
+    if (node.sectionParent) return "sectionParent"
+    if (node.type === "root") return "root"
+    return "leaf"
 }
 
 export class InteractionManager {
@@ -190,7 +188,7 @@ export class InteractionManager {
 
             // create SelectObject
             selectedObject = { target: node } as SelectObject
-            selectedObject.kind = nodeKindMap[node.type]
+            selectedObject.kind = getNodeSelectType(node)
         }
         this.selection.push(selectedObject)
         this.attachTransformControls(selectedObject)

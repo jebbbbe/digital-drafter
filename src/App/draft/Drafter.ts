@@ -572,14 +572,6 @@ function calculateBaseMatrixChild(node: TransformNode) {
                 node.baseMatrix
             )
             break
-        case "sectionChild":
-            console.log("sectionChild")
-            calculateProjectionMatrix(
-                node.parent.position,
-                node.position,
-                node.baseMatrix
-            )
-            break
         default:
             calculateProjectionMatrix(
                 node.parent.position,

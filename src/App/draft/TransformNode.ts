@@ -11,16 +11,14 @@ export type TransformType =
     | "root" // no relationship, root node
     | "rotate" // standard
     //
-    | "mirror" // mirrored output
-    | "slide" // pos constrained
+    // | "mirror" // mirrored output
+    // | "slide" // pos constrained
     // requires pos offset matrix
     | "intersect" // boolean logic
-    // low priotiy  requires aditonal args
-    // | "arc" // rotated on page
-    // | "scale" // scale object larger.
-    // | "perspecctive" // do a perspecctive camera transform on node?
-    | "sectionChild" // section cut
-    | "sectionParent" // section cut
+// low priotiy  requires aditonal args
+// | "arc" // rotated on page
+// | "scale" // scale object larger.
+// | "perspecctive" // do a perspecctive camera transform on node?
 
 // / refrences to extranal geometries for specific nodes
 export type NodeAttachments = {
@@ -33,8 +31,9 @@ type TransformData = {
     baseMatrix: THREE.Matrix4
     compoundMatrix: THREE.Matrix4
     type: TransformType
-
     mirror: boolean
+    sectionChild: boolean
+    sectionParent: boolean
     attachments: NodeAttachments
 }
 
@@ -88,6 +87,8 @@ export function createTransformNode(
         children: node.children ?? [],
         type,
         mirror: node.mirror ?? false,
+        sectionChild: node.sectionChild ?? false,
+        sectionParent: node.sectionParent ?? false,
         attachments: node.attachments ?? {},
     })
 
