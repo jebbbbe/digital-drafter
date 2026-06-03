@@ -24,7 +24,7 @@ import {
     GlobalTreeTexture,
     getSlotIndex,
 } from "../objects/textures/GlobalTreeTexture"
-import { activeMaterialLib, matlib } from "./materialManager"
+import { activeMaterialLib, matlib, orders } from "./materialManager"
 import { SectionCutter } from "../objects/meshes/SectionCutter"
 import { brushCleaner } from "../objects/geometries/brushCleaner"
 import { DataTextureLineSegmentsGeometry } from "../objects/geometries/DataTextureLineSegmentsGeometry"
@@ -60,7 +60,7 @@ export class Drafter {
         this.debug.enable = debug
         if (debug) this.setUpDebug()
         const mesh = this.sectionCutter.mesh
-        mesh.renderOrder = 4
+        mesh.renderOrder = orders.sectionLine
         this.scene.add(mesh)
         this.interactivObjects.push(mesh)
     }

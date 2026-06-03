@@ -11,7 +11,7 @@ import {
     updateBufferRanges,
 } from "../objects/buffers/buffers"
 import { DataTextureLineSegmentsGeometry } from "../objects/geometries/DataTextureLineSegmentsGeometry"
-import { activeMaterialLib } from "./materialManager"
+import { activeMaterialLib, orders } from "./materialManager"
 import { constants } from "../constants"
 import type { Brush } from "three-bvh-csg"
 
@@ -120,12 +120,12 @@ export function createInstanceItem(
     )
 
     //render order
-    mesh.renderOrder = 0
-    line.renderOrder = 3
-    outline.renderOrder = -1
-    dash.renderOrder = 1
-    proj.renderOrder = 1
-    fold.renderOrder = 1
+    mesh.renderOrder = orders.mesh
+    line.renderOrder = orders.line
+    outline.renderOrder = orders.outline
+    dash.renderOrder = orders.dash
+    proj.renderOrder = orders.proj
+    fold.renderOrder = orders.fold
 
     // slot lookup
     const nodeSlot = new THREE.InstancedBufferAttribute(

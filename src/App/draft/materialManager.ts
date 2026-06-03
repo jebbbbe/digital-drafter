@@ -110,4 +110,18 @@ if (activeMaterialLib === "gl_Line") {
         })
     )
 }
-export { matlib, activeMaterialLib }
+
+const orders = {
+    mesh: 0,
+    line: 3,
+    outline: -1,
+    dash: 1,
+    proj: 1,
+    fold: 1,
+    //attachments
+    sectionLine: 4,
+    sectionFace: 1,
+    sectionEdge: 1,
+}
+
+export { matlib, activeMaterialLib, orders }
