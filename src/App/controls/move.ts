@@ -40,9 +40,6 @@ function updateSectionParentAttachments(node: TransformNode) {
             _delta,
             index
         )
-
-        const [a, b] = drafter.sectionCutter.getSegmentAsVector(index)
-        updateCutNode(a, b, child)
     }
 }
 
@@ -212,7 +209,7 @@ export function moveSegmentToPosition(
     )
 
     const [nextA, nextB] = drafter.sectionCutter.getSegmentAsVector(index)
-    updateCutNode(nextA, nextB, sectionChild)
+    drafter.updatePatchedNode(sectionChild)
     _segmentMidPoint.addVectors(nextA, nextB).multiplyScalar(0.5)
     interactionManager.controllers.updateGizmoPosition(_segmentMidPoint)
 
@@ -263,7 +260,7 @@ export function attachSegmentMove(
         sectionCutter.moveSegmentVector(p1, p2, index)
 
         const [a, b] = drafter.sectionCutter.getSegmentAsVector(index)
-        updateCutNode(a, b, sectionChild)
+        drafter.updatePatchedNode(sectionChild)
 
         _segmentMidPoint.addVectors(a, b).multiplyScalar(0.5)
         interactionManager.controllers.updateGizmoPosition(_segmentMidPoint)
