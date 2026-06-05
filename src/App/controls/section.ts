@@ -36,8 +36,7 @@ function cutGeometry(
     start: THREE.Vector3,
     end: THREE.Vector3,
     instanceItem: InstanceItem,
-    sectionParent: TransformNode,
-    faceEdges: LineSegments2
+    sectionParent: TransformNode
 ) {
     const instanceBrush = instanceItem.brush
     const prevMatrix = instanceBrush.matrix.clone()
@@ -91,9 +90,8 @@ function cutGeometry(
             e.end.y,
             e.end.z,
         ])
-        faceEdges.geometry.setPositions(positions)
 
-        return { face1Brush, brush1 }
+        return { face1Brush, brush1, positions }
     } catch (err) {
         console.error("evaluateCSG fail", err)
         return
@@ -174,18 +172,13 @@ export function cutNode(sectionParent: TransformNode) {
     if (!instanceItem) return
 
     const sectionFace = new SectionFaceGroup()
-    const cutResult = cutGeometry(
-        _start,
-        _end,
-        instanceItem,
-        sectionParent,
-        sectionFace.edges
-    )
+    const cutResult = cutGeometry(_start, _end, instanceItem, sectionParent)
     if (!cutResult) {
         sectionFace.dispose()
         return
     }
-    const { brush1, face1Brush } = cutResult
+    const { brush1, face1Brush, positions } = cutResult
+    sectionFace.edges.geometry.setPositions(positions)
     sectionFace.setFaceGeometry(face1Brush.geometry)
 
     // add instance
@@ -272,15 +265,10 @@ export function updateCutNode(
 
     const group = attachment.object
 
-    const cutResult = cutGeometry(
-        start,
-        end,
-        instanceItem,
-        sectionParent,
-        group.edges
-    )
+    const cutResult = cutGeometry(start, end, instanceItem, sectionParent)
     if (!cutResult) return
-    const { brush1, face1Brush } = cutResult
+    const { brush1, face1Brush, positions } = cutResult
+    group.edges.geometry.setPositions(positions)
 
     drafter.patchInstanceGeometry(childId, brush1.geometry)
 
