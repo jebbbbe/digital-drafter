@@ -14,17 +14,16 @@ import {
     incrementInstanceCount,
     decrementInstanceCount,
     computeBoundingSphere,
+    patchInstance,
 } from "./InstanceItem"
 import {
     setInstanceMatrixAt,
     setUintAttributeAt,
     updateBufferRanges,
 } from "../objects/buffers/buffers"
-import { brushCleaner } from "../objects/geometries/brushCleaner"
-import { DataTextureLineSegmentsGeometry } from "../objects/geometries/DataTextureLineSegmentsGeometry"
 
 import { walkSubtree, walkSeenSubtree } from "./recursive"
-import { activeMaterialLib, matlib, orders } from "./materialManager"
+import { matlib } from "./materialManager"
 import type { TransformNode } from "./TransformNode"
 import type { InstanceItem } from "./InstanceItem"
 import type { NodeLocation } from "./TransformTree"
@@ -59,7 +58,6 @@ export class Drafter {
         this.debug.enable = debug
         if (debug) this.setUpDebug()
         const mesh = this.sectionCutter.mesh
-        mesh.renderOrder = orders.sectionLine
         this.scene.add(mesh)
         this.interactivObjects.push(mesh)
     }
@@ -148,61 +146,7 @@ export class Drafter {
     ): InstanceItem | undefined {
         // get item
         const instanceItem = this.getInstance(id)
-
-        const geometries = brushCleaner(geometry)
-        const { mesh, line, outline, dash, proj } = instanceItem.instances
-        const nodeSlot = mesh.geometry.getAttribute(
-            "nodeSlot"
-        ) as THREE.BufferAttribute
-
-        if (activeMaterialLib === "gl_Line") {
-            line.geometry.dispose()
-            line.geometry = geometries.lineGeometry
-            outline.geometry.dispose()
-            outline.geometry = geometries.lineGeometry
-        } else {
-            const nextLineGeometry = new DataTextureLineSegmentsGeometry(
-                geometries.lineGeometry
-            )
-            const nextOutlineGeometry = new DataTextureLineSegmentsGeometry(
-                geometries.lineGeometry
-            )
-
-            line.geometry.dispose()
-            line.geometry = nextLineGeometry
-            outline.geometry.dispose()
-            outline.geometry = nextOutlineGeometry
-            ;(
-                line.material as THREE.ShaderMaterial & {
-                    segments: THREE.DataTexture | null
-                }
-            ).segments = nextLineGeometry.dataTexture
-            ;(
-                outline.material as THREE.ShaderMaterial & {
-                    segments: THREE.DataTexture | null
-                }
-            ).segments = nextOutlineGeometry.dataTexture
-        }
-        mesh.geometry.dispose()
-        mesh.geometry = geometries.meshGeometry
-        dash.geometry.dispose()
-        dash.geometry = geometries.lineGeometry
-        proj.geometry.dispose()
-        proj.geometry = geometries.projGeometry
-        dash.computeLineDistances()
-
-        //set node slot
-        mesh.geometry.setAttribute("nodeSlot", nodeSlot)
-        line.geometry.setAttribute("nodeSlot", nodeSlot)
-        outline.geometry.setAttribute("nodeSlot", nodeSlot)
-        dash.geometry.setAttribute("nodeSlot", nodeSlot)
-        proj.geometry.setAttribute("nodeSlot", nodeSlot)
-
-        geometries.brush.matrixAutoUpdate = false
-        instanceItem.brush = geometries.brush
-        instanceItem.geometry = geometry
-        computeBoundingSphere(instanceItem)
-        return instanceItem
+        return patchInstance(instanceItem, geometry)
     }
 
     findReusableInstance(

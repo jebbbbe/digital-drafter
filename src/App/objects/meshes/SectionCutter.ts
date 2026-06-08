@@ -1,5 +1,6 @@
 import * as THREE from "three"
 import { Brush } from "three-bvh-csg"
+import { orders } from "../../draft/materialManager"
 import type { TransformNode } from "../../draft/TransformNode"
 
 export class SectionCutter {
@@ -24,6 +25,7 @@ export class SectionCutter {
         this.mesh = new THREE.LineSegments(geometry, material)
         this.mesh.position.y = 4
         this.mesh.frustumCulled = false
+        this.mesh.renderOrder = orders.sectionLine
         this.brush.matrixAutoUpdate = false
     }
 

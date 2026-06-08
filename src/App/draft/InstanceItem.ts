@@ -232,3 +232,63 @@ export function computeBoundingSphere(instanceItem: InstanceItem): void {
     // instanceItem.instances.dash.computeBoundingSphere()
     // instanceItem.instances.proj.computeBoundingSphere()
 }
+
+export function patchInstance(
+    instanceItem: InstanceItem,
+    geometry: THREE.BufferGeometry
+) {
+    const geometries = brushCleaner(geometry)
+    const { mesh, line, outline, dash, proj } = instanceItem.instances
+    const nodeSlot = mesh.geometry.getAttribute(
+        "nodeSlot"
+    ) as THREE.BufferAttribute
+
+    if (activeMaterialLib === "gl_Line") {
+        line.geometry.dispose()
+        line.geometry = geometries.lineGeometry
+        outline.geometry.dispose()
+        outline.geometry = geometries.lineGeometry
+    } else {
+        const nextLineGeometry = new DataTextureLineSegmentsGeometry(
+            geometries.lineGeometry
+        )
+        const nextOutlineGeometry = new DataTextureLineSegmentsGeometry(
+            geometries.lineGeometry
+        )
+
+        line.geometry.dispose()
+        line.geometry = nextLineGeometry
+        outline.geometry.dispose()
+        outline.geometry = nextOutlineGeometry
+        ;(
+            line.material as THREE.ShaderMaterial & {
+                segments: THREE.DataTexture | null
+            }
+        ).segments = nextLineGeometry.dataTexture
+        ;(
+            outline.material as THREE.ShaderMaterial & {
+                segments: THREE.DataTexture | null
+            }
+        ).segments = nextOutlineGeometry.dataTexture
+    }
+    mesh.geometry.dispose()
+    mesh.geometry = geometries.meshGeometry
+    dash.geometry.dispose()
+    dash.geometry = geometries.lineGeometry
+    proj.geometry.dispose()
+    proj.geometry = geometries.projGeometry
+    dash.computeLineDistances()
+
+    //set node slot
+    mesh.geometry.setAttribute("nodeSlot", nodeSlot)
+    line.geometry.setAttribute("nodeSlot", nodeSlot)
+    outline.geometry.setAttribute("nodeSlot", nodeSlot)
+    dash.geometry.setAttribute("nodeSlot", nodeSlot)
+    proj.geometry.setAttribute("nodeSlot", nodeSlot)
+
+    geometries.brush.matrixAutoUpdate = false
+    instanceItem.brush = geometries.brush
+    instanceItem.geometry = geometry
+    computeBoundingSphere(instanceItem)
+    return instanceItem
+}
