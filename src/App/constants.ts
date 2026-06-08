@@ -51,7 +51,7 @@ export const constants = {
         fold: {
             color: "#a7a7a7",
             visible: true,
-            foldDistance: 1.75,
+            foldDistance: 0.875,
             foldSize: 1.75,
         },
         section: {
@@ -96,7 +96,7 @@ export const constants = {
                     fold: {
                         color: "#a7a7a7",
                         visible: true,
-                        foldDistance: 1.75,
+                        foldDistance: 0.875,
                         foldSize: 1.75,
                     },
                     section: {
@@ -128,7 +128,7 @@ export const constants = {
                     fold: {
                         color: "#a7a7a7",
                         visible: true,
-                        foldDistance: 1.75,
+                        foldDistance: 0.875,
                         foldSize: 1.75,
                     },
                     section: {
@@ -174,7 +174,7 @@ export const constants = {
                     fold: {
                         color: "#272727",
                         visible: true,
-                        foldDistance: 1.75,
+                        foldDistance: 0.875,
                         foldSize: 1.75,
                     },
                     section: {
@@ -220,7 +220,7 @@ export const constants = {
                     fold: {
                         color: "#000000",
                         visible: true,
-                        foldDistance: 1.75,
+                        foldDistance: 0.875,
                         foldSize: 1.75,
                     },
                     section: {
@@ -252,7 +252,7 @@ export const constants = {
                     fold: {
                         color: "#787878",
                         visible: true,
-                        foldDistance: 1.75,
+                        foldDistance: 0.875,
                         foldSize: 1.75,
                     },
                     section: {
@@ -284,7 +284,7 @@ export const constants = {
                     fold: {
                         color: "#6E6E6E",
                         visible: true,
-                        foldDistance: 1.75,
+                        foldDistance: 0.875,
                         foldSize: 1.75,
                     },
                     section: {
@@ -316,7 +316,7 @@ export const constants = {
                     fold: {
                         color: "#ffabab",
                         visible: true,
-                        foldDistance: 1.75,
+                        foldDistance: 0.875,
                         foldSize: 1.75,
                     },
                     section: {
@@ -348,7 +348,7 @@ export const constants = {
                     fold: {
                         color: "#819720",
                         visible: true,
-                        foldDistance: 1.75,
+                        foldDistance: 0.875,
                         foldSize: 1.75,
                     },
                     section: {
@@ -392,7 +392,7 @@ export const constants = {
                     fold: {
                         color: "#A6E22E",
                         visible: true,
-                        foldDistance: 1.75,
+                        foldDistance: 0.875,
                         foldSize: 1.75,
                     },
                     section: {

@@ -105,20 +105,21 @@ export class FoldLineMaterial extends THREE.LineBasicMaterial {
                 readTreeData(parentSlot, parentNodeMatrix, parentMetadata);
 
                 // extract matrix info
-                float scaleBy = 1.75;
                 float scale = length(nodeMatrix[0].xyz);
                 vec2 childPos = nodeMatrix[3].xz; 
                 vec2 parentPos = parentNodeMatrix[3].xz; 
                 vec2 dir = normalize(parentPos - childPos);
                 vec2 norm = dir.yx * vec2(-1.,1.);
                 int id = gl_VertexID % 4;
+				float halfNodeDistance = distance(childPos, parentPos)/2.0;
 
-                // dont draw lines
-                // (length(dir) < scale*scaleBy) 
-                float dist = scaleBy/2.0;
-                // dir*= dist;
-                // norm*= dist;
-                dir *= foldDistance/2.0;
+				// constrain fold line when nodes are to
+				float adjFoldDistance = foldDistance;
+				if (adjFoldDistance > halfNodeDistance){
+					adjFoldDistance = halfNodeDistance;
+				}	
+
+                dir *= adjFoldDistance;
                 norm *= foldSize/2.0;
 
                 if(id == 0){

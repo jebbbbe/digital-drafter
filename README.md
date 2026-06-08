@@ -32,11 +32,11 @@
 - [ ] section cut	
 	- [ ] three/react - import/returns?
 	- [ ] transform controls- leva proxy link
-	- [ ] transform controls- fix scale
-	- [ ] transform controls, pass to moveObject
+	- [x] transform controls- fix scale
+	- [x] transform controls, pass to moveObject
     - [ ] transform controls - gizmo origin from multiple selects
-	- [ ] move attachments direcly to node
-	- [ ] move all specal move fns to dfs
+	- [x] move attachments direcly to node
+	- [x] move all specal move fns to dfs
     - [ ] select color on line
     - [x] move node attachments with a vec3 Diff
     - [x] put face geometry in attachments
