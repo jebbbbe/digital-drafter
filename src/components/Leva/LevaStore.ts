@@ -110,10 +110,7 @@ export function syncLevaDisplayStub({
 }
 
 // STUB panel
-export function setStubDisabled(disabled: boolean = true) {
-    levaStore.disableInputAtPath(panelPaths.stubPos, disabled)
-    levaStore.disableInputAtPath(panelPaths.stubRot, disabled)
-    levaStore.disableInputAtPath(panelPaths.stubScale, disabled)
+function setButtonsDisabled(disabled: boolean = true) {
     // levaStore.setSettingsAtPath(panelPaths.stubButton, { disabled })
     levaStore.setSettingsAtPath(panelPaths.stubAdd, { disabled })
     levaStore.setSettingsAtPath(panelPaths.stubDelete, { disabled })
@@ -121,6 +118,13 @@ export function setStubDisabled(disabled: boolean = true) {
     levaStore.setSettingsAtPath(panelPaths.stubDetach, { disabled })
     levaStore.setSettingsAtPath(panelPaths.stubMirror, { disabled })
     levaStore.setSettingsAtPath(panelPaths.stubIntersect, { disabled })
+}
+
+export function setStubDisabled(disabled: boolean = true) {
+    levaStore.disableInputAtPath(panelPaths.stubPos, disabled)
+    levaStore.disableInputAtPath(panelPaths.stubRot, disabled)
+    levaStore.disableInputAtPath(panelPaths.stubScale, disabled)
+    setButtonsDisabled(disabled)
 }
 export const enableStub = () => setStubDisabled(false)
 export const disableStub = () => setStubDisabled(true)
@@ -132,13 +136,7 @@ export function setStubLeafDisabled(disabled: boolean = true) {
     levaStore.disableInputAtPath(panelPaths.stubPos, disabled)
     levaStore.disableInputAtPath(panelPaths.stubRot, true)
     levaStore.disableInputAtPath(panelPaths.stubScale, true)
-    // levaStore.setSettingsAtPath(panelPaths.stubButton, { disabled })
-    levaStore.setSettingsAtPath(panelPaths.stubAdd, { disabled })
-    levaStore.setSettingsAtPath(panelPaths.stubDelete, { disabled })
-    levaStore.setSettingsAtPath(panelPaths.stubCut, { disabled })
-    levaStore.setSettingsAtPath(panelPaths.stubDetach, { disabled })
-    levaStore.setSettingsAtPath(panelPaths.stubMirror, { disabled })
-    levaStore.setSettingsAtPath(panelPaths.stubIntersect, { disabled })
+    setButtonsDisabled(disabled)
 }
 export const enableLeafStub = () => setStubLeafDisabled(false)
 export const disableLeafStub = () => setStubLeafDisabled(true)
