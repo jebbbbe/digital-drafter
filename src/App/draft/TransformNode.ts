@@ -61,7 +61,9 @@ export function createSegmentAttachment(
     }
 }
 
-export function createSectionAttachment(object: SectionFaceGroup): SectionAttachment {
+export function createSectionAttachment(
+    object: SectionFaceGroup
+): SectionAttachment {
     return {
         object,
     }
@@ -97,4 +99,24 @@ export function createTransformNode(
     }
 
     return newNode
+}
+
+const _detachWorldBase = new THREE.Matrix4()
+const _detachInverseLocal = new THREE.Matrix4()
+const _detachRotation = new THREE.Quaternion()
+const _detachScale = new THREE.Vector3()
+const _detachUnusedPosition = new THREE.Vector3()
+
+export function rebaseDetachedMatrixNodeToRoot(
+    node: TransformNode,
+    localTransform: THREE.Matrix4
+) {
+    _detachInverseLocal.copy(localTransform).invert()
+    _detachWorldBase.copy(node.compoundMatrix).multiply(_detachInverseLocal)
+    _detachWorldBase.decompose(
+        _detachUnusedPosition,
+        _detachRotation,
+        _detachScale
+    )
+    node.baseMatrix.compose(node.position, _detachRotation, _detachScale)
 }

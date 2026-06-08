@@ -1,19 +1,13 @@
 import * as THREE from "three"
+import { updateSectionChildAttachments } from "../controls/move"
+import type { TransformNode } from "./TransformNode"
 
-// reuse three instances with a closure
 const angle = -Math.PI / 2
 const subtract = new THREE.Vector3()
 const up = new THREE.Vector3(0, 1, 0)
 const translateToOrigin = new THREE.Matrix4()
 const rotation = new THREE.Matrix4()
 const translateBack = new THREE.Matrix4()
-// prettier-ignore
-const mirrorXZ = new THREE.Matrix4().set(
-  1,  0, 0, 0,
-  0, -1, 0, 0,
-  0,  0, 1, 0,
-  0,  0, 0, 1
-);
 
 /**
  * Computes the projection transform between two points for the drafter preview.
@@ -29,7 +23,7 @@ const mirrorXZ = new THREE.Matrix4().set(
  * @param matrix - Optional target matrix to write into.
  * @returns The written matrix together with the derived midpoint and rotation axis.
  */
-export function calculateProjectionMatrix(
+function calculateProjectionMatrix(
     A: THREE.Vector3,
     B: THREE.Vector3,
     matrix: THREE.Matrix4 = new THREE.Matrix4()
@@ -71,42 +65,73 @@ export function calculateProjectionMatrix(
         axis: axis,
     }
 }
-export const calculateMirroredProjectionMatrix = (
-    A: THREE.Vector3,
-    B: THREE.Vector3,
-    matrix: THREE.Matrix4 = new THREE.Matrix4()
-) => {
-    calculateProjectionMatrix(A, B, matrix)
-    matrix.premultiply(mirrorXZ)
+
+const _position = new THREE.Vector3()
+const _quaternion = new THREE.Quaternion()
+const _scale = new THREE.Vector3()
+// prettier-ignore
+const _mirrorXZ = new THREE.Matrix4().set(
+	1, 0, 0, 0,
+	0,-1, 0, 0,
+	0, 0, 1, 0,
+	0, 0, 0, 1
+);
+
+export function calculateBaseMatrix(node: TransformNode) {
+    calculateBaseMatrixChild(node)
+    //update direct childrens base matrix as it depends on parent pos.
+    const children = node.children
+    for (let i = 0; i < children.length; i++) {
+        calculateBaseMatrixChild(children[i])
+    }
 }
 
-/**
- * Applies an additional transform around an existing world-space origin.
- *
- * This uses the standard pivot sandwich:
- * `T(origin) * extra * T(-origin) * existing`.
- *
- * @param origin - Pivot point to transform around.
- * @param extra - Additional transform to apply at the pivot.
- * @param existing - Matrix that already represents the current transform.
- * @param target - Optional target matrix to write into.
- */
-export function applyTransformAroundOrigin(
-    origin: THREE.Vector3,
-    extra: THREE.Matrix4,
-    existing: THREE.Matrix4,
-    target: THREE.Matrix4 = new THREE.Matrix4()
-): THREE.Matrix4 {
-    translateToOrigin.identity()
-    translateBack.identity()
+export function calculateBaseMatrixChild(node: TransformNode) {
+    const projectionType = node.type
 
-    translateToOrigin.makeTranslation(-origin.x, -origin.y, -origin.z)
-    translateBack.makeTranslation(origin)
+    switch (projectionType) {
+        case "root":
+            node.baseMatrix.decompose(_position, _quaternion, _scale)
+            node.baseMatrix.compose(node.position, _quaternion, _scale)
+            break
+        case "leaf":
+            calculateProjectionMatrix(
+                node.parent.position,
+                node.position,
+                node.baseMatrix
+            )
+            break
+        default:
+            calculateProjectionMatrix(
+                node.parent.position,
+                node.position,
+                node.baseMatrix
+            )
+    }
+    if (node.mirror) {
+        node.baseMatrix.premultiply(_mirrorXZ)
+    }
+}
 
-    return target
-        .identity()
-        .multiply(translateBack)
-        .multiply(extra)
-        .multiply(translateToOrigin)
-        .multiply(existing)
+export function calculateCompoundMatrix(
+    node: TransformNode,
+    subTree: TransformNode[] = [],
+    localTransform: THREE.Matrix4 = new THREE.Matrix4()
+) {
+    subTree.push(node)
+
+    const isRoot = node.parent === node
+
+    if (isRoot) {
+        node.compoundMatrix.copy(node.baseMatrix).multiply(localTransform)
+    } else {
+        node.compoundMatrix
+            .copy(node.baseMatrix)
+            .multiply(node.parent.compoundMatrix)
+    }
+    if (node.sectionChild) {
+        // this will update section cust recusivly, but it is SLOW
+        // console.log(node.location)
+        updateSectionChildAttachments(node)
+    }
 }

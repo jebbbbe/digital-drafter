@@ -1,6 +1,7 @@
 import * as THREE from "three"
 import { InstanceCount } from "../../constants"
 import type { NodeLocation } from "../../draft/TransformTree"
+import type { TransformNode } from "../../draft/TransformNode"
 
 type Pow2 =
     | 1
@@ -185,6 +186,14 @@ export class GlobalTreeTexture {
     sendUpdate(slot: number) {
         // if this bottlecks, see how we handled updateRanges for the shared Matrix Buffer
         this.texture.needsUpdate = true
+    }
+    setNodeTextureAt(node: TransformNode) {
+        const slot = getSlotIndex(node.location)
+        const parentSlot = getSlotIndex(node.parent.location)
+        this.writeMatrix(slot, node.compoundMatrix.elements)
+        this.writeNodeParent(slot, parentSlot)
+        this.sendUpdate(slot)
+        return slot
     }
 }
 

@@ -1,34 +1,33 @@
 import * as THREE from "three"
 import { TransformTree } from "./TransformTree"
-import { createTransformNode, type TransformNode } from "./TransformNode"
-import {
-    setInstanceMatrixAt,
-    setUintAttributeAt,
-    updateBufferRanges,
-} from "../objects/buffers/buffers"
 import { FreeList } from "../objects/FreeList"
+import { GlobalTreeTexture } from "../objects/textures/GlobalTreeTexture"
+import { SectionCutter } from "../objects/meshes/SectionCutter"
 import {
-    calculateProjectionMatrix,
-    calculateMirroredProjectionMatrix,
-} from "./matrix"
-import type { InstanceItem } from "./InstanceItem"
+    createTransformNode,
+    rebaseDetachedMatrixNodeToRoot,
+} from "./TransformNode"
+import { calculateBaseMatrix, calculateCompoundMatrix } from "./matrix"
+
 import {
     createInstanceItem,
     incrementInstanceCount,
     decrementInstanceCount,
     computeBoundingSphere,
 } from "./InstanceItem"
-import type { NodeLocation } from "./TransformTree"
-import { walkSubtree } from "./recursive"
 import {
-    GlobalTreeTexture,
-    getSlotIndex,
-} from "../objects/textures/GlobalTreeTexture"
-import { activeMaterialLib, matlib, orders } from "./materialManager"
-import { SectionCutter } from "../objects/meshes/SectionCutter"
+    setInstanceMatrixAt,
+    setUintAttributeAt,
+    updateBufferRanges,
+} from "../objects/buffers/buffers"
 import { brushCleaner } from "../objects/geometries/brushCleaner"
 import { DataTextureLineSegmentsGeometry } from "../objects/geometries/DataTextureLineSegmentsGeometry"
-import { updateSectionChildAttachments } from "../controls/move"
+
+import { walkSubtree, walkSeenSubtree } from "./recursive"
+import { activeMaterialLib, matlib, orders } from "./materialManager"
+import type { TransformNode } from "./TransformNode"
+import type { InstanceItem } from "./InstanceItem"
+import type { NodeLocation } from "./TransformTree"
 
 export class Drafter {
     tree = new TransformTree()
@@ -105,15 +104,7 @@ export class Drafter {
                 color: 0x00ffff,
             })
         )
-        // const angle = Math.PI/4
-        // const move1 = new THREE.Matrix4().makeTranslation(0.5, 0, 0)
-        // const scale = new THREE.Matrix4().makeScale(100, 100, 100)
-        // const rotate = new THREE.Matrix4().makeRotationY(angle)
-        // const move2 = new THREE.Matrix4().makeTranslation(2, 0, -20)
-        // sec.matrix.copy(move2).multiply(rotate).multiply(scale).multiply(move1)
-        // sec.matrix.multiply(move1)
         boxDebug.matrixAutoUpdate = false
-        //@ts-ignore
         this.debug.objects.section = boxDebug
         this.scene.add(boxDebug)
     }
@@ -485,7 +476,7 @@ export class Drafter {
         // we dont really need to do dfs as node didnt move...
         // this.updatePatchedNode(node)the
         // we do need to update teh texture to make the proj lines go away
-        this.setNodeTextureAt(node)
+        this.globalTreeTexture.setNodeTextureAt(node)
     }
     /* path node props directly before passing, this updates draw geo*/
     updatePatchedNode(patchedNode: TransformNode) {
@@ -506,7 +497,7 @@ export class Drafter {
             const node = subtree[i]
             const id = node.location.id
             const instanceItem = this.getInstance(id)
-            const slot = this.setNodeTextureAt(node)
+            const slot = this.globalTreeTexture.setNodeTextureAt(node)
             setInstanceBuffersIndex(instanceItem, node, slot)
             sphereUpdate[id] = instanceItem
         }
@@ -515,85 +506,6 @@ export class Drafter {
         for (const key in sphereUpdate) {
             computeBoundingSphere(sphereUpdate[key])
         }
-    }
-
-    setNodeTextureAt(node: TransformNode) {
-        const slot = getSlotIndex(node.location)
-        const parentSlot = getSlotIndex(node.parent.location)
-        this.globalTreeTexture.writeMatrix(slot, node.compoundMatrix.elements)
-        this.globalTreeTexture.writeNodeParent(slot, parentSlot)
-        this.globalTreeTexture.sendUpdate(slot)
-        return slot
-    }
-}
-
-const _position = new THREE.Vector3()
-const _quaternion = new THREE.Quaternion()
-const _scale = new THREE.Vector3()
-// prettier-ignore
-const _mirrorXZ = new THREE.Matrix4().set(
-	1, 0, 0, 0,
-	0,-1, 0, 0,
-	0, 0, 1, 0,
-	0, 0, 0, 1
-);
-
-function calculateBaseMatrix(node: TransformNode) {
-    calculateBaseMatrixChild(node)
-    //update direct childrens base matrix as it depends on parent pos.
-    const children = node.children
-    for (let i = 0; i < children.length; i++) {
-        calculateBaseMatrixChild(children[i])
-    }
-}
-
-function calculateBaseMatrixChild(node: TransformNode) {
-    const projectionType = node.type
-
-    switch (projectionType) {
-        case "root":
-            node.baseMatrix.decompose(_position, _quaternion, _scale)
-            node.baseMatrix.compose(node.position, _quaternion, _scale)
-            break
-        case "leaf":
-            calculateProjectionMatrix(
-                node.parent.position,
-                node.position,
-                node.baseMatrix
-            )
-            break
-        default:
-            calculateProjectionMatrix(
-                node.parent.position,
-                node.position,
-                node.baseMatrix
-            )
-    }
-    if (node.mirror) {
-        node.baseMatrix.premultiply(_mirrorXZ)
-    }
-}
-
-function calculateCompoundMatrix(
-    node: TransformNode,
-    subTree: TransformNode[] = [],
-    localTransform: THREE.Matrix4 = new THREE.Matrix4()
-) {
-    subTree.push(node)
-
-    const isRoot = node.parent === node
-
-    if (isRoot) {
-        node.compoundMatrix.copy(node.baseMatrix).multiply(localTransform)
-    } else {
-        node.compoundMatrix
-            .copy(node.baseMatrix)
-            .multiply(node.parent.compoundMatrix)
-    }
-    if (node.sectionChild) {
-        // this will update section cust recusivly, but it is SLOW
-        // console.log(node.location)
-        updateSectionChildAttachments(node)
     }
 }
 
@@ -614,100 +526,3 @@ function setInstanceBuffersIndex(
     // set updateRanges for faster gpu patch
     updateBufferRanges(index, instanceItem.buffers)
 }
-
-const _detachWorldBase = new THREE.Matrix4()
-const _detachInverseLocal = new THREE.Matrix4()
-const _detachRotation = new THREE.Quaternion()
-const _detachScale = new THREE.Vector3()
-const _detachUnusedPosition = new THREE.Vector3()
-
-function rebaseDetachedMatrixNodeToRoot(
-    node: TransformNode,
-    localTransform: THREE.Matrix4
-) {
-    _detachInverseLocal.copy(localTransform).invert()
-    _detachWorldBase.copy(node.compoundMatrix).multiply(_detachInverseLocal)
-    _detachWorldBase.decompose(
-        _detachUnusedPosition,
-        _detachRotation,
-        _detachScale
-    )
-    node.baseMatrix.compose(node.position, _detachRotation, _detachScale)
-}
-
-/*
-to use instance material, 
-no position prop
-no matrix prop
-
-raycast gives us instance id, we can tie that into a matrix/ pos lookup. 
-
-
-do we initalize instances with positions and matrix, or do we push as we add? 
-start by initalizing, can reduce down mem later
-
-do we put all points, matrix in seperate arrays to match instance? or in a unifed one..?
-either way, to refrence instance, we will needd two indexs
-will require specal logic to proegate down another tree item if we dont unify, due to boolean ops
-
-
-
-
-//MOCK 
-move instancce
-id -> matrix -> mathupdate -> propegate -> setMatrixAt
-
-addInstance
-create pos
-create matrix
-find parent
-mathupdate -> propegate -> setMatrixAt
-inc instance count
-
-removeInstance
-removes a node, and all its children. 
-
-pruneInstance
-remove a node, set all its children to its parent
-requires propagation update
-
-new instance 
-user shape select
-new tree item: 
-new InstanceItem
-place, add to scene.
-might have a parent refrence in the case of boolean operations...
-will need a way to propegate down?
-
-
-
-#  BOOL
-boolean op
-check bbox intersect... does this work ith instnce? hehe 
-for geometries keep a array of csg brushes in mem
-have a flag if brush is valid, keep array inline with instance nodes. 
-
-we might need to look up certain meshes to display the boolean ips to the user, I think we should have an edit mode otherwise we have to update all the children..?
-
-for bool ops, two or more nodes must meet, how do we dertemine the parent in the event of a threesome?
-how do we effenecgtly chain multiple ops together? 
-how do we quickly update this? seems like we will have to updat ethe instance geometry, but mtarix should be ok?... 
-
-
-# Scale
-i want to have an intial scaling matrix per instance 
-
-
-
-// tree mock 1
-
-tree = [
-[{}],
-[{}],
-]
-s
-// tree mock 2
-
-
-
-*/
