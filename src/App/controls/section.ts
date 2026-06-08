@@ -169,8 +169,7 @@ export function createNewCutNode(sectionParent: TransformNode) {
 
     // SECTION
     const id = sectionParent.location.id
-    const instanceItem = drafter.instanceItems[id]
-    if (!instanceItem) return
+    const instanceItem = drafter.getInstance(id)
 
     const sectionFace = new SectionFaceGroup()
     const cutResult = csgFromParent(_start, _end, instanceItem, sectionParent)
@@ -258,8 +257,7 @@ export function updateCutNode(
     const parentId = sectionParent.location.id
 
     // SECTION
-    const instanceItem = drafter.instanceItems[parentId]
-    if (!instanceItem) return
+    const instanceItem = drafter.getInstance(parentId)
 
     const attachment = sectionChild.attachments.section
     if (!attachment) return

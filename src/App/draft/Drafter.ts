@@ -81,8 +81,7 @@ export class Drafter {
             this.materials.projection.treeDataSize = size
             this.materials.fold.treeDataSize = size
             for (let i = 0; i < this.instanceItems.length; i++) {
-                const instanceItem = this.instanceItems[i]
-                if (!instanceItem) continue
+                const instanceItem = this.getInstance(i)
                 // @ts-ignore
                 instanceItem.instances.line.material.treeData = text
                 // @ts-ignore
@@ -118,7 +117,13 @@ export class Drafter {
         this.debug.objects.section = boxDebug
         this.scene.add(boxDebug)
     }
-
+    getInstance(id: number): InstanceItem {
+        const instanceItem = this.instanceItems[id]
+        if (!instanceItem) {
+            throw new Error(`Missing InstanceItem for id ${id}`)
+        }
+        return instanceItem
+    }
     newInstance(geometry: THREE.BufferGeometry): InstanceItem | undefined {
         // get next avaliable index from freelist
         const id = this.instanceItems.nextIndex()
@@ -151,8 +156,7 @@ export class Drafter {
         geometry: THREE.BufferGeometry
     ): InstanceItem | undefined {
         // get item
-        const instanceItem = this.instanceItems[id]
-        if (!instanceItem) return
+        const instanceItem = this.getInstance(id)
 
         const geometries = brushCleaner(geometry)
         const { mesh, line, outline, dash, proj } = instanceItem.instances
@@ -226,8 +230,7 @@ export class Drafter {
         }
 
         for (let id = 0; id < this.instanceItems.length; id++) {
-            const instanceItem = this.instanceItems[id]
-            if (!instanceItem) continue
+            const instanceItem = this.getInstance(id)
             if (instanceItem.geometry !== geometry) continue
             if (instanceItem.count >= instanceItem.maxCount) continue
             return { id, instanceItem }
@@ -236,9 +239,7 @@ export class Drafter {
 
     removeInstance(id: number) {
         // get item
-        const instanceItem = this.instanceItems[id]
-        // nothign to delete
-        if (!instanceItem) return
+        const instanceItem = this.getInstance(id)
 
         // clean up other refrences
         this.scene.remove(instanceItem.group)
@@ -365,11 +366,8 @@ export class Drafter {
         const location = "location" in target ? target.location : target
         const id = location.id
         //get instanceItem
-        const instanceItem = this.instanceItems[id]
-        if (!instanceItem) {
-            console.error("couldnt find instanceItem at id", location)
-            return
-        }
+        const instanceItem = this.getInstance(id)
+
         //get node
         const node = this.tree.findNode(location) as TransformNode | undefined
         if (!node) return
@@ -421,8 +419,7 @@ export class Drafter {
         for (let i = subtree.length - 1; i >= 0; i--) {
             const subtreeNode = subtree[i]
             const id = subtreeNode.location.id
-            const instanceItem = this.instanceItems[id]
-            if (!instanceItem) continue
+            const instanceItem = this.getInstance(id)
 
             const removedIndex = subtreeNode.location.index
             const lastActiveIndex = instanceItem.count - 1
@@ -457,8 +454,7 @@ export class Drafter {
         }
 
         for (const id of touchedIds) {
-            const instanceItem = this.instanceItems[id]
-            if (!instanceItem) continue
+            const instanceItem = this.getInstance(id)
             computeBoundingSphere(instanceItem)
         }
         return Array.from(emptyIds)
@@ -472,8 +468,7 @@ export class Drafter {
         // already an orphan
         if (isRoot) return
 
-        const instanceItem = this.instanceItems[location.id]
-        if (!instanceItem) return
+        const instanceItem = this.getInstance(location.id)
 
         const parent = node.parent
         const siblings = parent.children
@@ -494,12 +489,7 @@ export class Drafter {
     }
     /* path node props directly before passing, this updates draw geo*/
     updatePatchedNode(patchedNode: TransformNode) {
-        //
-        const instanceItem = this.instanceItems[patchedNode.location.id]
-        if (!instanceItem) {
-            console.error("couldnt find instanceItem at id", patchedNode)
-            return
-        }
+        const instanceItem = this.getInstance(patchedNode.location.id)
 
         calculateBaseMatrix(patchedNode)
         //update childrens base matrix as it depends on parent pos.
@@ -515,8 +505,7 @@ export class Drafter {
         for (let i = 0; i < subtree.length; i++) {
             const node = subtree[i]
             const id = node.location.id
-            const instanceItem = this.instanceItems[id]
-            if (!instanceItem) continue
+            const instanceItem = this.getInstance(id)
             const slot = this.setNodeTextureAt(node)
             setInstanceBuffersIndex(instanceItem, node, slot)
             sphereUpdate[id] = instanceItem

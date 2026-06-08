@@ -14,19 +14,16 @@ export function setMeshColor(value: string): void {
 export function setMeshVisible(value: boolean): void {
     const len = drafter.instanceItems.length
     for (let i = 0; i < len; i++) {
-        const instanceItem = drafter.instanceItems[i]
-        if (!instanceItem) continue
+        const instanceItem = drafter.getInstance(i)
         instanceItem.instances.mesh.visible = value
     }
 }
 
 export function setLineColor(value: string): void {
-    // @ts-ignore
     drafter.materials.line.color.set(value)
     const len = drafter.instanceItems.length
     for (let i = 0; i < len; i++) {
-        const instanceItem = drafter.instanceItems[i]
-        if (!instanceItem) continue
+        const instanceItem = drafter.getInstance(i)
         // @ts-ignore
         instanceItem.instances.line.material.color.set(value)
     }
@@ -35,8 +32,7 @@ export function setLineColor(value: string): void {
 export function setLineVisible(value: boolean): void {
     const len = drafter.instanceItems.length
     for (let i = 0; i < len; i++) {
-        const instanceItem = drafter.instanceItems[i]
-        if (!instanceItem) continue
+        const instanceItem = drafter.getInstance(i)
         instanceItem.instances.line.visible = value
     }
 }
@@ -48,8 +44,7 @@ export function setLineWidth(value: number): void {
     //set clone materials
     const len = drafter.instanceItems.length
     for (let i = 0; i < len; i++) {
-        const instanceItem = drafter.instanceItems[i]
-        if (!instanceItem) continue
+        const instanceItem = drafter.getInstance(i)
         // @ts-ignore
         instanceItem.instances.line.material.linewidth = value
     }
@@ -58,8 +53,7 @@ export function setLineWidth(value: number): void {
 export function setDashColor(value: string): void {
     const len = drafter.instanceItems.length
     for (let i = 0; i < len; i++) {
-        const instanceItem = drafter.instanceItems[i]
-        if (!instanceItem) continue
+        const instanceItem = drafter.getInstance(i)
         instanceItem.instances.dash.material.color.set(value)
     }
 }
@@ -67,8 +61,7 @@ export function setDashColor(value: string): void {
 export function setDashVisible(value: boolean): void {
     const len = drafter.instanceItems.length
     for (let i = 0; i < len; i++) {
-        const instanceItem = drafter.instanceItems[i]
-        if (!instanceItem) continue
+        const instanceItem = drafter.getInstance(i)
         instanceItem.instances.dash.visible = value
     }
 }
@@ -76,8 +69,7 @@ export function setDashVisible(value: boolean): void {
 export function setProjectionColor(value: string): void {
     const len = drafter.instanceItems.length
     for (let i = 0; i < len; i++) {
-        const instanceItem = drafter.instanceItems[i]
-        if (!instanceItem) continue
+        const instanceItem = drafter.getInstance(i)
         instanceItem.instances.proj.material.color.set(value)
     }
 }
@@ -85,8 +77,7 @@ export function setProjectionColor(value: string): void {
 export function setProjectionVisible(value: boolean): void {
     const len = drafter.instanceItems.length
     for (let i = 0; i < len; i++) {
-        const instanceItem = drafter.instanceItems[i]
-        if (!instanceItem) continue
+        const instanceItem = drafter.getInstance(i)
         instanceItem.instances.proj.visible = value
     }
 }
@@ -104,8 +95,7 @@ export function setFoldColor(value: string): void {
 export function setFoldVisible(value: boolean): void {
     const len = drafter.instanceItems.length
     for (let i = 0; i < len; i++) {
-        const instanceItem = drafter.instanceItems[i]
-        if (!instanceItem) continue
+        const instanceItem = drafter.getInstance(i)
         instanceItem.instances.fold.visible = value
     }
 }
