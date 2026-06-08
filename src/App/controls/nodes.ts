@@ -118,18 +118,6 @@ export function addLeafNearbyRandomlyNicely(node: TransformNode) {
 }
 
 export function pruneNode(node: TransformNode) {
-    const segmentAttachment = node.attachments.segment
-    if (segmentAttachment !== undefined) {
-        node.attachments.segment = undefined
-        drafter.sectionCutter.deleteSegment(segmentAttachment.index)
-    }
-
-    const faceAttachment = node.attachments.section
-    if (faceAttachment !== undefined) {
-        node.attachments.section = undefined
-        faceAttachment.object.dispose()
-    }
-
     drafter.pruneNode(node)
 }
 

@@ -307,6 +307,19 @@ export class Drafter {
         const node = this.tree.findNode(location) as TransformNode | undefined
         if (!node) return
 
+        //remove attachments
+        const segmentAttachment = node.attachments.segment
+        if (segmentAttachment !== undefined) {
+            node.attachments.segment = undefined
+            this.sectionCutter.deleteSegment(segmentAttachment.index)
+        }
+
+        const faceAttachment = node.attachments.section
+        if (faceAttachment !== undefined) {
+            node.attachments.section = undefined
+            faceAttachment.object.dispose()
+        }
+
         //isRoot branch
         const isRoot = node === node.parent
         if (isRoot) {
