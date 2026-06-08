@@ -33,47 +33,36 @@ const _rotate = new THREE.Matrix4()
 const _move2 = new THREE.Matrix4()
 
 function cutGeometry(
-    start: THREE.Vector3,
-    end: THREE.Vector3,
-    instanceItem: InstanceItem,
-    sectionParent: TransformNode
+    // start: THREE.Vector3,
+    // end: THREE.Vector3,
+    // instanceItem: InstanceItem,
+    // sectionParent: TransformNode,
+    sectionChild: TransformNode,
+    offset: number = 0
 ) {
+    // if node is mirrored, invert distance
+    // offset *= sectionChild.mirror
+
+    const instanceItem = drafter.instanceItems[sectionChild.parent.location.id]
+    if (!instanceItem) return
     const instanceBrush = instanceItem.brush
     const prevMatrix = instanceBrush.matrix.clone()
 
-    _midPoint.addVectors(start, end).multiplyScalar(0.5)
-
-    instanceBrush.matrix.copy(sectionParent.compoundMatrix)
+    instanceBrush.matrix.copy(sectionChild.compoundMatrix) // this needs to move by offset in y direction
     instanceBrush.updateMatrixWorld(true)
 
-    _dir2.subVectors(end, _midPoint).setY(0).normalize()
-    let angle = Math.atan2(_dir2.x, _dir2.z)
-    if (angle < 0) angle += Math.PI * 2
-
-    const size = 50
-    _move1.makeTranslation(0.5, 0, 0)
-    _scale.makeScale(size, size, size)
-    _rotate.makeRotationY(angle)
-    _move2.makeTranslation(_midPoint)
     const boxBrush = drafter.sectionCutter.brush
-    boxBrush.matrix.identity()
-    boxBrush.matrix
-        .copy(_move2)
-        .multiply(_rotate)
-        .multiply(_scale)
-        .multiply(_move1)
-    boxBrush.updateMatrixWorld(true)
-
-    if (drafter.debug.enable) {
-        drafter.debug.objects.section.matrix.copy(boxBrush.matrix)
-    }
 
     try {
+        //@ts-ignore
+        csgEvaluator.useCDTClipping = true
         const brush1 = evaluateCSG(
             instanceBrush,
             boxBrush,
             boolean.intersection
         )
+        //@ts-ignore
+        csgEvaluator.useCDTClipping = false
         csgEvaluator.debug.enabled = true
         const face1Brush = evaluateCSG(
             boxBrush,
@@ -90,6 +79,14 @@ function cutGeometry(
             e.end.y,
             e.end.z,
         ])
+
+        // console.log("")
+        // console.log(brush1.geometry.drawRange.count)
+        // console.log(brush1.geometry.getAttribute("position")?.count)
+        // console.log(brush1.geometry.index?.count)
+        // console.log(face1Brush.geometry.drawRange.count)
+        // console.log(face1Brush.geometry.getAttribute("position")?.count)
+        // console.log(face1Brush.geometry.index?.count)
 
         return { face1Brush, brush1, positions }
     } catch (err) {
@@ -167,23 +164,14 @@ export function cutNode(sectionParent: TransformNode) {
     _end.add(sectionParent.position)
 
     // SECTION
-    const id = sectionParent.location.id
-    const instanceItem = drafter.instanceItems[id]
-    if (!instanceItem) return
-
-    const sectionFace = new SectionFaceGroup()
-    const cutResult = cutGeometry(_start, _end, instanceItem, sectionParent)
-    if (!cutResult) {
-        sectionFace.dispose()
-        return
-    }
-    const { brush1, face1Brush, positions } = cutResult
-    sectionFace.edges.geometry.setPositions(positions)
-    sectionFace.setFaceGeometry(face1Brush.geometry)
 
     // add instance
-    const side1ID = drafter.instanceItems.nextIndex()
-    drafter.newInstance(brush1.geometry)
+    const id = sectionParent.location.id
+    const parentInstanceItem = drafter.instanceItems[id]
+    if (!parentInstanceItem) return
+
+    const childId = drafter.instanceItems.nextIndex()
+    drafter.newInstance(parentInstanceItem.geometry.clone()) // hmmm
 
     // determine root position
     const lineDir = new THREE.Vector3()
@@ -201,7 +189,7 @@ export function cutNode(sectionParent: TransformNode) {
     // add new root
     const side1Root: Partial<TransformNode> = {
         position: side1pos,
-        location: { id: side1ID, index: -1 },
+        location: { id: childId, index: -1 },
         parent: sectionParent,
         sectionChild: true,
     }
@@ -209,9 +197,25 @@ export function cutNode(sectionParent: TransformNode) {
     // add new root!
     const sectionChild = drafter.addLeafNode(side1Root)
     if (!sectionChild) {
-        sectionFace.dispose()
+        // delete new instance..?
         return
     }
+
+    // do cut
+    const cutResult = cutGeometry(sectionChild, 0)
+    if (!cutResult) {
+        // delete isntance
+        return
+    }
+    const { brush1, face1Brush, positions } = cutResult
+
+    // update instance geometry
+    drafter.patchInstanceGeometry(childId, brush1.geometry)
+
+    // attacchments
+    const sectionFace = new SectionFaceGroup()
+    sectionFace.edges.geometry.setPositions(positions)
+    sectionFace.setFaceGeometry(face1Brush.geometry)
 
     // add new line segment
     const segmentIndex = sectionCutter.addSegmentVector(
@@ -229,14 +233,15 @@ export function cutNode(sectionParent: TransformNode) {
 
     // geo is created using boxBrush transform. we must undo and apply from new node and node
     // let faceMatrix = face1Brush.matrix.clone()
-    let faceMatrix = new THREE.Matrix4()
-        .copy(sectionChild.compoundMatrix)
-        .multiply(
-            new THREE.Matrix4().copy(sectionParent.compoundMatrix).invert()
-        )
-        .multiply(face1Brush.matrix)
+    // let faceMatrix = new THREE.Matrix4()
+    //     .copy(sectionChild.compoundMatrix)
+    //     .multiply(
+    //         new THREE.Matrix4().copy(sectionParent.compoundMatrix).invert()
+    //     )
+    //     .multiply(face1Brush.matrix)
+    // sectionFace.setMatrix(faceMatrix)
 
-    sectionFace.setMatrix(faceMatrix)
+    // sectionFace.setMatrix(sectionChild.compoundMatrix)
 
     drafter.scene.add(sectionFace)
 
@@ -265,23 +270,28 @@ export function updateCutNode(
 
     const group = attachment.object
 
-    const cutResult = cutGeometry(start, end, instanceItem, sectionParent)
+    const offset = 0
+    const cutResult = cutGeometry(sectionChild, offset)
     if (!cutResult) return
     const { brush1, face1Brush, positions } = cutResult
-    group.edges.geometry.setPositions(positions)
 
+    // update instance geometry
     drafter.patchInstanceGeometry(childId, brush1.geometry)
 
+    // update attachment
+    group.edges.geometry.setPositions(positions)
     group.setFaceGeometry(face1Brush.geometry)
 
-    // matrix
-    let faceMatrix = new THREE.Matrix4()
-        .copy(sectionChild.compoundMatrix)
-        .multiply(
-            new THREE.Matrix4().copy(sectionParent.compoundMatrix).invert()
-        )
-        .multiply(face1Brush.matrix)
-    group.setMatrix(faceMatrix)
+    // update group matrix
+    // let faceMatrix = new THREE.Matrix4()
+    //     .copy(sectionChild.compoundMatrix)
+    //     .multiply(
+    //         new THREE.Matrix4().copy(sectionParent.compoundMatrix).invert()
+    //     )
+    //     .multiply(face1Brush.matrix)
+    // group.setMatrix(faceMatrix)
+
+    // group.setMatrix(sectionChild.compoundMatrix)
 }
 
 export function deleteSegment(line: SectionSegment) {

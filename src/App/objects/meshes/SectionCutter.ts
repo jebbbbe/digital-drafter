@@ -2,22 +2,10 @@ import * as THREE from "three"
 import { Brush } from "three-bvh-csg"
 import type { TransformNode } from "../../draft/TransformNode"
 
-type MapItem = {
-    lines: number[]
-}
-
-/*
-type MapItem = {
-    lines: number[] // array of indexs
-    segmentSelect: number[] // array of indexs
-    sectionGroup: THREE.GROUP
-}
-map.get(slotIndex) -> mapItem
-
-
-
-
-*/
+const planeSize = 20
+const xzMatrix = new THREE.Matrix4()
+    .multiply(new THREE.Matrix4().makeScale(planeSize, planeSize, planeSize))
+    .multiply(new THREE.Matrix4().makeTranslation(0, -0.5, 0))
 
 export class SectionCutter {
     mesh!: THREE.LineSegments
@@ -29,7 +17,7 @@ export class SectionCutter {
     nodeMap = new Map<number, TransformNode>()
 
     // for csg
-    box = new THREE.BoxGeometry()
+    box = new THREE.BoxGeometry().applyMatrix4(xzMatrix)
     brush = new Brush(this.box)
     constructor(material: THREE.Material) {
         const geometry = new THREE.BufferGeometry()
@@ -41,7 +29,9 @@ export class SectionCutter {
         this.mesh = new THREE.LineSegments(geometry, material)
         this.mesh.position.y = 4
         this.mesh.frustumCulled = false
-        this.brush.matrixAutoUpdate = false
+        // this.brush.matrix = xzMatrix
+        // this.brush.matrixAutoUpdate = false
+        // this.brush.updateMatrixWorld(true)
     }
 
     resize(minSize = this.array.length * 2) {
