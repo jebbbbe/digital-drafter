@@ -1,7 +1,7 @@
 import * as THREE from "three"
 import type { TransformNode } from "../draft/TransformNode"
 import type { NodeLocation } from "../draft/TransformTree"
-import type { OrbitControls } from "three/examples/jsm/Addons.js"
+import type { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
 import type { Drafter } from "../draft/Drafter"
 import type { SelectObject } from "./selectionManager"
 import type { SelectType } from "./selectionManager"
@@ -166,7 +166,9 @@ export class InteractionManager {
         if (!startHit) return
 
         //clear seleciton
-        this.selection.clear()
+        if (!e.shiftKey) {
+            this.selection.clear()
+        }
 
         let selectedObject // select obj ref
         if (first.object === this.drafter.sectionCutter.mesh) {
@@ -192,7 +194,10 @@ export class InteractionManager {
         }
         this.selection.push(selectedObject)
         this.attachTransformControls(selectedObject)
-        const moveFns = moveFirstObject(selectedObject, startHit) as MoveListener
+        const moveFns = moveFirstObject(
+            selectedObject,
+            startHit
+        ) as MoveListener
         if (moveFns === undefined) return
         // prettier-ignore
         this.listeners.addActiveEvent("pointermove", "pointermove", moveFns.move)

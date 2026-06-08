@@ -1,5 +1,5 @@
 import * as THREE from "three"
-import { BufferGeometryUtils } from "three/addons"
+import { mergeVertices } from "three/examples/jsm/utils/BufferGeometryUtils.js"
 import { doublePositionBuffer } from "../buffers/buffers"
 import { newFoldLineGeometry } from "./FoldLineGoemetry"
 import { Brush } from "three-bvh-csg"
@@ -26,10 +26,7 @@ export function brushCleaner(
 	brush.matrixAutoUpdate = false
 
     if (settings.mergeVertices) {
-        geometry = BufferGeometryUtils.mergeVertices(
-            geometry,
-            settings.mergeTolerance
-        )
+        geometry = mergeVertices(geometry, settings.mergeTolerance)
     }
 
     if (settings.computeNormals) {
@@ -50,10 +47,7 @@ export function brushCleaner(
 
     let projGeometry: THREE.BufferGeometry = lineGeometry.clone()
     if (settings.removeProjVertices) {
-        projGeometry = BufferGeometryUtils.mergeVertices(
-            projGeometry,
-            settings.mergeTolerance
-        )
+        projGeometry = mergeVertices(projGeometry, settings.mergeTolerance)
     }
     projGeometry = doublePositionBuffer(projGeometry)
 

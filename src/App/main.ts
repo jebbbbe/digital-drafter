@@ -1,7 +1,7 @@
 import * as THREE from "three"
 import { constants } from "./constants"
 import * as shape from "./objects/geometries/geometry"
-import { OrbitControls } from "three/examples/jsm/Addons.js"
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
 import Stats from "three/examples/jsm/libs/stats.module.js"
 import { AspectLayout } from "./utils/AspectLayout"
 import { loadGlb } from "./utils/loader"

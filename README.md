@@ -24,7 +24,7 @@
 ### v0.4.0
 
 - [ ] Interface
-    - [ ] rm react dynamic import, use module splitting
+    - [x] rm react dynamic import, use module splitting
     - [ ] better theme loader, with functions
     - [ ] window select multiple
     - [ ] selected texture img

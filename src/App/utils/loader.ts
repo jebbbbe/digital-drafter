@@ -1,5 +1,6 @@
 import * as THREE from "three"
-import { GLTFExporter, GLTFLoader } from "three/examples/jsm/Addons.js"
+import { GLTFExporter } from "three/examples/jsm/exporters/GLTFExporter.js"
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js"
 
 export async function saveAsGlb(
     mesh: THREE.Object3D,
