@@ -8,13 +8,14 @@
 - [ ] svg/dwg export
 - [ ] draw on mesh
 - [ ] mesh upload
+- [ ] mesh draw
 - [ ] CDN
 - [ ] auth
 - [ ] payment?
 
 ### v0.5.0
 
-- [ ] perf compare batched mesh? update geo...?
+- [s] perf compare batched mesh? update geo...?
 - [ ] do update range at the end of recursive by keeping track of dirty locations.
 - [ ] recursive function only calc compundMatrix, not baseMatrix as well
 - [ ] see if notes on matrix prefix can be used here?
@@ -23,33 +24,38 @@
 
 ### v0.4.0
 
+- [ ] select multiple
+    - [ ] window select multiple
+    - [ ] transform controls - gizmo origin from multiple selects
+	
 - [ ] Interface
     - [x] rm react dynamic import, use module splitting
+    - [ ] transform controls- leva proxy link
     - [ ] better theme loader, with functions
-    - [ ] window select multiple
-    - [ ] selected texture img
+    - [ ] three/react - import/returns?
+- [ ] todo
+    - [ ] switch to OOP for ISntance Item and Node? to many imports/util fns.
+    - [ ] interacction classes..?
+    - [ ] diff based move for gizmo..?
 
-- [ ] section cut	
-	- [ ] three/react - import/returns?
-	- [ ] transform controls- leva proxy link
-	- [x] transform controls- fix scale
-	- [x] transform controls, pass to moveObject
-    - [ ] transform controls - gizmo origin from multiple selects
-	- [x] move attachments direcly to node
-	- [x] move all specal move fns to dfs
-    - [d] select color on line
-    - [x] move node attachments with a vec3 Diff
-    - [x] put face geometry in attachments
-    - [x] attachments class
-    - [w] move section constrain
-    - [x] move line constrain
-    - [x] update section on move
-    - [x] delete segment
-    - [x] delete section
-    - [x] descendants
-    - [x] detach
-    - [x] bvh section lineweight, evaluator.debug.edges
-    - [x] section cut geometry
+- [x] section cut
+    - [x] transform controls- fix scale
+    - [x] transform controls, pass to moveObject
+    - [x] move attachments direcly to node
+    - [x] move all specal move fns to dfs
+        - [d] select color on line
+        - [x] move node attachments with a vec3 Diff
+        - [x] put face geometry in attachments
+        - [x] attachments class
+        - [w] move section constrain
+        - [x] move line constrain
+        - [x] update section on move
+        - [x] delete segment
+        - [x] delete section
+        - [x] descendants
+        - [x] detach
+        - [x] bvh section lineweight, evaluator.debug.edges
+        - [x] section cut geometry
 
 - [w] initial transform storage\*
 - [w] parent/child relationship
