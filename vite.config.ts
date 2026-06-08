@@ -1,9 +1,19 @@
-import { defineConfig } from "vite"
+import { defineConfig, type HmrContext, type PluginOption } from "vite"
 import react from "@vitejs/plugin-react"
+
+function fullReloadOnChange(): PluginOption {
+    return {
+        name: "full-reload-on-change",
+        handleHotUpdate({ server }: HmrContext) {
+            server.ws.send({ type: "full-reload" })
+            return []
+        },
+    }
+}
 
 // https://vite.dev/config/
 export default defineConfig({
-    plugins: [react()],
+    plugins: [react(), fullReloadOnChange()],
     build: {
         rolldownOptions: {
             output: {
