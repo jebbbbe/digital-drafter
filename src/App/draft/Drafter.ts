@@ -8,24 +8,10 @@ import {
     rebaseDetachedMatrixNodeToRoot,
 } from "./TransformNode"
 import { calculateBaseMatrix, calculateCompoundMatrix } from "./matrix"
-
-import {
-    createInstanceItem,
-    incrementInstanceCount,
-    decrementInstanceCount,
-    computeBoundingSphere,
-    patchInstance,
-} from "./InstanceItem"
-import {
-    setInstanceMatrixAt,
-    setUintAttributeAt,
-    updateBufferRanges,
-} from "../objects/buffers/buffers"
-
+import { InstanceItem } from "./InstanceItem"
 import { walkSubtree, walkSeenSubtree } from "./recursive"
 import { matlib } from "./materialManager"
 import type { TransformNode } from "./TransformNode"
-import type { InstanceItem } from "./InstanceItem"
 import type { NodeLocation } from "./TransformTree"
 
 export class Drafter {
@@ -124,7 +110,7 @@ export class Drafter {
         }
         if (grew) this.assignTexture()
         // create new InstanceItem
-        const newInstanceItem = createInstanceItem(geometry, this.materials, id)
+        const newInstanceItem = new InstanceItem(geometry, this.materials, id)
         // add Geo to the Scene
         this.scene.add(newInstanceItem.group)
         // push to Freelist, should arrive at id
@@ -146,7 +132,7 @@ export class Drafter {
     ): InstanceItem | undefined {
         // get item
         const instanceItem = this.getInstance(id)
-        return patchInstance(instanceItem, geometry)
+        return instanceItem.patch(geometry)
     }
 
     findReusableInstance(
@@ -187,7 +173,6 @@ export class Drafter {
         this.tree.removeBucket(id)
         this.globalTreeTexture.decBlockCount()
     }
-    // findNode(location: NodeLocation): Node | undefined
     findNode(location: NodeLocation) {
         const node = this.tree.findNode(location) as TransformNode | undefined
         return node
@@ -235,7 +220,7 @@ export class Drafter {
         this.tree.roots.add(node)
 
         // increment count
-        incrementInstanceCount(instanceItem)
+        instanceItem.incrementInstanceCount()
         this.updatePatchedNode(node)
         return node
     }
@@ -287,7 +272,7 @@ export class Drafter {
         const parent = this.tree.findNode(parentNodeLocation)
         this.tree.addNode(node, parent)
 
-        incrementInstanceCount(instanceItem)
+        instanceItem.incrementInstanceCount()
         this.updatePatchedNode(node)
 
         // console.log("addLeafNode")
@@ -340,7 +325,7 @@ export class Drafter {
 
         // reparent the children
         this.tree.pruneNode(node)
-        decrementInstanceCount(instanceItem)
+        instanceItem.decrementInstanceCount()
 
         if (swappedNode) {
             // The packed tree moved this node into the removed slot, so rewrite
@@ -379,7 +364,7 @@ export class Drafter {
                           | undefined)
 
             this.tree.removeNode(subtreeNode)
-            decrementInstanceCount(instanceItem)
+            instanceItem.decrementInstanceCount()
             touchedIds.add(id)
 
             if (instanceItem.count === 0) {
@@ -403,7 +388,7 @@ export class Drafter {
 
         for (const id of touchedIds) {
             const instanceItem = this.getInstance(id)
-            computeBoundingSphere(instanceItem)
+            instanceItem.computeBoundingSphere()
         }
         return Array.from(emptyIds)
     }
@@ -455,31 +440,13 @@ export class Drafter {
             const id = node.location.id
             const instanceItem = this.getInstance(id)
             const slot = this.globalTreeTexture.setNodeTextureAt(node)
-            setInstanceBuffersIndex(instanceItem, node, slot)
+            instanceItem.setInstanceBuffersIndex(node, slot)
             sphereUpdate[id] = instanceItem
         }
 
         //  update bounding sphere of seen instanceItems
         for (const key in sphereUpdate) {
-            computeBoundingSphere(sphereUpdate[key])
+            sphereUpdate[key].computeBoundingSphere()
         }
     }
-}
-
-function setInstanceBuffersIndex(
-    instanceItem: InstanceItem,
-    node: TransformNode,
-    slot: number
-) {
-    const index = node.location.index
-    // update matrix buffer
-    setInstanceMatrixAt(
-        instanceItem.buffers.instanceMatrix,
-        index,
-        node.compoundMatrix
-    )
-    // update instance slot
-    setUintAttributeAt(instanceItem.buffers.nodeSlot, index, slot)
-    // set updateRanges for faster gpu patch
-    updateBufferRanges(index, instanceItem.buffers)
 }
