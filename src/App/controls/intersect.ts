@@ -1,0 +1,106 @@
+import * as THREE from "three"
+import { Brush } from "three-bvh-csg"
+import { drafter, interactionManager } from "../main"
+import type { TransformNode } from "../draft/TransformNode"
+import { evaluateCSG, boolean } from "../utils/csg"
+
+const _brushOffset = new THREE.Matrix4()
+
+
+function createNodeBrush(node: TransformNode, yOffset = 0): Brush {
+    const sourceBrush = drafter.getInstance(node.location.id).brush
+    const brush = new Brush(sourceBrush.geometry)
+    brush.matrixAutoUpdate = false
+    brush.matrix.copy(node.compoundMatrix)
+    if (yOffset !== 0) {
+        brush.matrix.multiply(_brushOffset.makeTranslation(0, yOffset, 0))
+    }
+    brush.updateMatrixWorld(true)
+    return brush
+}
+
+export function intersectTwoNodes(
+    nodeA: TransformNode,
+    nodeB: TransformNode,
+    yOffset = 0,
+    operation = boolean.union
+) {
+    console.log(nodeA, nodeB)
+
+    // Use temporary brushes so nodes that share an instance id still carry
+    // independent transforms into the CSG evaluation.
+    const instanceBrushA = createNodeBrush(nodeA)
+    const instanceBrushB = createNodeBrush(nodeB, yOffset)
+
+    try {
+        const brushResult = evaluateCSG(
+            instanceBrushB,
+            instanceBrushA,
+            operation
+        )
+
+        return brushResult
+    } catch (err) {
+        console.error("evaluateCSG fail", err)
+        return
+    }
+}
+
+const _offset = new THREE.Vector3(0, 0, -2)
+export function startIntersection(startNode: TransformNode) {
+    let squaredDist = Infinity
+    let closestNode: TransformNode | undefined
+
+    // find clsoest node and intersect it
+    for (
+        let bucketId = 0;
+        bucketId < drafter.tree.freelist.length;
+        bucketId++
+    ) {
+        const bucket = drafter.tree.freelist[bucketId]
+        if (!bucket) continue
+
+        for (let nodeIndex = 0; nodeIndex < bucket.count; nodeIndex++) {
+            const candidate = bucket[nodeIndex] as TransformNode | undefined
+            if (!candidate || candidate === startNode) continue
+
+            const candidateDist = startNode.position.distanceToSquared(
+                candidate.position
+            )
+            if (candidateDist < squaredDist) {
+                squaredDist = candidateDist
+                closestNode = candidate
+            }
+        }
+    }
+    console.log(closestNode)
+    console.log(squaredDist)
+    if (!closestNode) return
+    if (squaredDist > 2) return
+    const yOffset = startNode.position.z - closestNode.position.z
+    const brushResult = intersectTwoNodes(
+        startNode,
+        closestNode,
+        yOffset
+        // boolean.intersection,
+    )
+    if (!brushResult) return
+
+    const id = drafter.instanceItems.nextIndex()
+    drafter.newInstance(brushResult.geometry)
+
+    // add new root!
+    const newNode = drafter.addLeafNode({
+        position: startNode.position.clone().add(_offset),
+        location: { id, index: -1 },
+        parent: startNode,
+    })
+
+    drafter.updatePatchedNode(startNode)
+}
+
+export function startIntersectionFromSelection() {
+    const node = interactionManager.selection.firstNode()
+    if (!node) return
+    startIntersection(node)
+}

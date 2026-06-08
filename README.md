@@ -37,7 +37,7 @@
     - [ ] transform controls - gizmo origin from multiple selects
 	- [x] move attachments direcly to node
 	- [x] move all specal move fns to dfs
-    - [ ] select color on line
+    - [d] select color on line
     - [x] move node attachments with a vec3 Diff
     - [x] put face geometry in attachments
     - [x] attachments class

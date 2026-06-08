@@ -279,15 +279,23 @@ function Controls() {
             "Delete View": button(() => controls.deleteFirstObject(), {
                 disabled: true,
             }),
-            "Section Cut": button(() => controls.createNewCutNodeFromSelection(), {
-                disabled: true,
-            }),
+            "Section Cut": button(
+                () => controls.createNewCutNodeFromSelection(),
+                {
+                    disabled: true,
+                }
+            ),
             "Mirror View": button(() => controls.mirrorFirstObject(), {
                 disabled: true,
             }),
             "Detach View": button(() => controls.detachFirstObject(), {
                 disabled: true,
             }),
+            "Intersect View": button(
+                () => controls.startIntersectionFromSelection(),{ disabled: true 
+					
+				}
+            ),
         })
 
         return {

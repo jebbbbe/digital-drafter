@@ -150,6 +150,7 @@ export function init(container: HTMLElement): () => void {
                 { node:{position: new THREE.Vector3(-4, 0, 0), }, parent:{ id:0, index: 0 }},
                 { node:{position: new THREE.Vector3(-4, 0, 2), }, parent:{ id:0, index: 5 }},
                 { node:{position: new THREE.Vector3(-4, 0, -2), }, parent:{ id:0, index: 4 }},
+                { node:{position: new THREE.Vector3(1.7, 0, -2.05), }, parent:{ id:0, index: 0}},
             ],
         },
         {
@@ -248,7 +249,7 @@ export function init(container: HTMLElement): () => void {
     })
     interactionManager.addEventListeners()
 
-	// Secction Cut Node Tests
+    // Secction Cut Node Tests
     let nodeToCut
     nodeToCut = drafter.findNode({ id: 0, index: 4 })
     if (nodeToCut) createNewCutNode(nodeToCut)
