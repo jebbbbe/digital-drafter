@@ -2,23 +2,6 @@ import * as THREE from "three"
 import { Brush } from "three-bvh-csg"
 import type { TransformNode } from "../../draft/TransformNode"
 
-type MapItem = {
-    lines: number[]
-}
-
-/*
-type MapItem = {
-    lines: number[] // array of indexs
-    segmentSelect: number[] // array of indexs
-    sectionGroup: THREE.GROUP
-}
-map.get(slotIndex) -> mapItem
-
-
-
-
-*/
-
 export class SectionCutter {
     mesh!: THREE.LineSegments
     itemSize = 3

@@ -12,11 +12,11 @@ import type { SectionSegment } from "../interaction/selectionManager"
 import type { InstanceItem } from "../draft/InstanceItem"
 import { SectionFaceGroup } from "../objects/meshes/sectionFaceGroup"
 
-export function cutNodeFromSelection() {
+export function createNewCutNodeFromSelection() {
     const node = interactionManager.selection.firstNode()
     console.log(node)
     if (!node) return
-    cutNode(node)
+    createNewCutNode(node)
 }
 
 const _up = new THREE.Vector3(0, 1, 0)
@@ -32,7 +32,7 @@ const _scale = new THREE.Matrix4()
 const _rotate = new THREE.Matrix4()
 const _move2 = new THREE.Matrix4()
 
-function cutGeometry(
+function csgFromParent(
     start: THREE.Vector3,
     end: THREE.Vector3,
     instanceItem: InstanceItem,
@@ -104,7 +104,8 @@ function cutGeometry(
 
 const _start = new THREE.Vector3()
 const _end = new THREE.Vector3()
-export function cutNode(sectionParent: TransformNode) {
+
+export function createNewCutNode(sectionParent: TransformNode) {
     const sectionCutter = drafter.sectionCutter
 
     // see if children have cuts
@@ -119,11 +120,11 @@ export function cutNode(sectionParent: TransformNode) {
         }
     }
 
-    _offset.z = rand.random(-0.25, 0.25)
+    _offset.set(0, 0, rand.random(-0.25, 0.25))
     const t = rand.random(0, Math.PI * 2)
     const lineLen = s * 1.0
-    _start.x = lineLen
-    _end.x = -lineLen
+    _start.set(lineLen, 0, 0)
+    _end.set(-lineLen, 0, 0)
 
     /*
         controls how the new line is added
@@ -172,7 +173,7 @@ export function cutNode(sectionParent: TransformNode) {
     if (!instanceItem) return
 
     const sectionFace = new SectionFaceGroup()
-    const cutResult = cutGeometry(_start, _end, instanceItem, sectionParent)
+    const cutResult = csgFromParent(_start, _end, instanceItem, sectionParent)
     if (!cutResult) {
         sectionFace.dispose()
         return
@@ -265,7 +266,7 @@ export function updateCutNode(
 
     const group = attachment.object
 
-    const cutResult = cutGeometry(start, end, instanceItem, sectionParent)
+    const cutResult = csgFromParent(start, end, instanceItem, sectionParent)
     if (!cutResult) return
     const { brush1, face1Brush, positions } = cutResult
     group.edges.geometry.setPositions(positions)

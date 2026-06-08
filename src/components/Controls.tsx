@@ -279,7 +279,7 @@ function Controls() {
             "Delete View": button(() => controls.deleteFirstObject(), {
                 disabled: true,
             }),
-            "Section Cut": button(() => controls.cutNodeFromSelection(), {
+            "Section Cut": button(() => controls.createNewCutNodeFromSelection(), {
                 disabled: true,
             }),
             "Mirror View": button(() => controls.mirrorFirstObject(), {
