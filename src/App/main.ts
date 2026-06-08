@@ -320,8 +320,8 @@ function initOrbit(
     orbitControls.touches.TWO = THREE.TOUCH.DOLLY_PAN
     orbitControls.minDistance = 1 //zoom min scaling
     orbitControls.maxDistance = 2000 //zoom max scaling
-    orbitControls.minZoom = 0.006
-    orbitControls.maxZoom = 0.4
+    orbitControls.minZoom = 0.01
+    orbitControls.maxZoom = 10.0
     orbitControls.update()
     // orbitControls.addEventListener("change", () => { // for no aniumation loop()
     // renderer.render(scene, camera);
