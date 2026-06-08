@@ -47,7 +47,7 @@ const matlib = {
         color: 0xffffff, //0xd8abd8,
         side: THREE.DoubleSide,
         depthWrite: false,
-        depthTest: false, // nice result on/off
+        depthTest: true, // nice result on/off
         polygonOffset: true,
         polygonOffsetFactor: 1,
         polygonOffsetUnits: 1,
@@ -112,16 +112,16 @@ if (activeMaterialLib === "gl_Line") {
 }
 
 const orders = {
-    mesh: 0,
-    line: 3,
-    outline: -1,
-    dash: 1,
-    proj: 1,
-    fold: 1,
+    mesh: 1,
+    line: 4,
+    outline: 0,
+    dash: 2,
+    proj: 2,
+    fold: 2,
     //attachments
-    sectionLine: 4,
-    sectionFace: 1,
-    sectionEdge: 1,
+    sectionLine: 9,
+    sectionFace: 7,
+    sectionEdge: 7,
 }
 
 export { matlib, activeMaterialLib, orders }
