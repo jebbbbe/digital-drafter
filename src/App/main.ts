@@ -13,6 +13,14 @@ import type { NodeLocation } from "./draft/TransformTree"
 // import { createBvhBooleanTest, type BvhBooleanTest } from "./test/bvhBooleanTest"
 import { geometryLibrary } from "./objects/geometries/library"
 import { createNewCutNode } from "./controls/section"
+import { LineMaterial } from "./objects/materials/LineMaterial"
+import { LineSegmentsGeometry } from "./objects/materials/LineSegmentsGeometry"
+import { Line2 } from "three/examples/jsm/lines/webgpu/Line2.js"
+import { InstancedLineMaterial } from "./objects/materials/InstancedLineMaterial"
+import { InstancedLineSegmentsGeometry } from "./objects/materials/InstancedLineSegmentsGeometry"
+import { MultiInstanceLineMaterial } from "./objects/materials/MultiInstanceLineMaterial"
+import { MultiInstanceLineSegmentsGeometry } from "./objects/materials/MultiInstanceLineSegmentsGeometry"
+import { MultiInstanceLineSegments } from "./objects/meshes/MultiInstanceLineSegments"
 
 let isAppReady = false
 let statsEnabled = false
@@ -259,6 +267,141 @@ export function init(container: HTMLElement): () => void {
     if (nodeToCut) createNewCutNode(nodeToCut)
     nodeToCut = drafter.findNode({ id: 2, index: 5 })
     if (nodeToCut) createNewCutNode(nodeToCut)
+    ;(() => {
+        const positions = new THREE.EdgesGeometry(
+            new THREE.BoxGeometry(1, 1, 1, 4, 4, 4)
+        ).getAttribute("position").array
+        const geometry = new LineSegmentsGeometry()
+        geometry.setPositions(positions)
+        const matLine = new LineMaterial({
+            color: 0x0ffeef,
+            linewidth: 5,
+            dashed: false,
+        })
+        matLine.resolution.set(window.innerWidth, window.innerHeight)
+        //@ts-ignore
+        const line = new Line2(geometry, matLine)
+        line.computeLineDistances()
+        line.scale.set(1, 1, 1)
+        line.onBeforeRender = () => {
+            matLine.resolution.set(window.innerWidth, window.innerHeight)
+        }
+        line.position.z = 2
+        scene.add(line)
+    })()
+    ;(() => {
+        const positions = new THREE.EdgesGeometry(
+            new THREE.BoxGeometry()
+        ).getAttribute("position").array
+
+        const geometry = new InstancedLineSegmentsGeometry()
+        geometry.setPositions(positions)
+        const matLine = new InstancedLineMaterial({
+            color: 0xfffe0f,
+            linewidth: 5,
+            dashed: false,
+        })
+        matLine.resolution.set(window.innerWidth, window.innerHeight)
+        //@ts-ignore
+        const line = new Line2(geometry, matLine)
+        line.computeLineDistances()
+        line.scale.set(1, 1, 1)
+        line.onBeforeRender = () => {
+            matLine.resolution.set(window.innerWidth, window.innerHeight)
+        }
+        line.position.z = -2
+        scene.add(line)
+    })()
+    ;(() => {
+        const positions = new THREE.EdgesGeometry(
+            new THREE.BoxGeometry()
+        ).getAttribute("position").array
+        const geometry = new InstancedLineSegmentsGeometry()
+        // geometry.setPositions(new Float32Array([0, 0, 0, 1.25, 0, 0]))
+        geometry.setPositions(positions)
+
+        const matLine = new InstancedLineMaterial({
+            color: 0xff66aa,
+            linewidth: 6,
+            dashed: false,
+        })
+        matLine.resolution.set(window.innerWidth, window.innerHeight)
+
+        const line = new THREE.InstancedMesh(geometry, matLine, 8 * 8)
+        const matrix = new THREE.Matrix4()
+        const position = new THREE.Vector3()
+        const rotation = new THREE.Quaternion()
+        const scale = new THREE.Vector3(1, 1, 1)
+
+        for (let i = 0; i < line.count; i++) {
+            position.set(0, 0, 2 * i)
+            // const angle = (i / line.count) * Math.PI * 2
+            // position.set(Math.cos(angle) * 2.5, Math.sin(angle) * 1.5, 0)
+            // rotation.setFromEuler(new THREE.Euler(0, 0, angle))
+            matrix.compose(position, rotation, scale)
+            line.setMatrixAt(i, matrix)
+        }
+        // line.instanceMatrix.meshPerAttribute = 2
+
+        line.instanceMatrix.needsUpdate = true
+        line.onBeforeRender = () => {
+            matLine.resolution.set(window.innerWidth, window.innerHeight)
+        }
+        line.position.set(-3, 0, 0)
+        scene.add(line)
+    })()
+    ;(() => {
+        // const positions = new THREE.EdgesGeometry(
+        // new THREE.BoxGeometry(2,1,1,2,2,2)
+        // ).getAttribute("position").array
+        const positions = new THREE.BoxGeometry(1, 1, 1, 4, 4, 4).getAttribute(
+            "position"
+        ).array
+
+        const geometry = new MultiInstanceLineSegmentsGeometry()
+        geometry.setPositions(positions as Float32Array)
+
+        const matLine = new MultiInstanceLineMaterial({
+            color: 0x55ff88,
+            linewidth: 10,
+            dashed: false,
+        })
+        matLine.resolution.set(window.innerWidth, window.innerHeight)
+
+        const line = new MultiInstanceLineSegments(geometry, matLine, 20)
+        const matrix = new THREE.Matrix4()
+        const position = new THREE.Vector3()
+        const rotation = new THREE.Quaternion()
+        const scale = new THREE.Vector3(1, 1, 1)
+        const color = new THREE.Color()
+
+        for (let i = 0; i < line.count; i++) {
+            position.set(0, 0, 2 * i)
+            rotation.identity()
+            matrix.compose(position, rotation, scale)
+            line.setMatrixAt(i, matrix)
+            // color.setHSL(i / line.count, 0.85, 0.6)
+            // line.setColorAt(i, color)
+        }
+
+        line.onBeforeRender = () => {
+            matLine.resolution.set(window.innerWidth, window.innerHeight)
+        }
+        line.position.set(-5, 0, 0)
+
+        scene.add(line)
+    })()
+
+    // //@ts-ignore
+    // const instanceBuffer2 = new InstancedInterleavedBuffer(
+    // 	//@ts-ignore
+    //     new Float32Array(lineSegments),
+    //     6,
+    //     8
+    // ) // xyz, xyz
+    // console.log({lineSegments})
+    // console.log({instanceBuffer})
+    // console.log({instanceBuffer2})
 
     layout.addResizeListener(renderer, camera, render)
 
