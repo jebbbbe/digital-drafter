@@ -6,7 +6,7 @@ import { SVGRenderer } from "three/examples/jsm/renderers/SVGRenderer.js"
 import { orders } from "../draft/materialManager"
 import { getMaxRenderTargetSize } from "../utils/capabilities"
 import { downloadBlob, saveAsGlb, saveAsGltf } from "../utils/loader"
-import { camera, drafter, orbitControls, renderer, scene } from "../main"
+import { camera, drafter, interactionManager, orbitControls, renderer, scene } from "../main"
 import { cube } from "../main"
 
 const exportSize = new THREE.Vector2()
@@ -29,6 +29,21 @@ export function saveCubeAsGlb(): void {
 
 export function saveCubeAsGltf(): void {
     void saveAsGltf(cube, "cube.gltf")
+}
+
+function downloadExport(
+    filename: string,
+    source: Blob | BlobPart[] | null,
+    type?: string
+): void {
+    if (!source) {
+        return
+    }
+
+    const blob =
+        source instanceof Blob ? source : new Blob(source, type ? { type } : {})
+
+    downloadBlob(blob, filename)
 }
 
 export function downloadSvg(
@@ -57,10 +72,7 @@ export function downloadSvg(
     }
 
     const serializedSvg = new XMLSerializer().serializeToString(svgElement)
-    downloadBlob(
-        new Blob([serializedSvg], { type: "image/svg+xml;charset=utf-8" }),
-        filename
-    )
+    downloadExport(filename, [serializedSvg], "image/svg+xml;charset=utf-8")
 
     disposeSvgExportScene(exportScene)
 }
@@ -77,7 +89,26 @@ export function downloadSceneAsObj(
     const exportScene = createObjExportScene(sourceScene)
     const obj = exporter.parse(exportScene)
 
-    downloadBlob(new Blob([obj], { type: "text/plain;charset=utf-8" }), filename)
+    downloadExport(filename, [obj], "text/plain;charset=utf-8")
+
+    disposeObjExportScene(exportScene)
+}
+
+export function downloadSelectedObjectAsObj(filename = "object.obj"): void {
+    const node = interactionManager.selection.firstNode()
+    if (!node || node.location.index < 0) {
+        return
+    }
+
+    const exporter = new OBJExporter()
+
+    orbitControls.update()
+    scene.updateMatrixWorld(true)
+
+    const exportScene = createSelectedObjectObjScene(node.location)
+    const obj = exporter.parse(exportScene)
+
+    downloadExport(filename, [obj], "text/plain;charset=utf-8")
 
     disposeObjExportScene(exportScene)
 }
@@ -175,6 +206,18 @@ function createObjExportScene(sourceScene: THREE.Scene): THREE.Scene {
     return exportScene
 }
 
+function createSelectedObjectObjScene(location: {
+    id: number
+    index: number
+}): THREE.Scene {
+    const exportScene = new THREE.Scene()
+    const instanceItem = drafter.getInstance(location.id)
+
+    addInstancedObjObject(exportScene, instanceItem.instances.mesh, location.index)
+
+    return exportScene
+}
+
 function addInstancedObjObjects(
     exportScene: THREE.Scene,
     source: InstancedRenderable
@@ -184,53 +227,61 @@ function addInstancedObjObjects(
     }
 
     for (let index = 0; index < source.count; index++) {
-        const geometry = getInstancedObjGeometry(source, index)
-        if (!geometry) {
-            continue
-        }
-
-        const objObject = instantiateSvgObject(
-            source,
-            geometry,
-            getObjectMaterial(source)
-        )
-        if (!objObject) {
-            if (geometry.userData.exportDisposable) {
-                geometry.dispose()
-            }
-            continue
-        }
-
-        if (usesBakedTreeGeometry(source.material)) {
-            worldMatrix.copy(source.matrixWorld)
-        } else {
-            readInstanceTransformMatrix(source, index, instanceMatrix)
-            worldMatrix.multiplyMatrices(source.matrixWorld, instanceMatrix)
-        }
-
-        if (isGroundedObjLine(objObject)) {
-            const groundedGeometry = createGroundedWorldLineGeometry(
-                geometry,
-                worldMatrix
-            )
-
-            if (geometry.userData.exportDisposable) {
-                geometry.dispose()
-            }
-
-            ;(objObject as THREE.Line).geometry = groundedGeometry
-            objObject.matrixAutoUpdate = false
-            objObject.matrix.identity()
-            objObject.matrixWorld.identity()
-        } else {
-            objObject.matrixAutoUpdate = false
-            objObject.matrix.copy(worldMatrix)
-            objObject.matrixWorld.copy(worldMatrix)
-        }
-
-        objObject.renderOrder = source.renderOrder
-        exportScene.add(objObject)
+        addInstancedObjObject(exportScene, source, index)
     }
+}
+
+function addInstancedObjObject(
+    exportScene: THREE.Scene,
+    source: InstancedRenderable,
+    index: number
+): void {
+    const geometry = getInstancedObjGeometry(source, index)
+    if (!geometry) {
+        return
+    }
+
+    const objObject = instantiateSvgObject(
+        source,
+        geometry,
+        getObjectMaterial(source)
+    )
+    if (!objObject) {
+        if (geometry.userData.exportDisposable) {
+            geometry.dispose()
+        }
+        return
+    }
+
+    if (usesBakedTreeGeometry(source.material)) {
+        worldMatrix.copy(source.matrixWorld)
+    } else {
+        readInstanceTransformMatrix(source, index, instanceMatrix)
+        worldMatrix.multiplyMatrices(source.matrixWorld, instanceMatrix)
+    }
+
+    if (isGroundedObjLine(objObject)) {
+        const groundedGeometry = createGroundedWorldLineGeometry(
+            geometry,
+            worldMatrix
+        )
+
+        if (geometry.userData.exportDisposable) {
+            geometry.dispose()
+        }
+
+        ;(objObject as THREE.Line).geometry = groundedGeometry
+        objObject.matrixAutoUpdate = false
+        objObject.matrix.identity()
+        objObject.matrixWorld.identity()
+    } else {
+        objObject.matrixAutoUpdate = false
+        objObject.matrix.copy(worldMatrix)
+        objObject.matrixWorld.copy(worldMatrix)
+    }
+
+    objObject.renderOrder = source.renderOrder
+    exportScene.add(objObject)
 }
 
 function addInstancedSvgObjects(
@@ -875,10 +926,6 @@ export function downloadImage(
     renderTarget.dispose()
 
     canvas.toBlob((blob) => {
-        if (!blob) {
-            return
-        }
-
-        downloadBlob(blob, filename)
+        downloadExport(filename, blob)
     }, "image/png")
 }

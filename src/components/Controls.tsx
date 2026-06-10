@@ -302,6 +302,10 @@ function Controls() {
                 () => controls.startIntersectionFromSelection(),
                 { disabled: true }
             ),
+            "Save Object": button(
+                () => controls.downloadSelectedObjectAsObj(),
+                { disabled: true }
+            ),
         })
 
         return {

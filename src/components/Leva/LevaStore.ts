@@ -33,6 +33,7 @@ export const panelPaths = {
     stubUnion: "Selection.Union View",
     stubDifference: "Selection.Difference View",
     stubIntersect: "Selection.Intersect View",
+    stubSaveObject: "Selection.Save Object",
 }
 
 type DisplayTheme = {
@@ -122,6 +123,7 @@ function setButtonsDisabled(disabled: boolean = true) {
     levaStore.setSettingsAtPath(panelPaths.stubUnion, { disabled })
     levaStore.setSettingsAtPath(panelPaths.stubDifference, { disabled })
     levaStore.setSettingsAtPath(panelPaths.stubIntersect, { disabled })
+    levaStore.setSettingsAtPath(panelPaths.stubSaveObject, { disabled })
 }
 
 export function setStubDisabled(disabled: boolean = true) {
