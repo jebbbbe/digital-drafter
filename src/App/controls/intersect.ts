@@ -1,11 +1,12 @@
 import * as THREE from "three"
 import { Brush } from "three-bvh-csg"
+import type { CSGOperation } from "three-bvh-csg"
+
 import { drafter, interactionManager } from "../main"
 import type { TransformNode } from "../draft/TransformNode"
 import { evaluateCSG, boolean } from "../utils/csg"
 
 const _brushOffset = new THREE.Matrix4()
-
 
 function createNodeBrush(node: TransformNode, yOffset = 0): Brush {
     const sourceBrush = drafter.getInstance(node.location.id).brush
@@ -23,7 +24,7 @@ export function intersectTwoNodes(
     nodeA: TransformNode,
     nodeB: TransformNode,
     yOffset = 0,
-    operation = boolean.union
+    operation: CSGOperation = boolean.union
 ) {
     console.log(nodeA, nodeB)
 
@@ -47,7 +48,10 @@ export function intersectTwoNodes(
 }
 
 const _offset = new THREE.Vector3(0, 0, -2)
-export function startIntersection(startNode: TransformNode) {
+export function startIntersection(
+    startNode: TransformNode,
+    operation = boolean.union
+) {
     let squaredDist = Infinity
     let closestNode: TransformNode | undefined
 
@@ -81,8 +85,8 @@ export function startIntersection(startNode: TransformNode) {
     const brushResult = intersectTwoNodes(
         startNode,
         closestNode,
-        yOffset
-        // boolean.intersection,
+        yOffset,
+        operation
     )
     if (!brushResult) return
 
@@ -102,5 +106,17 @@ export function startIntersection(startNode: TransformNode) {
 export function startIntersectionFromSelection() {
     const node = interactionManager.selection.firstNode()
     if (!node) return
-    startIntersection(node)
+    startIntersection(node, boolean.intersection)
+}
+
+export function startUnionFromSelection() {
+    const node = interactionManager.selection.firstNode()
+    if (!node) return
+    startIntersection(node, boolean.union)
+}
+
+export function startDifferenceFromSelection() {
+    const node = interactionManager.selection.firstNode()
+    if (!node) return
+    startIntersection(node, boolean.difference)
 }

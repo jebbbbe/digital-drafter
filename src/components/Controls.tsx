@@ -291,10 +291,16 @@ function Controls() {
             "Detach View": button(() => controls.detachFirstObject(), {
                 disabled: true,
             }),
+            "Union View": button(() => controls.startUnionFromSelection(), {
+                disabled: true,
+            }),
+            "Difference View": button(
+                () => controls.startDifferenceFromSelection(),
+                { disabled: true }
+            ),
             "Intersect View": button(
-                () => controls.startIntersectionFromSelection(),{ disabled: true 
-					
-				}
+                () => controls.startIntersectionFromSelection(),
+                { disabled: true }
             ),
         })
 

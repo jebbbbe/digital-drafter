@@ -321,3 +321,34 @@ export function createMengerSpongeCSG(iter = 1): THREE.BufferGeometry {
 export function makeCube(x = 1, y = 1, z = 1) {
     return new THREE.BoxGeometry(x, y, z)
 }
+
+export function makeSphereGeometry(
+    radius = 1,
+    widthSegments = 32,
+    heightSegments = 16
+) {
+    return new THREE.SphereGeometry(radius, widthSegments, heightSegments)
+}
+
+export function makeConeGeometry(
+    radius = 1,
+    height = 2,
+    radiusSegments = 15,
+    hightSegments = 1
+) {
+    return new THREE.ConeGeometry(radius, height, radiusSegments, hightSegments)
+}
+
+export function makeTorusGeometry(
+    radius = 1,
+    tube = 0.4,
+    radialSegments = 12,
+    tubularSegments = 48
+) {
+    return new THREE.TorusGeometry(
+        radius,
+        tube,
+        radialSegments,
+        tubularSegments
+    )
+}

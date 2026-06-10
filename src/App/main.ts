@@ -108,17 +108,17 @@ export function init(container: HTMLElement): () => void {
     if (r < 1 / 3) {
         // prettier-ignore
         drafter.newInstance(geometryLibrary.custom)
-        drafter.newInstance(geometryLibrary.asterisk)
+        drafter.newInstance(geometryLibrary.cube)
         drafter.newInstance(geometryLibrary.asteriskBox)
     } else if (r < 2 / 3) {
         // prettier-ignore
-        drafter.newInstance(geometryLibrary.asterisk)
+        drafter.newInstance(geometryLibrary.cube)
         drafter.newInstance(geometryLibrary.asteriskBox)
         drafter.newInstance(geometryLibrary.custom)
     } else {
         drafter.newInstance(geometryLibrary.asteriskBox)
         drafter.newInstance(geometryLibrary.custom)
-        drafter.newInstance(geometryLibrary.asterisk)
+        drafter.newInstance(geometryLibrary.cube)
     }
 
     const scale = 1 // rand.random(0.75, 1.5)
