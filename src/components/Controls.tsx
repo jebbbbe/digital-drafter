@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { controls } from "../App/index"
 import { button, buttonGroup, folder, Leva, useControls } from "leva"
 import { constants } from "../App/constants"
@@ -304,6 +304,10 @@ function Controls() {
             ),
             "Save Object": button(
                 () => controls.downloadSelectedObjectAsObj(),
+                { disabled: true }
+            ),
+            "Add Object to Library": button(
+                () => controls.addObjectToLibraryFromSelection(),
                 { disabled: true }
             ),
         })

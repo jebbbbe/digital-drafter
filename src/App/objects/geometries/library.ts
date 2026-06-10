@@ -1,3 +1,4 @@
+import * as THREE from "three"
 import {
     makeCube,
     makeAsterisk,
@@ -10,7 +11,7 @@ import {
     makeTorusGeometry,
 } from "./geometry"
 
-export const geometryLibrary = {
+export const geometryLibrary: Record<string, THREE.BufferGeometry> = {
     cube: makeCube(),
     rectangle: makeCube(1, 0.5, 0.5),
     cone: makeConeGeometry(),
@@ -25,7 +26,7 @@ export const geometryLibrary = {
     menger: createMengerSpongeCSG(2),
 }
 
-export const geometryTitles = {
+export const geometryTitles: Record<string, THREE.BufferGeometry> = {
     Cube: geometryLibrary.cube,
     Rectangle: geometryLibrary.rectangle,
     Cone: geometryLibrary.cone,

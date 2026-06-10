@@ -4,9 +4,11 @@ import { drafter, interactionManager } from "../main"
 import type { TransformNode } from "../draft/TransformNode"
 import {
     enableRootStub,
+    syncLevaInsertOptions,
     syncLevaDisplayStub,
 } from "../../components/Leva/LevaStore"
 import { attachInsertGeometry } from "./move"
+import { geometryLibrary, geometryTitles } from "../objects/geometries/library"
 const PI = Math.PI
 const PIo2 = PI / 2
 const _position = new THREE.Vector3()
@@ -206,6 +208,40 @@ export function insertGeometry(geo: THREE.BufferGeometry) {
     const node = drafter.addRootNode(rootNode)
     if (!node) return
     attachInsertGeometry(node)
+}
+
+function addGeometryToLibrary(
+    geometry: THREE.BufferGeometry,
+    _baseTitle = "Custom"
+): { key: string; title: string; geometry: THREE.BufferGeometry } {
+    let suffix = 1
+    let key = `custom${suffix}`
+
+    while (key in geometryLibrary || `Custom ${suffix}` in geometryTitles) {
+        suffix++
+        key = `custom${suffix}`
+    }
+
+    const nextGeometry = geometry.clone()
+    geometryLibrary[key] = nextGeometry
+    geometryTitles[`Custom ${suffix}`] = geometryLibrary[key]
+
+    return {
+        key,
+        title: `Custom ${suffix}`,
+        geometry: nextGeometry,
+    }
+}
+
+export function addObjectToLibraryFromSelection(): void {
+    const node = interactionManager.selection.firstNode()
+    if (!node) return
+
+    const instanceItem = drafter.getInstance(node.location.id)
+    const baseTitle = instanceItem.geometry.name || "Object"
+
+    addGeometryToLibrary(instanceItem.geometry, baseTitle)
+    syncLevaInsertOptions(geometryTitles)
 }
 
 export function detachNodeFromSelection() {

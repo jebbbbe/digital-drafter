@@ -24,7 +24,6 @@ export const panelPaths = {
     stubRot: "Selection.rotate",
     stubScale: "Selection.scale",
     stubButton: "Selection.buttonGroup", // not able to disable..?
-
     stubAdd: "Selection.Add View",
     stubDelete: "Selection.Delete View",
     stubCut: "Selection.Section Cut",
@@ -34,6 +33,7 @@ export const panelPaths = {
     stubDifference: "Selection.Difference View",
     stubIntersect: "Selection.Intersect View",
     stubSaveObject: "Selection.Save Object",
+    stubAddLibrary: "Selection.Add Object to Library",
 }
 
 type DisplayTheme = {
@@ -124,6 +124,7 @@ function setButtonsDisabled(disabled: boolean = true) {
     levaStore.setSettingsAtPath(panelPaths.stubDifference, { disabled })
     levaStore.setSettingsAtPath(panelPaths.stubIntersect, { disabled })
     levaStore.setSettingsAtPath(panelPaths.stubSaveObject, { disabled })
+    levaStore.setSettingsAtPath(panelPaths.stubAddLibrary, { disabled })
 }
 
 export function setStubDisabled(disabled: boolean = true) {
@@ -151,4 +152,20 @@ export function setLevaInsertDefault() {
     const sync = {} as any
     sync[panelPaths.insert] = "..."
     levaStore.set(sync, false)
+}
+
+export function syncLevaInsertOptions(_options: Record<string, unknown>) {
+    const path = panelPaths.insert
+    const options = {
+        "...": "...",
+        ..._options,
+    }
+    const keys = Object.keys(options)
+    const values = Object.values(options)
+    levaStore.setSettingsAtPath(path, {
+        keys,
+        values,
+    })
+    // console.log(levaStore)
+    // console.log(levaStore.getData()["Insert"])
 }
