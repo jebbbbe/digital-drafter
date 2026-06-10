@@ -1,10 +1,12 @@
 import * as THREE from "three"
+import { OBJExporter } from "three/examples/jsm/exporters/OBJExporter.js"
 import { FoldLineMaterial } from "../objects/materials/FoldLineMaterial"
 import { InstancedProjectionMaterial } from "../objects/materials/InstancedProjectionMaterial"
 import { SVGRenderer } from "three/examples/jsm/renderers/SVGRenderer.js"
+import { orders } from "../draft/materialManager"
 import { getMaxRenderTargetSize } from "../utils/capabilities"
 import { downloadBlob, saveAsGlb, saveAsGltf } from "../utils/loader"
-import { camera, orbitControls, renderer, scene } from "../main"
+import { camera, drafter, orbitControls, renderer, scene } from "../main"
 import { cube } from "../main"
 
 const exportSize = new THREE.Vector2()
@@ -63,6 +65,23 @@ export function downloadSvg(
     disposeSvgExportScene(exportScene)
 }
 
+export function downloadSceneAsObj(
+    sourceScene: THREE.Scene = scene,
+    filename = "scene.obj"
+): void {
+    const exporter = new OBJExporter()
+
+    orbitControls.update()
+    sourceScene.updateMatrixWorld(true)
+
+    const exportScene = createObjExportScene(sourceScene)
+    const obj = exporter.parse(exportScene)
+
+    downloadBlob(new Blob([obj], { type: "text/plain;charset=utf-8" }), filename)
+
+    disposeObjExportScene(exportScene)
+}
+
 type InstancedRenderable = THREE.Object3D & {
     isInstancedMesh: true
     count: number
@@ -95,6 +114,125 @@ function createSvgExportScene(sourceScene: THREE.Scene): THREE.Scene {
     return exportScene
 }
 
+function createObjExportScene(sourceScene: THREE.Scene): THREE.Scene {
+    const exportScene = new THREE.Scene()
+
+    sourceScene.traverseVisible((object) => {
+        if (object === sourceScene) {
+            return
+        }
+
+        if (isInstancedRenderable(object)) {
+            addInstancedObjObjects(exportScene, object)
+            return
+        }
+
+        if (!shouldExportPlainObjObject(object)) {
+            return
+        }
+
+        const geometry = getObjGeometry(object)
+        if (!geometry) {
+            return
+        }
+
+        const objObject = instantiateSvgObject(
+            object,
+            geometry,
+            getObjectMaterial(object)
+        )
+        if (!objObject) {
+            if (geometry.userData.exportDisposable) {
+                geometry.dispose()
+            }
+            return
+        }
+
+        if (isGroundedObjLine(objObject)) {
+            const groundedGeometry = createGroundedWorldLineGeometry(
+                geometry,
+                object.matrixWorld
+            )
+
+            if (geometry.userData.exportDisposable) {
+                geometry.dispose()
+            }
+
+            ;(objObject as THREE.Line).geometry = groundedGeometry
+            objObject.matrixAutoUpdate = false
+            objObject.matrix.identity()
+            objObject.matrixWorld.identity()
+        } else {
+            objObject.matrixAutoUpdate = false
+            objObject.matrix.copy(object.matrixWorld)
+            objObject.matrixWorld.copy(object.matrixWorld)
+        }
+
+        objObject.renderOrder = object.renderOrder
+        exportScene.add(objObject)
+    })
+
+    return exportScene
+}
+
+function addInstancedObjObjects(
+    exportScene: THREE.Scene,
+    source: InstancedRenderable
+): void {
+    if (!shouldExportInstancedObjObject(source)) {
+        return
+    }
+
+    for (let index = 0; index < source.count; index++) {
+        const geometry = getInstancedObjGeometry(source, index)
+        if (!geometry) {
+            continue
+        }
+
+        const objObject = instantiateSvgObject(
+            source,
+            geometry,
+            getObjectMaterial(source)
+        )
+        if (!objObject) {
+            if (geometry.userData.exportDisposable) {
+                geometry.dispose()
+            }
+            continue
+        }
+
+        if (usesBakedTreeGeometry(source.material)) {
+            worldMatrix.copy(source.matrixWorld)
+        } else {
+            readInstanceTransformMatrix(source, index, instanceMatrix)
+            worldMatrix.multiplyMatrices(source.matrixWorld, instanceMatrix)
+        }
+
+        if (isGroundedObjLine(objObject)) {
+            const groundedGeometry = createGroundedWorldLineGeometry(
+                geometry,
+                worldMatrix
+            )
+
+            if (geometry.userData.exportDisposable) {
+                geometry.dispose()
+            }
+
+            ;(objObject as THREE.Line).geometry = groundedGeometry
+            objObject.matrixAutoUpdate = false
+            objObject.matrix.identity()
+            objObject.matrixWorld.identity()
+        } else {
+            objObject.matrixAutoUpdate = false
+            objObject.matrix.copy(worldMatrix)
+            objObject.matrixWorld.copy(worldMatrix)
+        }
+
+        objObject.renderOrder = source.renderOrder
+        exportScene.add(objObject)
+    }
+}
+
 function addInstancedSvgObjects(
     exportScene: THREE.Scene,
     source: InstancedRenderable
@@ -124,7 +262,7 @@ function addInstancedSvgObjects(
         const svgObject = instantiateSvgObject(source, geometry, material)
         if (!svgObject) {
             disposeSvgMaterial(material)
-            if (geometry.userData.svgExportDisposable) {
+            if (geometry.userData.exportDisposable) {
                 geometry.dispose()
             }
             continue
@@ -189,19 +327,35 @@ function getInstancedSvgGeometry(
     index: number
 ): THREE.BufferGeometry | undefined {
     if (hasProjectionMaterial(source.material)) {
-        return createProjectionSvgGeometry(source, index)
+        return createProjectionGeometry(source, index, false)
     }
 
     if (hasFoldMaterial(source.material)) {
-        return createFoldSvgGeometry(source, index)
+        return createFoldGeometry(source, index, 10)
     }
 
     return getSvgGeometry(source)
 }
 
-function createProjectionSvgGeometry(
+function getInstancedObjGeometry(
     source: InstancedRenderable,
     index: number
+): THREE.BufferGeometry | undefined {
+    if (hasProjectionMaterial(source.material)) {
+        return createProjectionGeometry(source, index, true)
+    }
+
+    if (hasFoldMaterial(source.material)) {
+        return createFoldGeometry(source, index, 0)
+    }
+
+    return getObjGeometry(source)
+}
+
+function createProjectionGeometry(
+    source: InstancedRenderable,
+    index: number,
+    flattenY: boolean
 ): THREE.BufferGeometry | undefined {
     const position = source.geometry.getAttribute("position")
     if (!position) {
@@ -227,7 +381,10 @@ function createProjectionSvgGeometry(
         childPoint.set(x, y, z).applyMatrix4(instanceMatrix)
         parentPoint.set(x, y, z).applyMatrix4(parentMatrix)
 
-        if (childPoint.y <= 0 || parentPoint.y <= 0) {
+        if (flattenY) {
+            childPoint.y = 0
+            parentPoint.y = 0
+        } else if (childPoint.y <= 0 || parentPoint.y <= 0) {
             childPoint.y = -5
             parentPoint.y = -5
         }
@@ -239,9 +396,10 @@ function createProjectionSvgGeometry(
     return createLineSegmentsGeometryFromPositions(positions)
 }
 
-function createFoldSvgGeometry(
+function createFoldGeometry(
     source: InstancedRenderable,
-    index: number
+    index: number,
+    y: number
 ): THREE.BufferGeometry | undefined {
     if (!readTreeDataSlot(source, index, instanceMatrix, treeDataMetadata)) {
         return
@@ -274,16 +432,16 @@ function createFoldSvgGeometry(
 
     const positions = new Float32Array(12)
     positions[0] = childPos2.x + foldDir.x + foldNorm.x
-    positions[1] = 10
+    positions[1] = y
     positions[2] = childPos2.y + foldDir.y + foldNorm.y
     positions[3] = childPos2.x + foldDir.x - foldNorm.x
-    positions[4] = 10
+    positions[4] = y
     positions[5] = childPos2.y + foldDir.y - foldNorm.y
     positions[6] = parentPos2.x - foldDir.x + foldNorm.x
-    positions[7] = 10
+    positions[7] = y
     positions[8] = parentPos2.y - foldDir.y + foldNorm.y
     positions[9] = parentPos2.x - foldDir.x - foldNorm.x
-    positions[10] = 10
+    positions[10] = y
     positions[11] = parentPos2.y - foldDir.y - foldNorm.y
 
     return createLineSegmentsGeometryFromPositions(positions)
@@ -432,13 +590,46 @@ function getSvgGeometry(
     return geometry
 }
 
+function getObjGeometry(
+    source: THREE.Object3D | InstancedRenderable
+): THREE.BufferGeometry | undefined {
+    const geometry = (source as any).geometry as THREE.BufferGeometry | undefined
+    if (!geometry) {
+        return
+    }
+
+    if (isDataTextureLineGeometry(geometry)) {
+        return createLineSegmentsGeometryFromPositions(geometry.typedArray)
+    }
+
+    return geometry
+}
+
 function createLineSegmentsGeometryFromPositions(
     positions: THREE.TypedArray
 ): THREE.BufferGeometry {
     const geometry = new THREE.BufferGeometry()
     geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3))
-    geometry.userData.svgExportDisposable = true
+    geometry.userData.exportDisposable = true
     return geometry
+}
+
+function createGroundedWorldLineGeometry(
+    geometry: THREE.BufferGeometry,
+    matrix: THREE.Matrix4
+): THREE.BufferGeometry {
+    const position = geometry.getAttribute("position")
+    const positions = new Float32Array(position.count * 3)
+
+    for (let index = 0; index < position.count; index++) {
+        childPoint
+            .fromBufferAttribute(position, index)
+            .applyMatrix4(matrix)
+        childPoint.y = 0
+        childPoint.toArray(positions, index * 3)
+    }
+
+    return createLineSegmentsGeometryFromPositions(positions)
 }
 
 function createLineSegmentsGeometryFromFatLine(
@@ -515,6 +706,12 @@ function getObjectGeometry(source: THREE.Object3D): THREE.BufferGeometry {
     return (source as any).geometry as THREE.BufferGeometry
 }
 
+function getObjectMaterial(
+    source: THREE.Object3D | InstancedRenderable
+): THREE.Material | THREE.Material[] {
+    return (source as any).material as THREE.Material | THREE.Material[]
+}
+
 function getMaterialColor(
     material: THREE.Material,
     source: THREE.Object3D
@@ -557,6 +754,30 @@ function isFatLineGeometry(geometry: THREE.BufferGeometry): boolean {
     return geometry.getAttribute("instanceStart") !== undefined
 }
 
+function shouldExportInstancedObjObject(source: InstancedRenderable): boolean {
+    if (hasProjectionMaterial(source.material) || hasFoldMaterial(source.material)) {
+        return true
+    }
+
+    if (source.renderOrder === orders.mesh) {
+        return source instanceof THREE.Mesh
+    }
+
+    if (source.renderOrder === orders.line) {
+        return true
+    }
+
+    return false
+}
+
+function shouldExportPlainObjObject(source: THREE.Object3D): boolean {
+    return source === drafter.sectionCutter.mesh
+}
+
+function isGroundedObjLine(object: THREE.Object3D): object is THREE.Line {
+    return object instanceof THREE.Line
+}
+
 function disposeSvgExportScene(exportScene: THREE.Scene): void {
     exportScene.traverse((object) => {
         const material = (object as any).material as
@@ -567,7 +788,16 @@ function disposeSvgExportScene(exportScene: THREE.Scene): void {
         disposeSvgMaterial(material)
 
         const geometry = (object as any).geometry as THREE.BufferGeometry | undefined
-        if (geometry?.userData.svgExportDisposable) {
+        if (geometry?.userData.exportDisposable) {
+            geometry.dispose()
+        }
+    })
+}
+
+function disposeObjExportScene(exportScene: THREE.Scene): void {
+    exportScene.traverse((object) => {
+        const geometry = (object as any).geometry as THREE.BufferGeometry | undefined
+        if (geometry?.userData.exportDisposable) {
             geometry.dispose()
         }
     })

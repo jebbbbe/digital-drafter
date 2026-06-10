@@ -321,6 +321,7 @@ function Controls() {
             Selection,
             "Save Image": button(() => controls.downloadImage()),
             "Save SVG": button(() => controls.downloadSvg()),
+            "Save Scene": button(() => controls.downloadSceneAsObj()),
             Settings,
             ...(Debug ? { Debug } : {}),
         }
