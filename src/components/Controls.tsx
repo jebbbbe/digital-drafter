@@ -320,6 +320,7 @@ function Controls() {
             // Import: button(() => {}, { disabled: true }),
             Selection,
             "Save Image": button(() => controls.downloadImage()),
+            "Save SVG": button(() => controls.downloadSvg()),
             Settings,
             ...(Debug ? { Debug } : {}),
         }
