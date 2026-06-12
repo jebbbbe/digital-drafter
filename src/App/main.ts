@@ -21,6 +21,8 @@ import { InstancedLineSegmentsGeometry } from "./objects/materials/InstancedLine
 import { MultiInstanceLineMaterial } from "./objects/materials/MultiInstanceLineMaterial"
 import { MultiInstanceLineSegmentsGeometry } from "./objects/materials/MultiInstanceLineSegmentsGeometry"
 import { MultiInstanceLineSegments } from "./objects/meshes/MultiInstanceLineSegments"
+import { MatrixTextureLineMaterial } from "./objects/materials/MatrixTextureLineMaterial"
+import { MatrixTextureLineSegmentsGeometry } from "./objects/materials/MatrixTextureLineSegmentsGeometry"
 
 let isAppReady = false
 let statsEnabled = false
@@ -388,6 +390,47 @@ export function init(container: HTMLElement): () => void {
             matLine.resolution.set(window.innerWidth, window.innerHeight)
         }
         line.position.set(-5, 0, 0)
+
+        scene.add(line)
+    })()
+    ;(() => {
+        const positions = new THREE.EdgesGeometry(
+            new THREE.BoxGeometry()
+        ).getAttribute("position").array
+
+        const geometry = new MatrixTextureLineSegmentsGeometry(16, 8)
+        geometry.setPositions(positions as Float32Array)
+
+        const matrix = new THREE.Matrix4()
+        const position = new THREE.Vector3()
+        const rotation = new THREE.Quaternion()
+        const scale = new THREE.Vector3(1, 1, 1)
+
+        for (let i = 0; i < geometry.matrixCount; i++) {
+            position.set(0, 0, 2 * i)
+            rotation.identity()
+            matrix.compose(position, rotation, scale)
+            geometry.setMatrixAt(i, matrix)
+        }
+
+        const matLine = new MatrixTextureLineMaterial({
+            color: 0x44bbff,
+            linewidth: 6,
+            dashed: false,
+        })
+        matLine.instanceMatrices = geometry.instanceMatrixTexture
+        matLine.instanceMatrixCount = geometry.matrixCount
+        matLine.resolution.set(window.innerWidth, window.innerHeight)
+
+        //@ts-ignore
+        const line = new Line2(geometry, matLine)
+        line.frustumCulled = false
+        line.onBeforeRender = () => {
+            geometry.instanceMatrixTexture.needsUpdate = true
+            matLine.instanceMatrixCount = geometry.matrixCount
+            matLine.resolution.set(window.innerWidth, window.innerHeight)
+        }
+        line.position.set(5, 0, 0)
 
         scene.add(line)
     })()
