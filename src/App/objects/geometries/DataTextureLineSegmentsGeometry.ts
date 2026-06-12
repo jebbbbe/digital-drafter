@@ -1,21 +1,18 @@
 import * as THREE from "three"
 
-// const _box = new THREE.Box3()
-// const _vector = new THREE.Vector3()
+const LINE_VERTEX_COUNT = 8
+const LINE_INDEX = [0, 2, 1, 2, 3, 1, 2, 4, 3, 4, 5, 3, 4, 6, 5, 6, 7, 5]
+const LINE_POSITIONS = [
+    -1, 2, 0, 1, 2, 0, -1, 1, 0, 1, 1, 0, -1, 0, 0, 1, 0, 0, -1, -1, 0, 1,
+    -1, 0,
+]
+const LINE_UVS = [-1, 2, 1, 2, -1, 1, 1, 1, -1, -1, 1, -1, -1, -2, 1, -2]
+const _vector = new THREE.Vector3()
+
 /**
- * Builds indexed quad geometry for thick line rendering from segment data, and
- * exposes a matching `DataTexture` for `DataTextureLineMaterial` to read from.
- * Safe to use with InstancedMesh
- * @example
- * ```ts
- * const geo = new DataTextureLineSegmentsGeometry(edges)
- * const mat = new DataTextureLineMaterial({
- *     linewidth: 10,
- *     color: 0xff000,
- *     segments: geo.dataTexture,
- * })
- * const lines = new THREE.Mesh(geo, mat)
- * ```
+ * Builds indexed wide-line topology from segment data and exposes a matching
+ * `DataTexture` for `DataTextureLineMaterial` to read from.
+ * Safe to use with `InstancedMesh`.
  */
 export class DataTextureLineSegmentsGeometry extends THREE.BufferGeometry {
     typedArray!: THREE.TypedArray
@@ -25,7 +22,6 @@ export class DataTextureLineSegmentsGeometry extends THREE.BufferGeometry {
         source?: THREE.TypedArray | THREE.EdgesGeometry | THREE.LineSegments
     ) {
         super()
-        // this.type = 'DataTextureLineSegmentsGeometry';
 
         if (!source) {
             return
@@ -46,52 +42,49 @@ export class DataTextureLineSegmentsGeometry extends THREE.BufferGeometry {
         }
     }
 
-    // setColors(){}
-    // fromWireframeGeometry(){}
     fromTypedArray(segmentPositions: THREE.TypedArray) {
         this.updateIndexBuffer(segmentPositions)
         return this
     }
+
     fromEdgesGeometry(geometry: THREE.EdgesGeometry) {
         const segmentPositions = geometry.getAttribute("position").array
         this.updateIndexBuffer(segmentPositions)
         return this
     }
-    // fromMesh() {}
+
     fromLineSegments(lineSegments: THREE.LineSegments) {
         const geometry = lineSegments.geometry
         const segmentPositions = geometry.getAttribute("position").array
         this.updateIndexBuffer(segmentPositions)
         return this
     }
+
     updateIndexBuffer(segmentPositions: THREE.TypedArray) {
         const segmentCount = segmentPositions.length / 6
-
-        const indices = new Uint32Array(segmentCount * 6)
+        const indices = new Uint32Array(segmentCount * LINE_INDEX.length)
+        const positions = new Float32Array(segmentCount * LINE_POSITIONS.length)
+        const uvs = new Float32Array(segmentCount * LINE_UVS.length)
 
         for (let i = 0; i < segmentCount; i++) {
-            const vertexOffset = i * 4
-            const indexOffset = i * 6
-            indices[indexOffset + 0] = vertexOffset + 0
-            indices[indexOffset + 1] = vertexOffset + 1
-            indices[indexOffset + 2] = vertexOffset + 2
-            indices[indexOffset + 3] = vertexOffset + 2
-            indices[indexOffset + 4] = vertexOffset + 1
-            indices[indexOffset + 5] = vertexOffset + 3
+            const vertexOffset = i * LINE_VERTEX_COUNT
+            const indexOffset = i * LINE_INDEX.length
+            positions.set(LINE_POSITIONS, i * LINE_POSITIONS.length)
+            uvs.set(LINE_UVS, i * LINE_UVS.length)
+
+            for (let j = 0; j < LINE_INDEX.length; j++) {
+                indices[indexOffset + j] = vertexOffset + LINE_INDEX[j]
+            }
         }
 
         this.setIndex(new THREE.Uint32BufferAttribute(indices, 1))
-        // this.index.needsUpdate = true
+        this.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3))
+        this.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2))
         this.typedArray = segmentPositions
         this.createDataTexture(segmentPositions)
     }
-    createDataTexture(segmentPositions: THREE.TypedArray = this.typedArray) {
-        // create data texture here, from refrenced pos buffer.
-        // must set in material.
-        // updates to the buffer bust be passed. tho i think we can modify the base array from this...
 
-        //creates a DataTexture that works as a LineSegment Position buffer.
-        // [a,a, b,b, c,c, ...etc]
+    createDataTexture(segmentPositions: THREE.TypedArray = this.typedArray) {
         const segmentCount = segmentPositions.length / 6
         const segmentTexture = new THREE.DataTexture(
             segmentPositions,
@@ -110,18 +103,50 @@ export class DataTextureLineSegmentsGeometry extends THREE.BufferGeometry {
         this.dataTexture = segmentTexture
         return segmentTexture
     }
+
     computeBoundingBox() {
-        this.boundingBox?.setFromArray(this.typedArray)
+        if (this.boundingBox === null) {
+            this.boundingBox = new THREE.Box3()
+        }
+
+        this.boundingBox.makeEmpty()
+
+        for (let i = 0; i < this.typedArray.length; i += 6) {
+            _vector.fromArray(this.typedArray, i)
+            this.boundingBox.expandByPoint(_vector)
+            _vector.fromArray(this.typedArray, i + 3)
+            this.boundingBox.expandByPoint(_vector)
+        }
     }
+
     computeBoundingSphere() {
-        // bad idea? wont work with raycasting..?
-        this.setAttribute(
-            "position",
-            new THREE.BufferAttribute(this.typedArray, 3)
-        )
+        if (this.boundingSphere === null) {
+            this.boundingSphere = new THREE.Sphere()
+        }
 
-        super.computeBoundingSphere()
+        if (this.boundingBox === null) {
+            this.computeBoundingBox()
+        }
 
-        this.deleteAttribute("position")
+        const center = this.boundingSphere.center
+        this.boundingBox!.getCenter(center)
+
+        let maxRadiusSq = 0
+
+        for (let i = 0; i < this.typedArray.length; i += 6) {
+            _vector.fromArray(this.typedArray, i)
+            maxRadiusSq = Math.max(maxRadiusSq, center.distanceToSquared(_vector))
+            _vector.fromArray(this.typedArray, i + 3)
+            maxRadiusSq = Math.max(maxRadiusSq, center.distanceToSquared(_vector))
+        }
+
+        this.boundingSphere.radius = Math.sqrt(maxRadiusSq)
+
+        if (isNaN(this.boundingSphere.radius)) {
+            console.error(
+                "THREE.DataTextureLineSegmentsGeometry.computeBoundingSphere(): Computed radius is NaN. The position data is likely to have NaN values.",
+                this
+            )
+        }
     }
 }

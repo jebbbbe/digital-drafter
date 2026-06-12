@@ -24,6 +24,25 @@
 
 ### v0.4.0
 
+- INTERFACE
+	- [ ] InstancedLineMaterial
+	- [ ] dataTexture wip finish...
+	- [ ] amtearil/setting default reads
+	- [ ] lineweight in shader, with dash, etc..
+	- [ ] materail resolution tracker, use world space size for lw..?
+	- [ ] small lineweight rasterize...?
+	- [ ] Profile Edge Depthmap Read..?
+	- [ ] gl lines -> normal materail with wireframe?
+
+- [ ] organize
+	- [ ] more classes, import structure
+	- [ ] attachment update lyfecycle
+	- [ ] scale prop on node for datatexture
+	- [ ] class for interaciotn modes to easily add more
+	- [ ] select multiple, gizmo + position ref 
+	- [ ] gizmo offset
+	- [ ] interseciton logic
+
 - [ ] select multiple
     - [ ] window select multiple
     - [ ] transform controls - gizmo origin from multiple selects

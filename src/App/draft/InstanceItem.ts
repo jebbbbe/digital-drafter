@@ -22,6 +22,7 @@ export class InstanceItem {
     buffers: {
         instanceMatrix: THREE.InstancedBufferAttribute // keep for raycast
         nodeSlot: THREE.InstancedBufferAttribute
+        nodeSlotAttributes: THREE.InstancedBufferAttribute[]
     }
     group: THREE.Group
     instances: {
@@ -73,41 +74,50 @@ export class InstanceItem {
                 capacity
             )
         } else {
-            const lineMaterial =
-                materials.line.clone() as DataTextureLineMaterial
             const lineGeometry = new DataTextureLineSegmentsGeometry(
                 geometries.lineGeometry
             )
-            lineMaterial.segments = lineGeometry.dataTexture
-            lineMaterial.resolution.set(window.innerWidth, window.innerHeight)
-            line = new THREE.InstancedMesh(lineGeometry, lineMaterial, capacity)
+            line = new THREE.InstancedMesh(
+                lineGeometry,
+                materials.line as DataTextureLineMaterial,
+                capacity
+            )
             line.onBeforeRender = () => {
-                lineMaterial.resolution.set(
+                const material = line.material as DataTextureLineMaterial
+                material.segments = (
+                    line.geometry as DataTextureLineSegmentsGeometry
+                ).dataTexture
+                material.treeBlockOffset = id
+                material.treeBlockSize = InstanceCount
+                material.instanceMatrixCount = Math.max(1, line.count)
+                material.resolution.set(
                     window.innerWidth,
                     window.innerHeight
                 )
+                material.uniformsNeedUpdate = true
             }
 
-            const outLineMaterial =
-                materials.outline.clone() as DataTextureLineMaterial
             const outLineGeometry = new DataTextureLineSegmentsGeometry(
                 geometries.lineGeometry
             )
-            outLineMaterial.segments = outLineGeometry.dataTexture
-            outLineMaterial.resolution.set(
-                window.innerWidth,
-                window.innerHeight
-            )
             outline = new THREE.InstancedMesh(
                 outLineGeometry,
-                outLineMaterial,
+                materials.outline as DataTextureLineMaterial,
                 capacity
             )
             outline.onBeforeRender = () => {
-                outLineMaterial.resolution.set(
+                const material = outline.material as DataTextureLineMaterial
+                material.segments = (
+                    outline.geometry as DataTextureLineSegmentsGeometry
+                ).dataTexture
+                material.treeBlockOffset = id
+                material.treeBlockSize = InstanceCount
+                material.instanceMatrixCount = Math.max(1, outline.count)
+                material.resolution.set(
                     window.innerWidth,
                     window.innerHeight
                 )
+                material.uniformsNeedUpdate = true
             }
         }
 
@@ -138,17 +148,47 @@ export class InstanceItem {
         proj.renderOrder = orders.proj
         fold.renderOrder = orders.fold
 
+        // need this for raycast and to mirror instance divisor setup
+        const instanceMatrix = mesh.instanceMatrix
+        const nodeSlotMeshPerAttribute = instanceMatrix.meshPerAttribute
+
         // slot lookup
-        const nodeSlot = new THREE.InstancedBufferAttribute(
-            new Float32Array(capacity),
-            1
+        const nodeSlotArray = new Float32Array(capacity)
+        const meshNodeSlot = new THREE.InstancedBufferAttribute(
+            nodeSlotArray,
+            1,
+            false,
+            nodeSlotMeshPerAttribute
         )
-        mesh.geometry.setAttribute("nodeSlot", nodeSlot)
-        line.geometry.setAttribute("nodeSlot", nodeSlot)
-        outline.geometry.setAttribute("nodeSlot", nodeSlot)
-        dash.geometry.setAttribute("nodeSlot", nodeSlot)
-        proj.geometry.setAttribute("nodeSlot", nodeSlot)
-        fold.geometry.setAttribute("nodeSlot", nodeSlot)
+        const dashNodeSlot = new THREE.InstancedBufferAttribute(
+            nodeSlotArray,
+            1,
+            false,
+            nodeSlotMeshPerAttribute
+        )
+        const projNodeSlot = new THREE.InstancedBufferAttribute(
+            nodeSlotArray,
+            1,
+            false,
+            nodeSlotMeshPerAttribute
+        )
+        const foldNodeSlot = new THREE.InstancedBufferAttribute(
+            nodeSlotArray,
+            1,
+            false,
+            nodeSlotMeshPerAttribute
+        )
+        const nodeSlotAttributes = [
+            meshNodeSlot,
+            dashNodeSlot,
+            projNodeSlot,
+            foldNodeSlot,
+        ]
+
+        mesh.geometry.setAttribute("nodeSlot", meshNodeSlot)
+        dash.geometry.setAttribute("nodeSlot", dashNodeSlot)
+        proj.geometry.setAttribute("nodeSlot", projNodeSlot)
+        fold.geometry.setAttribute("nodeSlot", foldNodeSlot)
 
         // set frustumCulled
         mesh.frustumCulled = false
@@ -157,9 +197,6 @@ export class InstanceItem {
         dash.frustumCulled = false
         proj.frustumCulled = false
         fold.frustumCulled = false
-
-        // need this for raycast
-        const instanceMatrix = mesh.instanceMatrix
 
         // userdata for raycast lookups
         // copy all info to isntancces.
@@ -187,7 +224,8 @@ export class InstanceItem {
         this.localTransform = localTransform
         this.buffers = {
             instanceMatrix,
-            nodeSlot,
+            nodeSlot: meshNodeSlot,
+            nodeSlotAttributes,
         }
         this.group = group
         this.instances = {
@@ -226,7 +264,10 @@ export class InstanceItem {
     updateSharedBuffers(matrix: THREE.Matrix4): void {
         const index = this.count
         setInstanceMatrixAt(this.buffers.instanceMatrix, index, matrix)
-        updateBufferRanges(index, this.buffers)
+        updateBufferRanges(index, {
+            instanceMatrix: this.buffers.instanceMatrix,
+            nodeSlot: this.buffers.nodeSlotAttributes,
+        })
         // inc count to draw visible.
         this.incrementInstanceCount()
     }
@@ -239,7 +280,10 @@ export class InstanceItem {
             node.compoundMatrix
         )
         setUintAttributeAt(this.buffers.nodeSlot, index, slot)
-        updateBufferRanges(index, this.buffers)
+        updateBufferRanges(index, {
+            instanceMatrix: this.buffers.instanceMatrix,
+            nodeSlot: this.buffers.nodeSlotAttributes,
+        })
     }
 
     computeBoundingSphere(): void {
@@ -251,10 +295,7 @@ export class InstanceItem {
 
     patch(geometry: THREE.BufferGeometry): InstanceItem {
         const geometries = brushCleaner(geometry)
-        const { mesh, line, outline, dash, proj } = this.instances
-        const nodeSlot = mesh.geometry.getAttribute(
-            "nodeSlot"
-        ) as THREE.BufferAttribute
+        const { mesh, line, outline, dash, proj, fold } = this.instances
 
         if (activeMaterialLib === "gl_Line") {
             line.geometry.dispose()
@@ -273,16 +314,6 @@ export class InstanceItem {
             line.geometry = nextLineGeometry
             outline.geometry.dispose()
             outline.geometry = nextOutlineGeometry
-            ;(
-                line.material as THREE.ShaderMaterial & {
-                    segments: THREE.DataTexture | null
-                }
-            ).segments = nextLineGeometry.dataTexture
-            ;(
-                outline.material as THREE.ShaderMaterial & {
-                    segments: THREE.DataTexture | null
-                }
-            ).segments = nextOutlineGeometry.dataTexture
         }
         mesh.geometry.dispose()
         mesh.geometry = geometries.meshGeometry
@@ -293,11 +324,12 @@ export class InstanceItem {
         dash.computeLineDistances()
 
         //set node slot
-        mesh.geometry.setAttribute("nodeSlot", nodeSlot)
-        line.geometry.setAttribute("nodeSlot", nodeSlot)
-        outline.geometry.setAttribute("nodeSlot", nodeSlot)
-        dash.geometry.setAttribute("nodeSlot", nodeSlot)
-        proj.geometry.setAttribute("nodeSlot", nodeSlot)
+        const [meshNodeSlot, dashNodeSlot, projNodeSlot, foldNodeSlot] =
+            this.buffers.nodeSlotAttributes
+        mesh.geometry.setAttribute("nodeSlot", meshNodeSlot)
+        dash.geometry.setAttribute("nodeSlot", dashNodeSlot)
+        proj.geometry.setAttribute("nodeSlot", projNodeSlot)
+        fold.geometry.setAttribute("nodeSlot", foldNodeSlot)
 
         geometries.brush.matrixAutoUpdate = false
         this.brush = geometries.brush

@@ -70,19 +70,29 @@ export function updateBufferRanges(
         nodeSlot,
     }: {
         instanceMatrix: THREE.InstancedBufferAttribute
-        nodeSlot: THREE.InstancedBufferAttribute
+        nodeSlot:
+            | THREE.InstancedBufferAttribute
+            | THREE.InstancedBufferAttribute[]
     }
 ) {
+    const nodeSlotAttributes = Array.isArray(nodeSlot) ? nodeSlot : [nodeSlot]
+
     if (instanceMatrix.updateRanges.length >= maxUpdateRanges) {
         instanceMatrix.clearUpdateRanges()
-        nodeSlot.clearUpdateRanges()
+        for (let i = 0; i < nodeSlotAttributes.length; i++) {
+            nodeSlotAttributes[i].clearUpdateRanges()
+        }
     } else {
         const offset = index * 16
         instanceMatrix.addUpdateRange(offset, 16)
-        nodeSlot.addUpdateRange(index, 1)
+        for (let i = 0; i < nodeSlotAttributes.length; i++) {
+            nodeSlotAttributes[i].addUpdateRange(index, 1)
+        }
     }
     instanceMatrix.needsUpdate = true
-    nodeSlot.needsUpdate = true
+    for (let i = 0; i < nodeSlotAttributes.length; i++) {
+        nodeSlotAttributes[i].needsUpdate = true
+    }
 }
 
 /**

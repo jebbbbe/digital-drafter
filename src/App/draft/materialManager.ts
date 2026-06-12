@@ -2,10 +2,7 @@ import * as THREE from "three"
 import { constants } from "../constants"
 import { DataTextureLineMaterial } from "../objects/materials/DataTextureLineMaterial"
 import { InstancedProjectionMaterial } from "../objects/materials/InstancedProjectionMaterial"
-import {
-    patchDashedLine,
-    patchNodeMatrix,
-} from "../objects/materials/nodeWrapper"
+import { patchDashedLine, patchNodeMatrix } from "../objects/materials/nodeWrapper"
 import { LineMaterial } from "three/addons/lines/LineMaterial.js"
 import { FoldLineMaterial } from "../objects/materials/FoldLineMaterial"
 
@@ -84,22 +81,18 @@ if (activeMaterialLib === "gl_Line") {
         })
     )
 } else {
-    matlib.line = patchNodeMatrix(
-        new DataTextureLineMaterial({
-            color: display.line.color,
-            linewidth: 1,
-            capStyle: 2,
-            depthWrite: false,
-        })
-    )
-    matlib.outline = patchNodeMatrix(
-        new DataTextureLineMaterial({
-            color: display.line.color, //0xff0000
-            linewidth: 1.75,
-            capStyle: 2,
-            depthWrite: false,
-        })
-    )
+    matlib.line = new DataTextureLineMaterial({
+        color: display.line.color,
+        linewidth: 1.25,
+        capStyle: 2,
+        depthWrite: false,
+    })
+    matlib.outline = new DataTextureLineMaterial({
+        color: display.line.color, //0xff0000
+        linewidth: 10.75,
+        capStyle: 2,
+        depthWrite: false,
+    })
     matlib.mesh = patchNodeMatrix(
         new THREE.MeshBasicMaterial({
             color: display.mesh.color,
@@ -112,12 +105,12 @@ if (activeMaterialLib === "gl_Line") {
 }
 
 const orders = {
-    mesh: 1,
-    line: 4,
     outline: 0,
+    mesh: 1,
     dash: 2,
     proj: 2,
     fold: 2,
+    line: 4,
     //attachments
     sectionLine: 9,
     sectionFace: 7,
