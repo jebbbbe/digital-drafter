@@ -22,7 +22,6 @@ export class InstanceItem {
     buffers: {
         instanceMatrix: THREE.InstancedBufferAttribute // keep for raycast
         nodeSlot: THREE.InstancedBufferAttribute
-        nodeSlotAttributes: THREE.InstancedBufferAttribute[]
     }
     group: THREE.Group
     instances: {
@@ -148,47 +147,18 @@ export class InstanceItem {
         proj.renderOrder = orders.proj
         fold.renderOrder = orders.fold
 
-        // need this for raycast and to mirror instance divisor setup
+        // need this for raycast
         const instanceMatrix = mesh.instanceMatrix
-        const nodeSlotMeshPerAttribute = instanceMatrix.meshPerAttribute
 
         // slot lookup
-        const nodeSlotArray = new Float32Array(capacity)
-        const meshNodeSlot = new THREE.InstancedBufferAttribute(
-            nodeSlotArray,
-            1,
-            false,
-            nodeSlotMeshPerAttribute
+        const nodeSlot = new THREE.InstancedBufferAttribute(
+            new Float32Array(capacity),
+            1
         )
-        const dashNodeSlot = new THREE.InstancedBufferAttribute(
-            nodeSlotArray,
-            1,
-            false,
-            nodeSlotMeshPerAttribute
-        )
-        const projNodeSlot = new THREE.InstancedBufferAttribute(
-            nodeSlotArray,
-            1,
-            false,
-            nodeSlotMeshPerAttribute
-        )
-        const foldNodeSlot = new THREE.InstancedBufferAttribute(
-            nodeSlotArray,
-            1,
-            false,
-            nodeSlotMeshPerAttribute
-        )
-        const nodeSlotAttributes = [
-            meshNodeSlot,
-            dashNodeSlot,
-            projNodeSlot,
-            foldNodeSlot,
-        ]
-
-        mesh.geometry.setAttribute("nodeSlot", meshNodeSlot)
-        dash.geometry.setAttribute("nodeSlot", dashNodeSlot)
-        proj.geometry.setAttribute("nodeSlot", projNodeSlot)
-        fold.geometry.setAttribute("nodeSlot", foldNodeSlot)
+        mesh.geometry.setAttribute("nodeSlot", nodeSlot)
+        dash.geometry.setAttribute("nodeSlot", nodeSlot)
+        proj.geometry.setAttribute("nodeSlot", nodeSlot)
+        fold.geometry.setAttribute("nodeSlot", nodeSlot)
 
         // set frustumCulled
         mesh.frustumCulled = false
@@ -224,8 +194,7 @@ export class InstanceItem {
         this.localTransform = localTransform
         this.buffers = {
             instanceMatrix,
-            nodeSlot: meshNodeSlot,
-            nodeSlotAttributes,
+            nodeSlot,
         }
         this.group = group
         this.instances = {
@@ -264,10 +233,7 @@ export class InstanceItem {
     updateSharedBuffers(matrix: THREE.Matrix4): void {
         const index = this.count
         setInstanceMatrixAt(this.buffers.instanceMatrix, index, matrix)
-        updateBufferRanges(index, {
-            instanceMatrix: this.buffers.instanceMatrix,
-            nodeSlot: this.buffers.nodeSlotAttributes,
-        })
+        updateBufferRanges(index, this.buffers)
         // inc count to draw visible.
         this.incrementInstanceCount()
     }
@@ -280,10 +246,7 @@ export class InstanceItem {
             node.compoundMatrix
         )
         setUintAttributeAt(this.buffers.nodeSlot, index, slot)
-        updateBufferRanges(index, {
-            instanceMatrix: this.buffers.instanceMatrix,
-            nodeSlot: this.buffers.nodeSlotAttributes,
-        })
+        updateBufferRanges(index, this.buffers)
     }
 
     computeBoundingSphere(): void {
@@ -296,6 +259,7 @@ export class InstanceItem {
     patch(geometry: THREE.BufferGeometry): InstanceItem {
         const geometries = brushCleaner(geometry)
         const { mesh, line, outline, dash, proj, fold } = this.instances
+        const nodeSlot = this.buffers.nodeSlot
 
         if (activeMaterialLib === "gl_Line") {
             line.geometry.dispose()
@@ -324,12 +288,10 @@ export class InstanceItem {
         dash.computeLineDistances()
 
         //set node slot
-        const [meshNodeSlot, dashNodeSlot, projNodeSlot, foldNodeSlot] =
-            this.buffers.nodeSlotAttributes
-        mesh.geometry.setAttribute("nodeSlot", meshNodeSlot)
-        dash.geometry.setAttribute("nodeSlot", dashNodeSlot)
-        proj.geometry.setAttribute("nodeSlot", projNodeSlot)
-        fold.geometry.setAttribute("nodeSlot", foldNodeSlot)
+        mesh.geometry.setAttribute("nodeSlot", nodeSlot)
+        dash.geometry.setAttribute("nodeSlot", nodeSlot)
+        proj.geometry.setAttribute("nodeSlot", nodeSlot)
+        fold.geometry.setAttribute("nodeSlot", nodeSlot)
 
         geometries.brush.matrixAutoUpdate = false
         this.brush = geometries.brush
