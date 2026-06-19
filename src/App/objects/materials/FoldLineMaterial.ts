@@ -1,6 +1,6 @@
 import * as THREE from "three"
 
-type InstancedProjectionMaterialParameters =
+type FoldLineMaterialParameters =
     THREE.LineBasicMaterialParameters & {
         treeData?: THREE.DataTexture | null
         treeDataSize?: number
@@ -17,7 +17,7 @@ export class FoldLineMaterial extends THREE.LineBasicMaterial {
         foldSize: { value: number }
     }
 
-    constructor(parameters: InstancedProjectionMaterialParameters = {}) {
+    constructor(parameters: FoldLineMaterialParameters = {}) {
         const params = structuredClone(parameters)
         delete params.treeData
         delete params.treeDataSize

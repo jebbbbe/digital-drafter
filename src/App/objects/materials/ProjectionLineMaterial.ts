@@ -1,19 +1,18 @@
 import * as THREE from "three"
 
-type InstancedProjectionMaterialParameters =
-    THREE.LineBasicMaterialParameters & {
-        treeData?: THREE.DataTexture | null
-        treeDataSize?: number
-    }
+type ProjectionLineMaterialParameters = THREE.LineBasicMaterialParameters & {
+    treeData?: THREE.DataTexture | null
+    treeDataSize?: number
+}
 
-export class InstancedProjectionMaterial extends THREE.LineBasicMaterial {
+export class ProjectionLineMaterial extends THREE.LineBasicMaterial {
     shader?: THREE.WebGLProgramParametersWithUniforms
     customUniforms: {
         treeData: { value: THREE.DataTexture | null }
         treeDataSize: { value: number }
     }
 
-    constructor(parameters: InstancedProjectionMaterialParameters = {}) {
+    constructor(parameters: ProjectionLineMaterialParameters = {}) {
         const params = structuredClone(parameters)
         delete params.treeData
         delete params.treeDataSize

@@ -1,7 +1,7 @@
 import * as THREE from "three"
 import { constants } from "../constants"
 import { InstancedLineMaterial } from "../objects/materials/InstancedLineMaterial"
-import { InstancedProjectionMaterial } from "../objects/materials/InstancedProjectionMaterial"
+import { ProjectionLineMaterial } from "../objects/materials/ProjectionLineMaterial"
 import { patchNodeMatrix } from "../objects/materials/nodeWrapper"
 import { LineMaterial } from "three/addons/lines/LineMaterial.js"
 import { FoldLineMaterial } from "../objects/materials/FoldLineMaterial"
@@ -12,7 +12,7 @@ const activeMaterialLib: ActiveMaterialLib = "linewidth"
 const display = constants.themes.objects[constants.theme].display as any
 
 const matlib = {
-    projection: new InstancedProjectionMaterial({
+    projection: new ProjectionLineMaterial({
         color: display.projection.color,
         depthTest: true,
         depthWrite: false,

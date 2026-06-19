@@ -2,7 +2,7 @@ import * as THREE from "three"
 import { LineSegmentsGeometry } from "three/addons/lines/LineSegmentsGeometry.js"
 import { InstancedLineSegments } from "../objects/meshes/InstancedLineSegments"
 import { InstancedLineSegments2 } from "../objects/meshes/InstancedLineSegments2"
-import { InstancedProjectionMaterial } from "../objects/materials/InstancedProjectionMaterial"
+import { ProjectionLineMaterial } from "../objects/materials/ProjectionLineMaterial"
 import { InstancedLineMaterial } from "../objects/materials/InstancedLineMaterial"
 import { InstanceCount } from "../constants"
 import { brushCleaner } from "../objects/geometries/brushCleaner"
@@ -36,7 +36,7 @@ export class InstanceItem {
         dash:
             | InstancedLineSegments<THREE.LineDashedMaterial>
             | InstancedLineSegments2
-        proj: InstancedLineSegments<InstancedProjectionMaterial>
+        proj: InstancedLineSegments<ProjectionLineMaterial>
         fold: InstancedLineSegments
     }
     count: number
@@ -161,7 +161,7 @@ export class InstanceItem {
 
         dash.computeLineDistances()
 
-        const proj = new InstancedLineSegments<InstancedProjectionMaterial>(
+        const proj = new InstancedLineSegments<ProjectionLineMaterial>(
             geometries.projGeometry,
             materials.projection,
             capacity
