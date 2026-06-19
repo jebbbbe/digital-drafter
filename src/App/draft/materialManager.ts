@@ -2,10 +2,7 @@ import * as THREE from "three"
 import { constants } from "../constants"
 import { InstancedLineMaterial } from "../objects/materials/InstancedLineMaterial"
 import { InstancedProjectionMaterial } from "../objects/materials/InstancedProjectionMaterial"
-import {
-    patchDashedLine,
-    patchNodeMatrix,
-} from "../objects/materials/nodeWrapper"
+import { patchNodeMatrix } from "../objects/materials/nodeWrapper"
 import { LineMaterial } from "three/addons/lines/LineMaterial.js"
 import { FoldLineMaterial } from "../objects/materials/FoldLineMaterial"
 
@@ -15,17 +12,6 @@ const activeMaterialLib: ActiveMaterialLib = "linewidth"
 const display = constants.themes.objects[constants.theme].display as any
 
 const matlib = {
-    dash: patchDashedLine(
-        patchNodeMatrix(
-            new THREE.LineDashedMaterial({
-                color: display.dash.color,
-                dashSize: display.dash.dashSize,
-                gapSize: display.dash.gapSize,
-                depthTest: false,
-                depthWrite: false,
-            })
-        )
-    ),
     projection: new InstancedProjectionMaterial({
         color: display.projection.color,
         depthTest: true,
@@ -62,6 +48,15 @@ const matlib = {
 
 // @ts-ignore
 if (activeMaterialLib === "gl_Line") {
+    matlib.dash = patchNodeMatrix(
+        new THREE.LineDashedMaterial({
+            color: display.dash.color,
+            dashSize: display.dash.dashSize,
+            gapSize: display.dash.gapSize,
+            depthTest: false,
+            depthWrite: false,
+        })
+    )
     matlib.line = patchNodeMatrix(
         new THREE.LineBasicMaterial({
             color: display.line.color,
@@ -95,6 +90,16 @@ if (activeMaterialLib === "gl_Line") {
         linewidth: 10.75,
         depthWrite: false,
         // capStyle: 2,
+    })
+    matlib.dash = new InstancedLineMaterial({
+        color: display.dash.color,
+        linewidth: 1,
+        dashed: true,
+        dashScale: 1,
+        dashSize: display.dash.dashSize,
+        gapSize: display.dash.gapSize,
+        depthTest: false,
+        depthWrite: false,
     })
     matlib.mesh = patchNodeMatrix(
         new THREE.MeshBasicMaterial({

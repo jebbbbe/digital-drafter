@@ -155,23 +155,27 @@ ShaderLib["instanceLine"] = {
 
 			#endif
 
-			#ifdef USE_DASH
-
-				vLineDistance = ( position.y < 0.5 ) ? dashScale * instanceDistanceStart : dashScale * instanceDistanceEnd;
-				vUv = uv;
-
-			#endif
-
 			float aspect = resolution.x / resolution.y;
 			vec3 lineStart = instanceStart;
 			vec3 lineEnd = instanceEnd;
+			float nodeScale = 1.0;
 
 			#ifdef InstancedLine
 
 				int matrixIndex = gl_InstanceID % instanceMatrixCount;
 				mat4 lineMatrix = readInstanceMatrix( matrixIndex );
+				nodeScale = length( lineMatrix[ 0 ].xyz );
 				lineStart = ( lineMatrix * vec4( lineStart, 1.0 ) ).xyz;
 				lineEnd = ( lineMatrix * vec4( lineEnd, 1.0 ) ).xyz;
+
+			#endif
+
+			#ifdef USE_DASH
+
+				vLineDistance = ( position.y < 0.5 )
+					? dashScale * nodeScale * instanceDistanceStart
+					: dashScale * nodeScale * instanceDistanceEnd;
+				vUv = uv;
 
 			#endif
 

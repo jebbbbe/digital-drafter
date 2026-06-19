@@ -36,7 +36,9 @@ export class InstanceItem {
             | InstancedLineSegments2
             | THREE.InstancedMesh
         proj: InstancedLineSegments<InstancedProjectionMaterial>
-        dash: InstancedLineSegments<THREE.LineDashedMaterial>
+        dash:
+            | InstancedLineSegments<THREE.LineDashedMaterial>
+            | InstancedLineSegments2
         fold: InstancedLineSegments
     }
     count: number
@@ -125,11 +127,40 @@ export class InstanceItem {
             }
         }
 
-        const dash = new InstancedLineSegments<THREE.LineDashedMaterial>(
-            geometries.lineGeometry,
-            materials.dash,
-            capacity
-        ) as any
+        let dash:
+            | InstancedLineSegments<THREE.LineDashedMaterial>
+            | InstancedLineSegments2
+
+        if (activeMaterialLib === "gl_Line") {
+            dash = new InstancedLineSegments<THREE.LineDashedMaterial>(
+                geometries.lineGeometry,
+                materials.dash,
+                capacity
+            )
+        } else {
+            const dashGeometry = new LineSegmentsGeometry().fromEdgesGeometry(
+                geometries.lineGeometry
+            )
+            dash = new InstancedLineSegments2(
+                dashGeometry,
+                materials.dash as InstancedLineMaterial,
+                capacity
+            )
+            dash.onBeforeRender = (renderer: THREE.WebGLRenderer) => {
+                const material = dash.material as unknown as InstancedLineMaterial
+                material.treeData = materials.dash.treeData
+                material.treeDataSize = materials.dash.treeDataSize
+                material.treeBlockOffset = id
+                material.treeBlockSize = InstanceCount
+                material.instanceMatrixCount = Math.max(1, dash.count)
+                material.resolution.set(window.innerWidth, window.innerHeight)
+                material.uniformsNeedUpdate = true
+                InstancedLineSegments2.prototype.onBeforeRender.call(
+                    dash,
+                    renderer
+                )
+            }
+        }
         dash.computeLineDistances()
 
         const proj = new InstancedLineSegments<InstancedProjectionMaterial>(
@@ -271,6 +302,8 @@ export class InstanceItem {
             line.geometry = geometries.lineGeometry
             outline.geometry.dispose()
             outline.geometry = geometries.lineGeometry
+            dash.geometry.dispose()
+            dash.geometry = geometries.lineGeometry
         } else {
             const nextLineGeometry =
                 new LineSegmentsGeometry().fromEdgesGeometry(
@@ -279,16 +312,19 @@ export class InstanceItem {
             const nextOutlineGeometry = new LineSegmentsGeometry().fromEdgesGeometry(
                 geometries.lineGeometry
             )
+            const nextDashGeometry = new LineSegmentsGeometry().fromEdgesGeometry(
+                geometries.lineGeometry
+            )
 
             line.geometry.dispose()
             line.geometry = nextLineGeometry
             outline.geometry.dispose()
             outline.geometry = nextOutlineGeometry
+            dash.geometry.dispose()
+            dash.geometry = nextDashGeometry
         }
         mesh.geometry.dispose()
         mesh.geometry = geometries.meshGeometry
-        dash.geometry.dispose()
-        dash.geometry = geometries.lineGeometry
         proj.geometry.dispose()
         proj.geometry = geometries.projGeometry
         dash.computeLineDistances()
