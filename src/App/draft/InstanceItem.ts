@@ -37,7 +37,7 @@ export class InstanceItem {
             | InstancedLineSegments<THREE.LineDashedMaterial>
             | InstancedLineSegments2
         proj: InstancedLineSegments<ProjectionLineMaterial>
-        fold: InstancedLineSegments
+        fold: InstancedLineSegments<ProjectionLineMaterial>
     }
     count: number
     maxCount: number
@@ -59,13 +59,9 @@ export class InstanceItem {
         let line:
             | InstancedLineSegments<THREE.LineBasicMaterial>
             | InstancedLineSegments2
-            | THREE.InstancedMesh
-
         let outline:
             | InstancedLineSegments<THREE.LineBasicMaterial>
             | InstancedLineSegments2
-            | THREE.InstancedMesh
-
         let dash:
             | InstancedLineSegments<THREE.LineDashedMaterial>
             | InstancedLineSegments2
@@ -96,7 +92,8 @@ export class InstanceItem {
                 capacity
             )
             line.onBeforeRender = (renderer: THREE.WebGLRenderer) => {
-                const material = line.material as InstancedLineMaterial
+                const material =
+                    line.material as unknown as InstancedLineMaterial
                 material.treeBlockOffset = id
                 material.resolution.set(window.innerWidth, window.innerHeight)
                 material.instanceMatrixCount = Math.max(1, line.count)
@@ -120,7 +117,8 @@ export class InstanceItem {
                 capacity
             )
             outline.onBeforeRender = (renderer: THREE.WebGLRenderer) => {
-                const material = outline.material as InstancedLineMaterial
+                const material =
+                    outline.material as unknown as InstancedLineMaterial
                 material.treeBlockOffset = id
                 material.resolution.set(window.innerWidth, window.innerHeight)
                 material.instanceMatrixCount = Math.max(1, outline.count)
@@ -161,7 +159,7 @@ export class InstanceItem {
 
         dash.computeLineDistances()
 
-        const proj = new InstancedLineSegments<ProjectionLineMaterial>(
+        const proj = new InstancedLineSegments(
             geometries.projGeometry,
             materials.projection,
             capacity

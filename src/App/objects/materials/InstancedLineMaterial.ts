@@ -497,7 +497,7 @@ ShaderLib["instanceLine"] = {
  * @augments ShaderMaterial
  * @three_import import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
  */
-class LineMaterial extends ShaderMaterial {
+class InstancedLineMaterial extends ShaderMaterial {
     /**
      * Constructs a new line segments geometry.
      *
@@ -772,4 +772,4 @@ class LineMaterial extends ShaderMaterial {
     }
 }
 
-export { LineMaterial as InstancedLineMaterial }
+export { InstancedLineMaterial }
