@@ -30,15 +30,13 @@ export class InstanceItem {
         line:
             | InstancedLineSegments<THREE.LineBasicMaterial>
             | InstancedLineSegments2
-            | THREE.InstancedMesh
         outline:
             | InstancedLineSegments<THREE.LineBasicMaterial>
             | InstancedLineSegments2
-            | THREE.InstancedMesh
-        proj: InstancedLineSegments<InstancedProjectionMaterial>
         dash:
             | InstancedLineSegments<THREE.LineDashedMaterial>
             | InstancedLineSegments2
+        proj: InstancedLineSegments<InstancedProjectionMaterial>
         fold: InstancedLineSegments
     }
     count: number
@@ -68,6 +66,10 @@ export class InstanceItem {
             | InstancedLineSegments2
             | THREE.InstancedMesh
 
+        let dash:
+            | InstancedLineSegments<THREE.LineDashedMaterial>
+            | InstancedLineSegments2
+
         if (activeMaterialLib === "gl_Line") {
             line = new InstancedLineSegments<THREE.LineBasicMaterial>(
                 geometries.lineGeometry,
@@ -77,6 +79,11 @@ export class InstanceItem {
             outline = new InstancedLineSegments<THREE.LineBasicMaterial>(
                 geometries.lineGeometry,
                 materials.outline,
+                capacity
+            )
+            dash = new InstancedLineSegments<THREE.LineDashedMaterial>(
+                geometries.lineGeometry,
+                materials.dash,
                 capacity
             )
         } else {
@@ -90,12 +97,12 @@ export class InstanceItem {
             )
             line.onBeforeRender = (renderer: THREE.WebGLRenderer) => {
                 const material = line.material as InstancedLineMaterial
+                material.treeBlockOffset = id
+                material.resolution.set(window.innerWidth, window.innerHeight)
+                material.instanceMatrixCount = Math.max(1, line.count)
                 material.treeData = materials.line.treeData
                 material.treeDataSize = materials.line.treeDataSize
-                material.treeBlockOffset = id
                 material.treeBlockSize = InstanceCount
-                material.instanceMatrixCount = Math.max(1, line.count)
-                material.resolution.set(window.innerWidth, window.innerHeight)
                 material.uniformsNeedUpdate = true
                 InstancedLineSegments2.prototype.onBeforeRender.call(
                     line,
@@ -103,9 +110,10 @@ export class InstanceItem {
                 )
             }
 
-            const outLineGeometry = new LineSegmentsGeometry().fromEdgesGeometry(
-                geometries.lineGeometry
-            )
+            const outLineGeometry =
+                new LineSegmentsGeometry().fromEdgesGeometry(
+                    geometries.lineGeometry
+                )
             outline = new InstancedLineSegments2(
                 outLineGeometry,
                 materials.outline as InstancedLineMaterial,
@@ -113,31 +121,19 @@ export class InstanceItem {
             )
             outline.onBeforeRender = (renderer: THREE.WebGLRenderer) => {
                 const material = outline.material as InstancedLineMaterial
+                material.treeBlockOffset = id
+                material.resolution.set(window.innerWidth, window.innerHeight)
+                material.instanceMatrixCount = Math.max(1, outline.count)
                 material.treeData = materials.outline.treeData
                 material.treeDataSize = materials.outline.treeDataSize
-                material.treeBlockOffset = id
                 material.treeBlockSize = InstanceCount
-                material.instanceMatrixCount = Math.max(1, outline.count)
-                material.resolution.set(window.innerWidth, window.innerHeight)
                 material.uniformsNeedUpdate = true
                 InstancedLineSegments2.prototype.onBeforeRender.call(
                     outline,
                     renderer
                 )
             }
-        }
 
-        let dash:
-            | InstancedLineSegments<THREE.LineDashedMaterial>
-            | InstancedLineSegments2
-
-        if (activeMaterialLib === "gl_Line") {
-            dash = new InstancedLineSegments<THREE.LineDashedMaterial>(
-                geometries.lineGeometry,
-                materials.dash,
-                capacity
-            )
-        } else {
             const dashGeometry = new LineSegmentsGeometry().fromEdgesGeometry(
                 geometries.lineGeometry
             )
@@ -147,13 +143,14 @@ export class InstanceItem {
                 capacity
             )
             dash.onBeforeRender = (renderer: THREE.WebGLRenderer) => {
-                const material = dash.material as unknown as InstancedLineMaterial
+                const material =
+                    dash.material as unknown as InstancedLineMaterial
+                material.treeBlockOffset = id
+                material.resolution.set(window.innerWidth, window.innerHeight)
+                material.instanceMatrixCount = Math.max(1, dash.count)
                 material.treeData = materials.dash.treeData
                 material.treeDataSize = materials.dash.treeDataSize
-                material.treeBlockOffset = id
                 material.treeBlockSize = InstanceCount
-                material.instanceMatrixCount = Math.max(1, dash.count)
-                material.resolution.set(window.innerWidth, window.innerHeight)
                 material.uniformsNeedUpdate = true
                 InstancedLineSegments2.prototype.onBeforeRender.call(
                     dash,
@@ -161,6 +158,7 @@ export class InstanceItem {
                 )
             }
         }
+
         dash.computeLineDistances()
 
         const proj = new InstancedLineSegments<InstancedProjectionMaterial>(
@@ -169,7 +167,7 @@ export class InstanceItem {
             capacity
         )
 
-        const fold = new InstancedLineSegments<InstancedProjectionMaterial>(
+        const fold = new InstancedLineSegments(
             geometries.foldGeometry,
             materials.fold,
             capacity
@@ -309,12 +307,14 @@ export class InstanceItem {
                 new LineSegmentsGeometry().fromEdgesGeometry(
                     geometries.lineGeometry
                 )
-            const nextOutlineGeometry = new LineSegmentsGeometry().fromEdgesGeometry(
-                geometries.lineGeometry
-            )
-            const nextDashGeometry = new LineSegmentsGeometry().fromEdgesGeometry(
-                geometries.lineGeometry
-            )
+            const nextOutlineGeometry =
+                new LineSegmentsGeometry().fromEdgesGeometry(
+                    geometries.lineGeometry
+                )
+            const nextDashGeometry =
+                new LineSegmentsGeometry().fromEdgesGeometry(
+                    geometries.lineGeometry
+                )
 
             line.geometry.dispose()
             line.geometry = nextLineGeometry

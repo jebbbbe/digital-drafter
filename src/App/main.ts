@@ -1,6 +1,5 @@
 import * as THREE from "three"
 import { constants } from "./constants"
-import * as shape from "./objects/geometries/geometry"
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
 import Stats from "three/examples/jsm/libs/stats.module.js"
 import { AspectLayout } from "./utils/AspectLayout"
@@ -10,12 +9,8 @@ import { Drafter } from "./draft/Drafter"
 import * as rand from "./utils/random"
 import type { TransformNode } from "./draft/TransformNode"
 import type { NodeLocation } from "./draft/TransformTree"
-// import { createBvhBooleanTest, type BvhBooleanTest } from "./test/bvhBooleanTest"
 import { geometryLibrary } from "./objects/geometries/library"
 import { createNewCutNode } from "./controls/section"
-import { Line2 } from "three/examples/jsm/lines/webgpu/Line2.js"
-import { MatrixTextureLineMaterial } from "./objects/materials/MatrixTextureLineMaterial"
-import { MatrixTextureLineSegmentsGeometry } from "./objects/materials/MatrixTextureLineSegmentsGeometry"
 
 let isAppReady = false
 let statsEnabled = false
@@ -262,58 +257,6 @@ export function init(container: HTMLElement): () => void {
     if (nodeToCut) createNewCutNode(nodeToCut)
     nodeToCut = drafter.findNode({ id: 2, index: 5 })
     if (nodeToCut) createNewCutNode(nodeToCut)
-    ;(() => {
-        const positions = new THREE.EdgesGeometry(
-            new THREE.BoxGeometry()
-        ).getAttribute("position").array
-
-        const geometry = new MatrixTextureLineSegmentsGeometry(16, 8)
-        geometry.setPositions(positions as Float32Array)
-
-        const matrix = new THREE.Matrix4()
-        const position = new THREE.Vector3()
-        const rotation = new THREE.Quaternion()
-        const scale = new THREE.Vector3(1, 1, 1)
-
-        for (let i = 0; i < geometry.matrixCount; i++) {
-            position.set(0, 0, 2 * i)
-            rotation.identity()
-            matrix.compose(position, rotation, scale)
-            geometry.setMatrixAt(i, matrix)
-        }
-
-        const matLine = new MatrixTextureLineMaterial({
-            color: 0x44bbff,
-            linewidth: 6,
-            dashed: false,
-        })
-        matLine.instanceMatrices = geometry.instanceMatrixTexture
-        matLine.instanceMatrixCount = geometry.matrixCount
-        matLine.resolution.set(window.innerWidth, window.innerHeight)
-
-        //@ts-ignore
-        const line = new Line2(geometry, matLine)
-        line.frustumCulled = false
-        line.onBeforeRender = () => {
-            geometry.instanceMatrixTexture.needsUpdate = true
-            matLine.instanceMatrixCount = geometry.matrixCount
-            matLine.resolution.set(window.innerWidth, window.innerHeight)
-        }
-        line.position.set(5, 0, 0)
-
-        scene.add(line)
-    })()
-
-    // //@ts-ignore
-    // const instanceBuffer2 = new InstancedInterleavedBuffer(
-    // 	//@ts-ignore
-    //     new Float32Array(lineSegments),
-    //     6,
-    //     8
-    // ) // xyz, xyz
-    // console.log({lineSegments})
-    // console.log({instanceBuffer})
-    // console.log({instanceBuffer2})
 
     layout.addResizeListener(renderer, camera, render)
 

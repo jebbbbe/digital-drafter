@@ -14,7 +14,7 @@ import type {
     DataTexture,
 } from "three"
 
-export type MatrixTextureLineMaterialParameters = ShaderMaterialParameters & {
+export type CustomLineMaterialParameters = ShaderMaterialParameters & {
     worldUnits?: boolean
     linewidth?: number
     resolution?: Vector2
@@ -507,7 +507,7 @@ class LineMaterial extends ShaderMaterial {
      * in here. Color values can be passed any type of value accepted
      * by {@link Color#set}.
      */
-    constructor(parameters: MatrixTextureLineMaterialParameters = {}) {
+    constructor(parameters: CustomLineMaterialParameters = {}) {
         super({
             glslVersion: GLSL3,
             uniforms: UniformsUtils.clone(ShaderLib["instanceLine"].uniforms),
