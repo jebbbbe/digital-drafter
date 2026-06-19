@@ -25,7 +25,10 @@ export type MatrixTextureLineMaterialParameters = ShaderMaterialParameters & {
     gapSize?: number
     alphaToCoverage?: boolean
     color?: ColorRepresentation
-    instanceMatrices?: DataTexture | null
+    treeData?: DataTexture | null
+    treeDataSize?: number
+    treeBlockOffset?: number
+    treeBlockSize?: number
     instanceMatrixCount?: number
 }
 ;(UniformsLib as any).instanceLine = {
@@ -36,7 +39,10 @@ export type MatrixTextureLineMaterialParameters = ShaderMaterialParameters & {
     dashScale: { value: 1 },
     dashSize: { value: 1 },
     gapSize: { value: 1 }, // todo FIX - maybe change to totalSize
-    instanceMatrices: { value: null },
+    treeData: { value: null },
+    treeDataSize: { value: 1 },
+    treeBlockOffset: { value: 0 },
+    treeBlockSize: { value: 1 },
     instanceMatrixCount: { value: 1 },
 }
 
@@ -65,27 +71,33 @@ ShaderLib["instanceLine"] = {
 
 		#ifdef InstancedLine
 
-			uniform highp sampler2D instanceMatrices;
+			uniform highp sampler2D treeData;
+			uniform int treeDataSize;
+			uniform int treeBlockOffset;
+			uniform int treeBlockSize;
 			uniform int instanceMatrixCount;
 
-			vec4 readMatrixTexel( const in int texelIndex ) {
+			ivec2 getTreeDataTexelCoord( int texelIndex ) {
 
-				ivec2 size = textureSize( instanceMatrices, 0 );
-				int x = texelIndex % size.x;
-				int y = texelIndex / size.x;
+				return ivec2( texelIndex % treeDataSize, texelIndex / treeDataSize );
 
-				return texelFetch( instanceMatrices, ivec2( x, y ), 0 );
+			}
+
+			vec4 readTreeDataTexel( int texelIndex ) {
+
+				return texelFetch( treeData, getTreeDataTexelCoord( texelIndex ), 0 ).rgba;
 
 			}
 
 			mat4 readInstanceMatrix( const in int matrixIndex ) {
 
-				int texelIndex = matrixIndex * 4;
+				int slotIndex = treeBlockOffset * treeBlockSize + matrixIndex;
+				int texelIndex = slotIndex * 5;
 
-				vec4 column0 = readMatrixTexel( texelIndex + 0 );
-				vec4 column1 = readMatrixTexel( texelIndex + 1 );
-				vec4 column2 = readMatrixTexel( texelIndex + 2 );
-				vec4 column3 = readMatrixTexel( texelIndex + 3 );
+				vec4 column0 = readTreeDataTexel( texelIndex + 0 );
+				vec4 column1 = readTreeDataTexel( texelIndex + 1 );
+				vec4 column2 = readTreeDataTexel( texelIndex + 2 );
+				vec4 column3 = readTreeDataTexel( texelIndex + 3 );
 
 				return mat4( column0, column1, column2, column3 );
 
@@ -504,13 +516,45 @@ class LineMaterial extends ShaderMaterial {
         this.setValues(parameters)
     }
 
+    get treeData(): DataTexture | null {
+        return this.uniforms.treeData.value
+    }
+
+    set treeData(value: DataTexture | null) {
+        this.uniforms.treeData.value = value
+        this.instanced = value !== null
+    }
+
+    get treeDataSize(): number {
+        return this.uniforms.treeDataSize.value
+    }
+
+    set treeDataSize(value: number) {
+        this.uniforms.treeDataSize.value = Math.max(1, Math.floor(value))
+    }
+
+    get treeBlockOffset(): number {
+        return this.uniforms.treeBlockOffset.value
+    }
+
+    set treeBlockOffset(value: number) {
+        this.uniforms.treeBlockOffset.value = Math.max(0, Math.floor(value))
+    }
+
+    get treeBlockSize(): number {
+        return this.uniforms.treeBlockSize.value
+    }
+
+    set treeBlockSize(value: number) {
+        this.uniforms.treeBlockSize.value = Math.max(1, Math.floor(value))
+    }
+
     get instanceMatrices(): DataTexture | null {
-        return this.uniforms.instanceMatrices.value
+        return this.treeData
     }
 
     set instanceMatrices(value: DataTexture | null) {
-        this.uniforms.instanceMatrices.value = value
-        this.instanced = value !== null
+        this.treeData = value
     }
 
     get instanceMatrixCount(): number {
@@ -691,11 +735,11 @@ class LineMaterial extends ShaderMaterial {
      *
      * @type {Vector2}
      */
-    get resolution(): number {
+    get resolution(): Vector2 {
         return this.uniforms.resolution.value
     }
 
-    set resolution(value: number) {
+    set resolution(value: Vector2) {
         this.uniforms.resolution.value.copy(value)
     }
 

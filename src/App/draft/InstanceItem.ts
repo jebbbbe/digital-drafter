@@ -1,7 +1,10 @@
 import * as THREE from "three"
+import { LineSegmentsGeometry } from "three/addons/lines/LineSegmentsGeometry.js"
 import { InstancedLineSegments } from "../objects/meshes/InstancedLineSegments"
+import { InstancedLineSegments2 } from "../objects/meshes/InstancedLineSegments2"
 import { InstancedProjectionMaterial } from "../objects/materials/InstancedProjectionMaterial"
 import { DataTextureLineMaterial } from "../objects/materials/DataTextureLineMaterial"
+import { InstancedLineMaterial } from "../objects/materials/InstancedLineMaterial"
 import { InstanceCount } from "../constants"
 import { brushCleaner } from "../objects/geometries/brushCleaner"
 import {
@@ -28,6 +31,7 @@ export class InstanceItem {
         mesh: THREE.InstancedMesh
         line:
             | InstancedLineSegments<THREE.LineBasicMaterial>
+            | InstancedLineSegments2
             | THREE.InstancedMesh
         outline:
             | InstancedLineSegments<THREE.LineBasicMaterial>
@@ -55,6 +59,7 @@ export class InstanceItem {
 
         let line:
             | InstancedLineSegments<THREE.LineBasicMaterial>
+            | InstancedLineSegments2
             | THREE.InstancedMesh
 
         let outline:
@@ -73,27 +78,27 @@ export class InstanceItem {
                 capacity
             )
         } else {
-            const lineGeometry = new DataTextureLineSegmentsGeometry(
+            const lineGeometry = new LineSegmentsGeometry().fromEdgesGeometry(
                 geometries.lineGeometry
             )
-            line = new THREE.InstancedMesh(
+            line = new InstancedLineSegments2(
                 lineGeometry,
-                materials.line as DataTextureLineMaterial,
+                materials.line as InstancedLineMaterial,
                 capacity
             )
-            line.onBeforeRender = () => {
-                const material = line.material as DataTextureLineMaterial
-                material.segments = (
-                    line.geometry as DataTextureLineSegmentsGeometry
-                ).dataTexture
+            line.onBeforeRender = (renderer: THREE.WebGLRenderer) => {
+                const material = line.material as InstancedLineMaterial
+                material.treeData = materials.line.treeData
+                material.treeDataSize = materials.line.treeDataSize
                 material.treeBlockOffset = id
                 material.treeBlockSize = InstanceCount
                 material.instanceMatrixCount = Math.max(1, line.count)
-                material.resolution.set(
-                    window.innerWidth,
-                    window.innerHeight
-                )
+                material.resolution.set(window.innerWidth, window.innerHeight)
                 material.uniformsNeedUpdate = true
+                InstancedLineSegments2.prototype.onBeforeRender.call(
+                    line,
+                    renderer
+                )
             }
 
             const outLineGeometry = new DataTextureLineSegmentsGeometry(
@@ -112,10 +117,7 @@ export class InstanceItem {
                 material.treeBlockOffset = id
                 material.treeBlockSize = InstanceCount
                 material.instanceMatrixCount = Math.max(1, outline.count)
-                material.resolution.set(
-                    window.innerWidth,
-                    window.innerHeight
-                )
+                material.resolution.set(window.innerWidth, window.innerHeight)
                 material.uniformsNeedUpdate = true
             }
         }
@@ -267,9 +269,10 @@ export class InstanceItem {
             outline.geometry.dispose()
             outline.geometry = geometries.lineGeometry
         } else {
-            const nextLineGeometry = new DataTextureLineSegmentsGeometry(
-                geometries.lineGeometry
-            )
+            const nextLineGeometry =
+                new LineSegmentsGeometry().fromEdgesGeometry(
+                    geometries.lineGeometry
+                )
             const nextOutlineGeometry = new DataTextureLineSegmentsGeometry(
                 geometries.lineGeometry
             )

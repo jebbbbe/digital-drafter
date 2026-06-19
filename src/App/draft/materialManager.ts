@@ -1,6 +1,7 @@
 import * as THREE from "three"
 import { constants } from "../constants"
 import { DataTextureLineMaterial } from "../objects/materials/DataTextureLineMaterial"
+import { InstancedLineMaterial } from "../objects/materials/InstancedLineMaterial"
 import { InstancedProjectionMaterial } from "../objects/materials/InstancedProjectionMaterial"
 import { patchDashedLine, patchNodeMatrix } from "../objects/materials/nodeWrapper"
 import { LineMaterial } from "three/addons/lines/LineMaterial.js"
@@ -81,10 +82,10 @@ if (activeMaterialLib === "gl_Line") {
         })
     )
 } else {
-    matlib.line = new DataTextureLineMaterial({
+    matlib.line = new InstancedLineMaterial({
         color: display.line.color,
         linewidth: 1.25,
-        capStyle: 2,
+        // capStyle: 2, // rm from implementation for now
         depthWrite: false,
     })
     matlib.outline = new DataTextureLineMaterial({

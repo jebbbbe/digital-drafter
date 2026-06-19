@@ -26,8 +26,8 @@ class InstancedLineSegments2 extends LineSegments2 {
     _instanceCapacity: number
     _count: number
     declare geometry: LineSegmentsGeometry
-    instanceMatrix: InstancedBufferAttribute
-    instanceMatrixTexture: DataTexture
+    instanceMatrix!: InstancedBufferAttribute
+    instanceMatrixTexture!: DataTexture
 
     constructor(
         geometry: LineSegmentsGeometry,
@@ -43,21 +43,24 @@ class InstancedLineSegments2 extends LineSegments2 {
         this._instanceCapacity = Math.max(1, count)
         this._count = 0
 
-        this.instanceMatrix = new InstancedBufferAttribute(
-            new Float32Array(this._instanceCapacity * 16),
-            16
-        )
+		// we will control this from outsidde the calss witha custom texture. 
+		// we wont need syncMaterial, but we will need sync Geometry to update the buffers
+		
+        // this.instanceMatrix = new InstancedBufferAttribute(
+        //     new Float32Array(this._instanceCapacity * 16),
+        //     16
+        // )
 
-        for (let i = 0; i < this._instanceCapacity; i++) {
-            _identity.toArray(this.instanceMatrix.array, i * 16)
-        }
+        // for (let i = 0; i < this._instanceCapacity; i++) {
+        //     _identity.toArray(this.instanceMatrix.array, i * 16)
+        // }
 
-        this.instanceMatrixTexture = this.createInstanceMatrixTexture(
-            this.instanceMatrix
-        )
+        // this.instanceMatrixTexture = this.createInstanceMatrixTexture(
+        //     this.instanceMatrix
+        // )
 
         this.count = count
-        this.syncMaterialState()
+        // this.syncMaterialState()
         this.syncGeometryState()
     }
 
@@ -105,7 +108,7 @@ class InstancedLineSegments2 extends LineSegments2 {
             Math.max(0, Math.floor(value))
         )
 
-        this.syncMaterialState()
+        // this.syncMaterialState()
         this.syncGeometryState()
     }
 
@@ -250,7 +253,7 @@ class InstancedLineSegments2 extends LineSegments2 {
     }
 
     onBeforeRender(renderer: THREE.WebGLRenderer) {
-        this.syncMaterialState()
+        // this.syncMaterialState()
         this.syncGeometryState()
         super.onBeforeRender(renderer)
     }
