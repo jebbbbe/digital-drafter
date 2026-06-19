@@ -94,12 +94,12 @@ export class InstanceItem {
             line.onBeforeRender = (renderer: THREE.WebGLRenderer) => {
                 const material =
                     line.material as unknown as InstancedLineMaterial
+                // this changes for every mesh isntance, otherwise we need multiple materials
                 material.treeBlockOffset = id
+                // this changes on resize
                 material.resolution.set(window.innerWidth, window.innerHeight)
+                // might be abel to set this elsewhere
                 material.instanceMatrixCount = Math.max(1, line.count)
-                material.treeData = materials.line.treeData
-                material.treeDataSize = materials.line.treeDataSize
-                material.treeBlockSize = InstanceCount
                 material.uniformsNeedUpdate = true
                 InstancedLineSegments2.prototype.onBeforeRender.call(
                     line,
@@ -122,9 +122,6 @@ export class InstanceItem {
                 material.treeBlockOffset = id
                 material.resolution.set(window.innerWidth, window.innerHeight)
                 material.instanceMatrixCount = Math.max(1, outline.count)
-                material.treeData = materials.outline.treeData
-                material.treeDataSize = materials.outline.treeDataSize
-                material.treeBlockSize = InstanceCount
                 material.uniformsNeedUpdate = true
                 InstancedLineSegments2.prototype.onBeforeRender.call(
                     outline,
@@ -146,9 +143,6 @@ export class InstanceItem {
                 material.treeBlockOffset = id
                 material.resolution.set(window.innerWidth, window.innerHeight)
                 material.instanceMatrixCount = Math.max(1, dash.count)
-                material.treeData = materials.dash.treeData
-                material.treeDataSize = materials.dash.treeDataSize
-                material.treeBlockSize = InstanceCount
                 material.uniformsNeedUpdate = true
                 InstancedLineSegments2.prototype.onBeforeRender.call(
                     dash,

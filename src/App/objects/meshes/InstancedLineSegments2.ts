@@ -77,8 +77,9 @@ class InstancedLineSegments2 extends LineSegments2 {
         const segmentCount = instanceStart?.count ?? 0
         const meshPerAttribute = Math.max(1, this.count)
 
+        //@ts-ignore clear internal prop
+        delete geometry._maxInstanceCount
         geometry.instanceCount = segmentCount * this.count
-
         if (instanceStart !== undefined && instanceEnd !== undefined) {
             instanceStart.data.meshPerAttribute = meshPerAttribute
 

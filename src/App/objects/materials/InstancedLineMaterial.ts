@@ -7,6 +7,8 @@ import {
     Vector2,
 } from "three"
 
+import { InstanceCount } from "../../constants"
+
 import type {
     Color,
     ColorRepresentation,
@@ -42,7 +44,7 @@ export type CustomLineMaterialParameters = ShaderMaterialParameters & {
     treeData: { value: null },
     treeDataSize: { value: 1 },
     treeBlockOffset: { value: 0 },
-    treeBlockSize: { value: 1 },
+    treeBlockSize: { value: InstanceCount },
     instanceMatrixCount: { value: 1 },
 }
 
