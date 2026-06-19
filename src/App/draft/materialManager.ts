@@ -1,9 +1,11 @@
 import * as THREE from "three"
 import { constants } from "../constants"
-import { DataTextureLineMaterial } from "../objects/materials/DataTextureLineMaterial"
 import { InstancedLineMaterial } from "../objects/materials/InstancedLineMaterial"
 import { InstancedProjectionMaterial } from "../objects/materials/InstancedProjectionMaterial"
-import { patchDashedLine, patchNodeMatrix } from "../objects/materials/nodeWrapper"
+import {
+    patchDashedLine,
+    patchNodeMatrix,
+} from "../objects/materials/nodeWrapper"
 import { LineMaterial } from "three/addons/lines/LineMaterial.js"
 import { FoldLineMaterial } from "../objects/materials/FoldLineMaterial"
 
@@ -85,14 +87,14 @@ if (activeMaterialLib === "gl_Line") {
     matlib.line = new InstancedLineMaterial({
         color: display.line.color,
         linewidth: 1.25,
-        // capStyle: 2, // rm from implementation for now
         depthWrite: false,
+        // capStyle: 2, // rm from implementation for now
     })
-    matlib.outline = new DataTextureLineMaterial({
+    matlib.outline = new InstancedLineMaterial({
         color: display.line.color, //0xff0000
         linewidth: 10.75,
-        capStyle: 2,
         depthWrite: false,
+        // capStyle: 2,
     })
     matlib.mesh = patchNodeMatrix(
         new THREE.MeshBasicMaterial({

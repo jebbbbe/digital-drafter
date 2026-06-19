@@ -3,7 +3,6 @@ import { LineSegmentsGeometry } from "three/addons/lines/LineSegmentsGeometry.js
 import { InstancedLineSegments } from "../objects/meshes/InstancedLineSegments"
 import { InstancedLineSegments2 } from "../objects/meshes/InstancedLineSegments2"
 import { InstancedProjectionMaterial } from "../objects/materials/InstancedProjectionMaterial"
-import { DataTextureLineMaterial } from "../objects/materials/DataTextureLineMaterial"
 import { InstancedLineMaterial } from "../objects/materials/InstancedLineMaterial"
 import { InstanceCount } from "../constants"
 import { brushCleaner } from "../objects/geometries/brushCleaner"
@@ -12,7 +11,6 @@ import {
     setUintAttributeAt,
     updateBufferRanges,
 } from "../objects/buffers/buffers"
-import { DataTextureLineSegmentsGeometry } from "../objects/geometries/DataTextureLineSegmentsGeometry"
 import { activeMaterialLib, orders } from "./materialManager"
 import { constants } from "../constants"
 import type { Brush } from "three-bvh-csg"
@@ -35,6 +33,7 @@ export class InstanceItem {
             | THREE.InstancedMesh
         outline:
             | InstancedLineSegments<THREE.LineBasicMaterial>
+            | InstancedLineSegments2
             | THREE.InstancedMesh
         proj: InstancedLineSegments<InstancedProjectionMaterial>
         dash: InstancedLineSegments<THREE.LineDashedMaterial>
@@ -64,6 +63,7 @@ export class InstanceItem {
 
         let outline:
             | InstancedLineSegments<THREE.LineBasicMaterial>
+            | InstancedLineSegments2
             | THREE.InstancedMesh
 
         if (activeMaterialLib === "gl_Line") {
@@ -101,24 +101,27 @@ export class InstanceItem {
                 )
             }
 
-            const outLineGeometry = new DataTextureLineSegmentsGeometry(
+            const outLineGeometry = new LineSegmentsGeometry().fromEdgesGeometry(
                 geometries.lineGeometry
             )
-            outline = new THREE.InstancedMesh(
+            outline = new InstancedLineSegments2(
                 outLineGeometry,
-                materials.outline as DataTextureLineMaterial,
+                materials.outline as InstancedLineMaterial,
                 capacity
             )
-            outline.onBeforeRender = () => {
-                const material = outline.material as DataTextureLineMaterial
-                material.segments = (
-                    outline.geometry as DataTextureLineSegmentsGeometry
-                ).dataTexture
+            outline.onBeforeRender = (renderer: THREE.WebGLRenderer) => {
+                const material = outline.material as InstancedLineMaterial
+                material.treeData = materials.outline.treeData
+                material.treeDataSize = materials.outline.treeDataSize
                 material.treeBlockOffset = id
                 material.treeBlockSize = InstanceCount
                 material.instanceMatrixCount = Math.max(1, outline.count)
                 material.resolution.set(window.innerWidth, window.innerHeight)
                 material.uniformsNeedUpdate = true
+                InstancedLineSegments2.prototype.onBeforeRender.call(
+                    outline,
+                    renderer
+                )
             }
         }
 
@@ -273,7 +276,7 @@ export class InstanceItem {
                 new LineSegmentsGeometry().fromEdgesGeometry(
                     geometries.lineGeometry
                 )
-            const nextOutlineGeometry = new DataTextureLineSegmentsGeometry(
+            const nextOutlineGeometry = new LineSegmentsGeometry().fromEdgesGeometry(
                 geometries.lineGeometry
             )
 
