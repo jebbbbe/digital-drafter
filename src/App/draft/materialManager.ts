@@ -2,9 +2,11 @@ import * as THREE from "three"
 import { constants } from "../constants"
 import { InstancedLineMaterial } from "../objects/materials/InstancedLineMaterial"
 import { ProjectionLineMaterial } from "../objects/materials/ProjectionLineMaterial"
+import { ProjectionLineMaterial2 } from "../objects/materials/ProjectionLineMaterial2"
 import { patchNodeMatrix } from "../objects/materials/nodeWrapper"
 import { LineMaterial } from "three/addons/lines/LineMaterial.js"
 import { FoldLineMaterial } from "../objects/materials/FoldLineMaterial"
+import { FoldLineMaterial2 } from "../objects/materials/FoldLineMaterial2"
 
 type ActiveMaterialLib = "gl_Line" | "linewidth"
 const activeMaterialLib: ActiveMaterialLib = "linewidth"
@@ -17,13 +19,7 @@ const matlib = {
         depthTest: true,
         depthWrite: false,
     }),
-    fold: new FoldLineMaterial({
-        color: display.fold.color,
-        foldDistance: display.fold.foldDistance,
-        foldSize: display.fold.foldSize,
-        depthTest: true,
-        depthWrite: false,
-    }),
+
     section: new THREE.LineBasicMaterial({
         color: display.section.color,
         depthTest: true,
@@ -57,6 +53,13 @@ if (activeMaterialLib === "gl_Line") {
             depthWrite: false,
         })
     )
+    matlib.fold = new FoldLineMaterial({
+        color: display.fold.color,
+        foldDistance: display.fold.foldDistance,
+        foldSize: display.fold.foldSize,
+        depthTest: true,
+        depthWrite: false,
+    })
     matlib.line = patchNodeMatrix(
         new THREE.LineBasicMaterial({
             color: display.line.color,
@@ -99,6 +102,20 @@ if (activeMaterialLib === "gl_Line") {
         dashSize: display.dash.dashSize,
         gapSize: display.dash.gapSize,
         depthTest: false,
+        depthWrite: false,
+    })
+    matlib.projection = new ProjectionLineMaterial2({
+        color: display.projection.color,
+        linewidth: 1,
+        depthTest: true,
+        depthWrite: false,
+    })
+    matlib.fold = new FoldLineMaterial2({
+        color: display.fold.color,
+        foldDistance: display.fold.foldDistance,
+        foldSize: display.fold.foldSize,
+        linewidth: 1.45,
+        depthTest: true,
         depthWrite: false,
     })
     matlib.mesh = patchNodeMatrix(
