@@ -38,7 +38,7 @@ const matlib = {
         color: 0x000000,
         depthTest: false,
         depthWrite: false,
-        linewidth: 2.5,
+        linewidth: 3.25,
     }),
 } as any
 
@@ -90,33 +90,40 @@ if (activeMaterialLib === "gl_Line") {
     })
     matlib.outline = new InstancedLineMaterial({
         color: display.line.color, //0xff0000
-        linewidth: 10.75,
+        linewidth: 3,
         depthWrite: false,
         // capStyle: 2,
     })
     matlib.dash = new InstancedLineMaterial({
         color: display.dash.color,
-        linewidth: 1,
+        linewidth: 0.75,
         dashed: true,
         dashScale: 1,
         dashSize: display.dash.dashSize,
         gapSize: display.dash.gapSize,
         depthTest: false,
         depthWrite: false,
+		transparent: true,
+        opacity: 0.5,
     })
     matlib.projection = new ProjectionLineMaterial2({
         color: display.projection.color,
         linewidth: 1,
         depthTest: true,
         depthWrite: false,
+        transparent: true,
+        opacity: 0.1,
+        // alphaToCoverage: true,
     })
     matlib.fold = new FoldLineMaterial2({
         color: display.fold.color,
         foldDistance: display.fold.foldDistance,
         foldSize: display.fold.foldSize,
-        linewidth: 1.45,
+        linewidth: 1,
         depthTest: true,
         depthWrite: false,
+        transparent: true,
+        opacity: 0.4,
     })
     matlib.mesh = patchNodeMatrix(
         new THREE.MeshBasicMaterial({

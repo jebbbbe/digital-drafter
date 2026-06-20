@@ -116,17 +116,17 @@ export const constants = {
                         visible: true,
                     },
                     dash: {
-                        color: "#a7a7a7",
+                        color: "#000000",
                         visible: true,
                         dashSize: 0.05,
                         gapSize: 0.01,
                     },
                     projection: {
-                        color: "#dfdfdf",
+                        color: "#000000",
                         visible: true,
                     },
                     fold: {
-                        color: "#a7a7a7",
+                        color: "#000000",
                         visible: true,
                         foldDistance: 0.875,
                         foldSize: 1.75,
