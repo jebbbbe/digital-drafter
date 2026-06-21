@@ -24,29 +24,46 @@
 
 ### v0.4.0
 
+- [ ] issues
+    - [ ] delete section grandchildren should detach
+    - [ ] delte section grandchildren leaves gizmo in view
+    - [ ] drafter instance item map for duplicates
+    - [ ] seciton line selection color
+	- [ ] lwinstance merge
+
+- [] materials
+    - [ ] rm nodeslot and use just ID uniform
+    - [ ] glsl snippets for nodeslot
+    - [ ] glsl snippets for projection
+    - [ ] reorg constants for materials
+    - [x] gline for attachments
+    - [ ] UI for all materials
+    - [ ] materail aliasing / transparency for super thin lw
+    - [ ] line thickness for printing
+    - [ ] tile renderer for export?
+
 - INTERFACE
-	- [ ] InstancedLineMaterial
-	- [ ] dataTexture wip finish...
-	- [ ] amtearil/setting default reads
-	- [ ] lineweight in shader, with dash, etc..
-	- [ ] materail resolution tracker, use world space size for lw..?
-	- [ ] small lineweight rasterize...?
-	- [ ] Profile Edge Depthmap Read..?
-	- [ ] gl lines -> normal materail with wireframe?
+    - [x] InstancedLineMaterial
+    - [x] dataTexture wip finish...
+    - [ ] matearil/setting default reads
+    - [x] lineweight in shader, with dash, etc..
+    - [x] materail resolution tracker, use world space size for lw..?
+    - [ ] small lineweight rasterize...?
+    - [ ] Profile Edge Depthmap Read..?
+    - [/] gl lines -> normal materail with wireframe?
 
 - [ ] organize
-	- [ ] more classes, import structure
-	- [ ] attachment update lyfecycle
-	- [ ] scale prop on node for datatexture
-	- [ ] class for interaciotn modes to easily add more
-	- [ ] select multiple, gizmo + position ref 
-	- [ ] gizmo offset
-	- [ ] interseciton logic
+    - [ ] more classes, import structure
+    - [ ] attachment update lyfecycle
+    - [ ] scale prop on node for datatexture
+    - [ ] class for interaciotn modes to easily add more
+    - [ ] select multiple, gizmo + position ref
+    - [ ] gizmo offset
+    - [ ] interseciton logic
 
 - [ ] select multiple
     - [ ] window select multiple
     - [ ] transform controls - gizmo origin from multiple selects
-	
 - [ ] Interface
     - [x] rm react dynamic import, use module splitting
     - [ ] transform controls- leva proxy link
