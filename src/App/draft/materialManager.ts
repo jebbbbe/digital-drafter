@@ -9,7 +9,7 @@ import { FoldLineMaterial } from "../objects/materials/FoldLineMaterial"
 import { FoldLineMaterial2 } from "../objects/materials/FoldLineMaterial2"
 
 type ActiveMaterialLib = "gl_Line" | "linewidth"
-const activeMaterialLib: ActiveMaterialLib = "linewidth"
+const activeMaterialLib: ActiveMaterialLib = "gl_Line"
 
 const display = constants.themes.objects[constants.theme].display as any
 
@@ -19,15 +19,9 @@ const matlib = {
         depthTest: true,
         depthWrite: false,
     }),
-
-    section: new THREE.LineBasicMaterial({
-        color: display.section.color,
-        depthTest: true,
-        depthWrite: false,
-    }),
     sectionFace: new THREE.MeshBasicMaterial({
-        color: 0xffffff, //0xd8abd8,
-        side: THREE.DoubleSide,
+        color: 0xd8abd8, //0xd8abd8,
+        side: THREE.DoubleSide,	
         depthWrite: false,
         depthTest: true, // nice result on/off
         polygonOffset: true,
@@ -81,6 +75,11 @@ if (activeMaterialLib === "gl_Line") {
             polygonOffsetUnits: 1,
         })
     )
+    matlib.section = new THREE.LineBasicMaterial({
+        color: display.section.color,
+        depthTest: true,
+        depthWrite: false,
+    })
 } else {
     matlib.line = new InstancedLineMaterial({
         color: display.line.color,
@@ -103,7 +102,7 @@ if (activeMaterialLib === "gl_Line") {
         gapSize: display.dash.gapSize,
         depthTest: false,
         depthWrite: false,
-		transparent: true,
+        transparent: true,
         opacity: 0.5,
     })
     matlib.projection = new ProjectionLineMaterial2({
@@ -114,6 +113,12 @@ if (activeMaterialLib === "gl_Line") {
         transparent: true,
         opacity: 0.1,
         // alphaToCoverage: true,
+    })
+    matlib.section = new LineMaterial({
+        color: display.section.color,
+        depthTest: true,
+        depthWrite: false,
+        linewidth: 2.5,
     })
     matlib.fold = new FoldLineMaterial2({
         color: display.fold.color,

@@ -1,10 +1,13 @@
 import * as THREE from "three"
 import { Brush } from "three-bvh-csg"
+import { LineMaterial } from "three/addons/lines/LineMaterial.js"
+import { LineSegments2 } from "three/addons/lines/LineSegments2.js"
+import { LineSegmentsGeometry } from "three/addons/lines/LineSegmentsGeometry.js"
 import { orders } from "../../draft/materialManager"
 import type { TransformNode } from "../../draft/TransformNode"
 
 export class SectionCutter {
-    mesh!: THREE.LineSegments
+    mesh!: THREE.LineSegments | LineSegments2
     itemSize = 3
     stride = this.itemSize * 2 // 2 3d points
     array = new Float32Array(128 * this.stride)
@@ -15,14 +18,28 @@ export class SectionCutter {
     // for csg
     box = new THREE.BoxGeometry()
     brush = new Brush(this.box)
+
     constructor(material: THREE.Material) {
-        const geometry = new THREE.BufferGeometry()
-        geometry.setAttribute(
-            "position",
-            new THREE.BufferAttribute(this.array, this.itemSize)
-        )
-        geometry.setDrawRange(0, 0)
-        this.mesh = new THREE.LineSegments(geometry, material)
+        if (material instanceof LineMaterial) {
+            const geometry = new LineSegmentsGeometry()
+            geometry.setPositions(this.array)
+            geometry.instanceCount = 0
+            ;(geometry as any)._maxInstanceCount =
+                this.array.length / this.stride
+            this.mesh = new LineSegments2(geometry, material)
+            material.resolution.set(window.innerWidth, window.innerHeight)
+            this.mesh.onBeforeRender = (renderer) => {
+                LineSegments2.prototype.onBeforeRender.call(this.mesh, renderer)
+            }
+        } else {
+            const geometry = new THREE.BufferGeometry()
+            geometry.setAttribute(
+                "position",
+                new THREE.BufferAttribute(this.array, this.itemSize)
+            )
+            geometry.setDrawRange(0, 0)
+            this.mesh = new THREE.LineSegments(geometry, material)
+        }
         this.mesh.position.y = 4
         this.mesh.frustumCulled = false
         this.mesh.renderOrder = orders.sectionLine
@@ -41,15 +58,38 @@ export class SectionCutter {
         nextArray.set(this.array)
         this.array = nextArray
 
-        this.mesh.geometry.setAttribute(
-            "position",
-            new THREE.BufferAttribute(this.array, this.itemSize)
-        )
+        if (this.mesh instanceof LineSegments2) {
+            const geometry = this.mesh.geometry
+            geometry.setPositions(this.array)
+            geometry.instanceCount = this.count / 2
+            ;(geometry as any)._maxInstanceCount =
+                this.array.length / this.stride
+        } else {
+            this.mesh.geometry.setAttribute(
+                "position",
+                new THREE.BufferAttribute(this.array, this.itemSize)
+            )
+        }
+
         this.markUpdate()
         return nextArray
     }
 
     markUpdate() {
+        if (this.mesh instanceof LineSegments2) {
+            const geometry = this.mesh.geometry
+            const instanceStart = geometry.getAttribute(
+                "instanceStart"
+            ) as THREE.InterleavedBufferAttribute
+            instanceStart.data.needsUpdate = true
+            geometry.instanceCount = this.count / 2
+            ;(geometry as any)._maxInstanceCount =
+                this.array.length / this.stride
+            geometry.computeBoundingSphere()
+            geometry.computeBoundingBox()
+            return
+        }
+
         const geometry = this.mesh.geometry
         const position = this.mesh.geometry.getAttribute(
             "position"
@@ -95,7 +135,9 @@ export class SectionCutter {
         a.toArray(this.array, offset)
         b.toArray(this.array, offset + this.itemSize)
         this.count += 2
-        this.mesh.geometry.setDrawRange(0, this.count)
+        if (this.mesh instanceof THREE.LineSegments) {
+            this.mesh.geometry.setDrawRange(0, this.count)
+        }
         this.markUpdate()
 
         this.nodeMap.set(index, node)
@@ -112,7 +154,9 @@ export class SectionCutter {
         this.array.set(a, offset)
 
         this.count += 2
-        this.mesh.geometry.setDrawRange(0, this.count)
+        if (this.mesh instanceof THREE.LineSegments) {
+            this.mesh.geometry.setDrawRange(0, this.count)
+        }
         this.markUpdate()
 
         this.nodeMap.set(index, node)
@@ -178,7 +222,9 @@ export class SectionCutter {
         this.array.fill(0, lastOffset, lastOffset + this.stride)
         this.nodeMap.delete(lastIndex)
         this.count -= 2
-        this.mesh.geometry.setDrawRange(0, this.count)
+        if (this.mesh instanceof THREE.LineSegments) {
+            this.mesh.geometry.setDrawRange(0, this.count)
+        }
         if (mark) this.markUpdate()
     }
 }
