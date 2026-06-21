@@ -47,14 +47,7 @@ const matlib = {
         transparent: true,
         opacity: 1,
     }),
-    sectionEdge: new LineMaterial({
-        color: 0x000000,
-        depthTest: false,
-        depthWrite: false,
-        linewidth: 3.25,
-        transparent: true,
-        opacity: 1,
-    }),
+	//sectionEdge
     //sectionLine
 } as any
 
@@ -94,6 +87,14 @@ if (activeMaterialLib === "gl_Line") {
             depthWrite: false,
         })
     )
+		//sectionFace
+	matlib.sectionEdge =  new THREE.LineBasicMaterial({
+        color: 0x000000,
+        depthTest: false,
+        depthWrite: false,
+        transparent: true,
+        opacity: 1,
+    })
     matlib.sectionLine = new THREE.LineBasicMaterial({
         color: display.section.color,
         depthTest: true,
@@ -143,6 +144,15 @@ if (activeMaterialLib === "gl_Line") {
         linewidth: 1.25,
         depthWrite: false,
         // capStyle: 2, // rm from implementation for now
+    })
+	//sectionFace
+	matlib.sectionEdge =  new LineMaterial({
+        color: 0x000000,
+        depthTest: false,
+        depthWrite: false,
+        linewidth: 3.25,
+        transparent: true,
+        opacity: 1,
     })
     matlib.sectionLine = new LineMaterial({
         color: display.section.color,
