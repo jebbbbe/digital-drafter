@@ -20,10 +20,6 @@ export class SectionFaceGroup extends THREE.Group {
             matlib.sectionEdge
         )
         this.edges.renderOrder = orders.sectionEdge
-        matlib.sectionEdge.resolution.set(window.innerWidth, window.innerHeight)
-        // this.edges.onBeforeRender = (renderer) => {
-            // LineSegments2.prototype.onBeforeRender.call(this.edges, renderer)
-        // }
 
         this.add(this.face)
         this.add(this.edges)

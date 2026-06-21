@@ -27,10 +27,6 @@ export class SectionCutter {
             ;(geometry as any)._maxInstanceCount =
                 this.array.length / this.stride
             this.mesh = new LineSegments2(geometry, material)
-            material.resolution.set(window.innerWidth, window.innerHeight)
-            this.mesh.onBeforeRender = (renderer) => {
-                LineSegments2.prototype.onBeforeRender.call(this.mesh, renderer)
-            }
         } else {
             const geometry = new THREE.BufferGeometry()
             geometry.setAttribute(

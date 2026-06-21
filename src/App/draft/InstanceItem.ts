@@ -114,8 +114,6 @@ export class InstanceItem {
                     line.material as unknown as InstancedLineMaterial
                 // this changes for every mesh isntance, otherwise we need multiple materials
                 material.treeBlockOffset = id
-                // this changes on resize
-                material.resolution.set(window.innerWidth, window.innerHeight)
                 // might be abel to set this elsewhere
                 material.instanceMatrixCount = Math.max(1, line.count)
                 material.uniformsNeedUpdate = true
@@ -138,7 +136,6 @@ export class InstanceItem {
                 const material =
                     outline.material as unknown as InstancedLineMaterial
                 material.treeBlockOffset = id
-                material.resolution.set(window.innerWidth, window.innerHeight)
                 material.instanceMatrixCount = Math.max(1, outline.count)
                 material.uniformsNeedUpdate = true
                 InstancedLineSegments2.prototype.onBeforeRender.call(
@@ -159,7 +156,6 @@ export class InstanceItem {
                 const material =
                     dash.material as unknown as InstancedLineMaterial
                 material.treeBlockOffset = id
-                material.resolution.set(window.innerWidth, window.innerHeight)
                 material.instanceMatrixCount = Math.max(1, dash.count)
                 material.uniformsNeedUpdate = true
                 InstancedLineSegments2.prototype.onBeforeRender.call(
@@ -181,7 +177,6 @@ export class InstanceItem {
                 const material =
                     proj.material as unknown as ProjectionLineMaterial2
                 material.treeBlockOffset = id
-                material.resolution.set(window.innerWidth, window.innerHeight)
                 material.instanceMatrixCount = Math.max(1, proj.count)
                 material.uniformsNeedUpdate = true
                 InstancedLineSegments2.prototype.onBeforeRender.call(
@@ -202,7 +197,6 @@ export class InstanceItem {
             fold.onBeforeRender = (renderer: THREE.WebGLRenderer) => {
                 const material = fold.material as unknown as FoldLineMaterial2
                 material.treeBlockOffset = id
-                material.resolution.set(window.innerWidth, window.innerHeight)
                 material.instanceMatrixCount = Math.max(1, fold.count)
                 material.uniformsNeedUpdate = true
                 InstancedLineSegments2.prototype.onBeforeRender.call(
