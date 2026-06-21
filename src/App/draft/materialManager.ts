@@ -8,8 +8,17 @@ import { LineMaterial } from "three/addons/lines/LineMaterial.js"
 import { FoldLineMaterial } from "../objects/materials/FoldLineMaterial"
 import { FoldLineMaterial2 } from "../objects/materials/FoldLineMaterial2"
 
+
+/*
+
+render order issuees.
+we have contrained render order, dpth write and read to have certain contraints. 
+by adding trancparacy flag, this changes render order. 
+will revisit when looking more into line aliasing 
+
+*/
 type ActiveMaterialLib = "gl_Line" | "linewidth"
-const activeMaterialLib: ActiveMaterialLib = "gl_Line"
+const activeMaterialLib: ActiveMaterialLib = "linewidth"
 
 const display = constants.themes.objects[constants.theme].display as any
 
@@ -27,12 +36,16 @@ const matlib = {
         polygonOffset: true,
         polygonOffsetFactor: 1,
         polygonOffsetUnits: 1,
+		transparent:true,
+		opacity:1,
     }),
     sectionEdge: new LineMaterial({
         color: 0x000000,
         depthTest: false,
         depthWrite: false,
         linewidth: 3.25,
+		transparent:true,
+		opacity:1,
     }),
 } as any
 
@@ -135,8 +148,8 @@ if (activeMaterialLib === "gl_Line") {
             color: display.mesh.color,
             side: THREE.DoubleSide,
             polygonOffset: true,
-            polygonOffsetFactor: 3,
-            polygonOffsetUnits: 3,
+            polygonOffsetFactor: 1,
+            polygonOffsetUnits: 1,
         })
     )
 }
