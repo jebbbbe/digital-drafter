@@ -37,7 +37,7 @@ export class Drafter {
         },
         enable: false,
     }
-    sectionCutter = new SectionCutter(this.materials.section)
+    sectionCutter = new SectionCutter(this.materials.sectionLine)
     constructor(scene: THREE.Scene, debug: boolean = false) {
         this.scene = scene
         this.assignTexture()

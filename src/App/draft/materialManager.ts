@@ -8,7 +8,6 @@ import { LineMaterial } from "three/addons/lines/LineMaterial.js"
 import { FoldLineMaterial } from "../objects/materials/FoldLineMaterial"
 import { FoldLineMaterial2 } from "../objects/materials/FoldLineMaterial2"
 
-
 /*
 
 render order issuees.
@@ -23,34 +22,51 @@ const activeMaterialLib: ActiveMaterialLib = "linewidth"
 const display = constants.themes.objects[constants.theme].display as any
 
 const matlib = {
-    projection: new ProjectionLineMaterial({
-        color: display.projection.color,
-        depthTest: true,
-        depthWrite: false,
-    }),
+    // outline
+    mesh: patchNodeMatrix(
+        new THREE.MeshBasicMaterial({
+            color: display.mesh.color,
+            side: THREE.DoubleSide,
+            polygonOffset: true,
+            polygonOffsetFactor: 1,
+            polygonOffsetUnits: 1,
+        })
+    ),
+    // dash
+    // proj
+    // fold
+    // line
     sectionFace: new THREE.MeshBasicMaterial({
         color: 0xd8abd8, //0xd8abd8,
-        side: THREE.DoubleSide,	
+        side: THREE.DoubleSide,
         depthWrite: false,
         depthTest: true, // nice result on/off
         polygonOffset: true,
         polygonOffsetFactor: 1,
         polygonOffsetUnits: 1,
-		transparent:true,
-		opacity:1,
+        transparent: true,
+        opacity: 1,
     }),
     sectionEdge: new LineMaterial({
         color: 0x000000,
         depthTest: false,
         depthWrite: false,
         linewidth: 3.25,
-		transparent:true,
-		opacity:1,
+        transparent: true,
+        opacity: 1,
     }),
+    //sectionLine
 } as any
 
 // @ts-ignore
 if (activeMaterialLib === "gl_Line") {
+    matlib.outline = patchNodeMatrix(
+        new THREE.LineBasicMaterial({
+            color: 0xff0000, //display.line.color,
+            depthWrite: false,
+        })
+    )
+    //mesh
     matlib.dash = patchNodeMatrix(
         new THREE.LineDashedMaterial({
             color: display.dash.color,
@@ -60,6 +76,11 @@ if (activeMaterialLib === "gl_Line") {
             depthWrite: false,
         })
     )
+    matlib.projection = new ProjectionLineMaterial({
+        color: display.projection.color,
+        depthTest: true,
+        depthWrite: false,
+    })
     matlib.fold = new FoldLineMaterial({
         color: display.fold.color,
         foldDistance: display.fold.foldDistance,
@@ -73,39 +94,19 @@ if (activeMaterialLib === "gl_Line") {
             depthWrite: false,
         })
     )
-    matlib.outline = patchNodeMatrix(
-        new THREE.LineBasicMaterial({
-            color: 0xff0000, //display.line.color,
-            depthWrite: false,
-        })
-    )
-    matlib.mesh = patchNodeMatrix(
-        new THREE.MeshBasicMaterial({
-            color: display.mesh.color,
-            side: THREE.DoubleSide,
-            polygonOffset: true,
-            polygonOffsetFactor: 1,
-            polygonOffsetUnits: 1,
-        })
-    )
-    matlib.section = new THREE.LineBasicMaterial({
+    matlib.sectionLine = new THREE.LineBasicMaterial({
         color: display.section.color,
         depthTest: true,
         depthWrite: false,
     })
 } else {
-    matlib.line = new InstancedLineMaterial({
-        color: display.line.color,
-        linewidth: 1.25,
-        depthWrite: false,
-        // capStyle: 2, // rm from implementation for now
-    })
     matlib.outline = new InstancedLineMaterial({
         color: display.line.color, //0xff0000
         linewidth: 3,
         depthWrite: false,
         // capStyle: 2,
     })
+    //mesh
     matlib.dash = new InstancedLineMaterial({
         color: display.dash.color,
         linewidth: 0.75,
@@ -127,12 +128,6 @@ if (activeMaterialLib === "gl_Line") {
         opacity: 0.1,
         // alphaToCoverage: true,
     })
-    matlib.section = new LineMaterial({
-        color: display.section.color,
-        depthTest: true,
-        depthWrite: false,
-        linewidth: 2.5,
-    })
     matlib.fold = new FoldLineMaterial2({
         color: display.fold.color,
         foldDistance: display.fold.foldDistance,
@@ -143,15 +138,18 @@ if (activeMaterialLib === "gl_Line") {
         transparent: true,
         opacity: 0.4,
     })
-    matlib.mesh = patchNodeMatrix(
-        new THREE.MeshBasicMaterial({
-            color: display.mesh.color,
-            side: THREE.DoubleSide,
-            polygonOffset: true,
-            polygonOffsetFactor: 1,
-            polygonOffsetUnits: 1,
-        })
-    )
+    matlib.line = new InstancedLineMaterial({
+        color: display.line.color,
+        linewidth: 1.25,
+        depthWrite: false,
+        // capStyle: 2, // rm from implementation for now
+    })
+    matlib.sectionLine = new LineMaterial({
+        color: display.section.color,
+        depthTest: true,
+        depthWrite: false,
+        linewidth: 2.5,
+    })
 }
 
 const orders = {
@@ -162,9 +160,9 @@ const orders = {
     fold: 2,
     line: 4,
     //attachments
-    sectionLine: 9,
     sectionFace: 7,
     sectionEdge: 7,
+    sectionLine: 9,
 }
 
 export { matlib, activeMaterialLib, orders }
