@@ -60,6 +60,12 @@ export class InstanceItem {
             capacity
         )
 
+        // see materialManager for notes on this bad practice
+        mesh.onBeforeRender = (r, s, c, g, material: any) => {
+            material.treeBlockOffset = id
+            material.uniformsNeedUpdate = true
+        }
+
         let line:
             | InstancedLineSegments<THREE.LineBasicMaterial>
             | InstancedLineSegments2
@@ -80,26 +86,46 @@ export class InstanceItem {
                 materials.line,
                 capacity
             )
+            line.onBeforeRender = (r, s, c, g, material: any) => {
+                material.treeBlockOffset = id
+                material.uniformsNeedUpdate = true
+            }
             outline = new InstancedLineSegments<THREE.LineBasicMaterial>(
                 geometries.lineGeometry,
                 materials.outline,
                 capacity
             )
+            outline.onBeforeRender = (r, s, c, g, material: any) => {
+                material.treeBlockOffset = id
+                material.uniformsNeedUpdate = true
+            }
             dash = new InstancedLineSegments<THREE.LineDashedMaterial>(
                 geometries.lineGeometry,
                 materials.dash,
                 capacity
             )
+            dash.onBeforeRender = (r, s, c, g, material: any) => {
+                material.treeBlockOffset = id
+                material.uniformsNeedUpdate = true
+            }
             fold = new InstancedLineSegments(
                 geometries.foldGeometry,
                 materials.fold,
                 capacity
             )
+            fold.onBeforeRender = (r, s, c, g, material: any) => {
+                material.treeBlockOffset = id
+                material.uniformsNeedUpdate = true
+            }
             proj = new InstancedLineSegments(
                 geometries.projGeometry,
                 materials.projection,
                 capacity
             )
+            proj.onBeforeRender = (r, s, c, g, material: any) => {
+                material.treeBlockOffset = id
+                material.uniformsNeedUpdate = true
+            }
         } else {
             const lineGeometry = new LineSegmentsGeometry().fromEdgesGeometry(
                 geometries.lineGeometry
@@ -116,6 +142,7 @@ export class InstanceItem {
                 material.treeBlockOffset = id
                 // might be abel to set this elsewhere
                 material.instanceMatrixCount = Math.max(1, line.count)
+                // render feature to look over uniforms changed in this fn
                 material.uniformsNeedUpdate = true
                 InstancedLineSegments2.prototype.onBeforeRender.call(
                     line,

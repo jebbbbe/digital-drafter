@@ -1,8 +1,11 @@
 import * as THREE from "three"
+import { InstanceCount } from "../../constants"
 
 type ProjectionLineMaterialParameters = THREE.LineBasicMaterialParameters & {
     treeData?: THREE.DataTexture | null
     treeDataSize?: number
+    treeBlockOffset?: number
+    treeBlockSize?: number
 }
 
 export class ProjectionLineMaterial extends THREE.LineBasicMaterial {
@@ -10,12 +13,16 @@ export class ProjectionLineMaterial extends THREE.LineBasicMaterial {
     customUniforms: {
         treeData: { value: THREE.DataTexture | null }
         treeDataSize: { value: number }
+        treeBlockOffset: { value: number }
+        treeBlockSize: { value: number }
     }
 
     constructor(parameters: ProjectionLineMaterialParameters = {}) {
         const params = structuredClone(parameters)
         delete params.treeData
         delete params.treeDataSize
+        delete params.treeBlockOffset
+        delete params.treeBlockSize
         super(params)
 
         this.customUniforms = {
@@ -24,6 +31,12 @@ export class ProjectionLineMaterial extends THREE.LineBasicMaterial {
             },
             treeDataSize: {
                 value: parameters.treeDataSize ?? 1,
+            },
+            treeBlockOffset: {
+                value: parameters.treeBlockOffset ?? 0,
+            },
+            treeBlockSize: {
+                value: parameters.treeBlockSize ?? InstanceCount,
             },
         }
 
@@ -47,6 +60,26 @@ export class ProjectionLineMaterial extends THREE.LineBasicMaterial {
             },
         })
 
+        Object.defineProperty(this, "treeBlockOffset", {
+            get: () => this.customUniforms.treeBlockOffset.value,
+            set: (value: number) => {
+                this.customUniforms.treeBlockOffset.value = value
+                if (this.shader) {
+                    this.shader.uniforms.treeBlockOffset.value = value
+                }
+            },
+        })
+
+        Object.defineProperty(this, "treeBlockSize", {
+            get: () => this.customUniforms.treeBlockSize.value,
+            set: (value: number) => {
+                this.customUniforms.treeBlockSize.value = value
+                if (this.shader) {
+                    this.shader.uniforms.treeBlockSize.value = value
+                }
+            },
+        })
+
         this.onBeforeCompile = (shader) => {
             shader.uniforms = {
                 ...shader.uniforms,
@@ -55,7 +88,7 @@ export class ProjectionLineMaterial extends THREE.LineBasicMaterial {
             shader.vertexShader = shader.vertexShader.replace(
                 "#include <common>",
                 "#include <common>\n" +
-                    "#include <attribute_nodeslot>\n" +
+                    // "#include <attribute_nodeslot>\n" +
                     "#include <uniform_tree>\n" +
                     "#include <tree_funcitons>"
             )
@@ -97,5 +130,7 @@ declare module "three" {
     interface LineBasicMaterial {
         treeData?: THREE.DataTexture | null
         treeDataSize?: number
+        treeBlockOffset?: number
+        treeBlockSize?: number
     }
 }

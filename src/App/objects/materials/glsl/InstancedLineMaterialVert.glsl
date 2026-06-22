@@ -16,10 +16,7 @@ attribute vec3 instanceColorEnd;
 #ifdef InstancedLine
 
 	#include <uniform_tree>
-	uniform int treeBlockOffset;
-	uniform int treeBlockSize;
 	uniform int instanceMatrixCount;
-
 	#include <tree_funcitons>
 
 #endif

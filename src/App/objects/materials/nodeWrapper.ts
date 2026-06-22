@@ -7,22 +7,27 @@ import type {
     MaterialExtension,
 } from "./wrapper"
 import { replaceShader, replaceShaderVariables } from "./treeShaderChunk"
+import { InstanceCount } from "../../constants"
 
 type GlobalNodeMaterial = {
     treeData?: THREE.DataTexture | null
     treeDataSize?: number
+    treeBlockOffset?: number
+    treeBlockSize?: number
 }
 
 const nodeMatrixExtension: MaterialExtension = {
     customUniforms: {
         treeData: null,
         treeDataSize: 1,
+        treeBlockOffset: 0,
+        treeBlockSize: InstanceCount,
     },
     onBeforeCompile: (shader) => {
         shader.vertexShader = shader.vertexShader.replace(
             "#include <common>",
             "#include <common>\n" +
-                "#include <attribute_nodeslot>\n" +
+                // "#include <attribute_nodeslot>\n" +
                 "#include <uniform_tree>\n" +
                 "#include <tree_funcitons>"
         )

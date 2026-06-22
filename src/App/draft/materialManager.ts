@@ -17,7 +17,7 @@ will revisit when looking more into line aliasing
 
 */
 type ActiveMaterialLib = "gl_Line" | "linewidth"
-const activeMaterialLib: ActiveMaterialLib = "linewidth"
+const activeMaterialLib: ActiveMaterialLib = "gl_Line"
 
 const display = constants.themes.objects[constants.theme].display as any
 
@@ -25,7 +25,7 @@ const matlib = {
     // outline
     mesh: patchNodeMatrix(
         new THREE.MeshBasicMaterial({
-            color: display.mesh.color,
+            color: 0xfeefe, //display.mesh.color,
             side: THREE.DoubleSide,
             polygonOffset: true,
             polygonOffsetFactor: 1,
@@ -173,6 +173,28 @@ const orders = {
     sectionFace: 7,
     sectionEdge: 7,
     sectionLine: 9,
+}
+
+// this fix is so we can use OnBeforeRender for builtin materials
+// the proper solution is to have one material per isntance unfortunatly
+// we can use THREE.UniformGroups to update values foor display, or just do a simple loop over all isntances
+// we would need clone/copy methods working for the material wrapper...
+matlib.mesh.isShaderMaterial = true
+matlib.mesh.uniformsGroups = []
+// @ts-ignore
+if (activeMaterialLib === "gl_Line") {
+    // i would rather remove gl_Line support before fixing this issue.
+    // i dont think we need a fallback for this..
+    matlib.outline.isShaderMaterial = true
+    matlib.outline.uniformsGroups = []
+    matlib.dash.isShaderMaterial = true
+    matlib.dash.uniformsGroups = []
+    matlib.projection.isShaderMaterial = true
+    matlib.projection.uniformsGroups = []
+    matlib.fold.isShaderMaterial = true
+    matlib.fold.uniformsGroups = []
+    matlib.line.isShaderMaterial = true
+    matlib.line.uniformsGroups = []
 }
 
 export { matlib, activeMaterialLib, orders }
