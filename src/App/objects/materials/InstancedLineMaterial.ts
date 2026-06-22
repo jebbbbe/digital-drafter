@@ -7,6 +7,8 @@ import {
     Vector2,
 } from "three"
 
+import "./treeShaderChunk"
+
 import { InstanceCount } from "../../constants"
 
 import type {
@@ -73,37 +75,12 @@ ShaderLib["instanceLine"] = {
 
 		#ifdef InstancedLine
 
-			uniform highp sampler2D treeData;
-			uniform int treeDataSize;
+			#include <uniform_tree>
 			uniform int treeBlockOffset;
 			uniform int treeBlockSize;
 			uniform int instanceMatrixCount;
 
-			ivec2 getTreeDataTexelCoord( int texelIndex ) {
-
-				return ivec2( texelIndex % treeDataSize, texelIndex / treeDataSize );
-
-			}
-
-			vec4 readTreeDataTexel( int texelIndex ) {
-
-				return texelFetch( treeData, getTreeDataTexelCoord( texelIndex ), 0 ).rgba;
-
-			}
-
-			mat4 readInstanceMatrix( const in int matrixIndex ) {
-
-				int slotIndex = treeBlockOffset * treeBlockSize + matrixIndex;
-				int texelIndex = slotIndex * 5;
-
-				vec4 column0 = readTreeDataTexel( texelIndex + 0 );
-				vec4 column1 = readTreeDataTexel( texelIndex + 1 );
-				vec4 column2 = readTreeDataTexel( texelIndex + 2 );
-				vec4 column3 = readTreeDataTexel( texelIndex + 3 );
-
-				return mat4( column0, column1, column2, column3 );
-
-			}
+			#include <tree_funcitons>
 
 		#endif
 
@@ -163,13 +140,8 @@ ShaderLib["instanceLine"] = {
 			float nodeScale = 1.0;
 
 			#ifdef InstancedLine
-
-				int matrixIndex = gl_InstanceID % instanceMatrixCount;
-				mat4 lineMatrix = readInstanceMatrix( matrixIndex );
-				nodeScale = length( lineMatrix[ 0 ].xyz );
-				lineStart = ( lineMatrix * vec4( lineStart, 1.0 ) ).xyz;
-				lineEnd = ( lineMatrix * vec4( lineEnd, 1.0 ) ).xyz;
-
+				#include <instanced_line>
+				nodeScale = length( nodeMatrix[ 0 ].xyz );
 			#endif
 
 			#ifdef USE_DASH

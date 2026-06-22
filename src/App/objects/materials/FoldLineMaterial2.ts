@@ -21,85 +21,54 @@ export class FoldLineMaterial2 extends InstancedLineMaterial {
         }
 
         this.vertexShader = this.vertexShader.replace(
-            /*glsl */ `return mat4( column0, column1, column2, column3 );
-
-			}
-
-		#endif`,
-            /*glsl */ `return mat4( column0, column1, column2, column3 );
-
-			}
-
-			vec4 readSlotMetadata( const in int slotIndex ) {
-
-				int texelIndex = slotIndex * 5;
-				return readTreeDataTexel( texelIndex + 4 );
-
-			}
-
-			mat4 readMatrixAtSlot( const in int slotIndex ) {
-
-				int texelIndex = slotIndex * 5;
-
-				vec4 column0 = readTreeDataTexel( texelIndex + 0 );
-				vec4 column1 = readTreeDataTexel( texelIndex + 1 );
-				vec4 column2 = readTreeDataTexel( texelIndex + 2 );
-				vec4 column3 = readTreeDataTexel( texelIndex + 3 );
-
-				return mat4( column0, column1, column2, column3 );
-
-			}
-
-		#endif`
+            `#include <tree_funcitons>`,
+            `#include <tree_funcitons>\n` + "#include <uniform_fold>\n"
         )
 
         this.vertexShader = this.vertexShader.replace(
-            /*glsl */ `uniform int instanceMatrixCount;`,
-            /*glsl */ `uniform int instanceMatrixCount;
-			uniform float foldDistance;
-			uniform float foldSize;`
-        )
-
-        this.vertexShader = this.vertexShader.replace(
-            /*glsl */ `				int matrixIndex = gl_InstanceID % instanceMatrixCount;
-				mat4 lineMatrix = readInstanceMatrix( matrixIndex );
-				nodeScale = length( lineMatrix[ 0 ].xyz );
-				lineStart = ( lineMatrix * vec4( lineStart, 1.0 ) ).xyz;
-				lineEnd = ( lineMatrix * vec4( lineEnd, 1.0 ) ).xyz;`,
-            /*glsl */ `				int matrixIndex = gl_InstanceID % instanceMatrixCount;
-				int segmentIndex = gl_InstanceID / instanceMatrixCount;
+            "#include <instanced_line>",
+            /*glsl */ `
+				int matrixIndex = gl_InstanceID % instanceMatrixCount;
 				int slotIndex = treeBlockOffset * treeBlockSize + matrixIndex;
-				mat4 lineMatrix = readMatrixAtSlot( slotIndex );
-				vec4 lineMetadata = readSlotMetadata( slotIndex );
-				mat4 parentLineMatrix = readMatrixAtSlot( int( lineMetadata.x ) );
-				nodeScale = length( lineMatrix[ 0 ].xyz );
 
-				vec2 childPos = lineMatrix[ 3 ].xz;
-				vec2 parentPos = parentLineMatrix[ 3 ].xz;
+				vec4 nodeData = vec4( 0.0 );
+				mat4 nodeMatrix = mat4( 1.0 );
+				readTreeData( slotIndex, nodeMatrix, nodeData );
+				int parentSlot = int(nodeData.x);
+
+				vec4 parentNodeData = vec4( 0.0 );
+				mat4 parentNodeMatrix = mat4( 1.0 );
+				readTreeData( parentSlot, parentNodeMatrix, parentNodeData );
+				
+				// extract matrix info
+				vec2 childPos = nodeMatrix[ 3 ].xz;
+				vec2 parentPos = parentNodeMatrix[ 3 ].xz;
 				vec2 delta = parentPos - childPos;
-				float deltaLength = length( delta );
-				vec2 foldDir = deltaLength > 0.0 ? delta / deltaLength : vec2( 1.0, 0.0 );
-				vec2 foldNorm = foldDir.yx * vec2( -1.0, 1.0 );
-				float adjFoldDistance = min( foldDistance, deltaLength * 0.5 );
+				vec2 lineDirection = normalize( length( delta ) > 0.0 ? delta : vec2( 1.0, 0.0 ) );
+				vec2 lineNormal = lineDirection.yx * vec2( -1., 1. );
+				float halfNodeDistance = distance( childPos, parentPos ) / 2.0;
 
-				foldDir *= adjFoldDistance;
-				foldNorm *= foldSize * 0.5;
+				// constrain fold line when nodes are to
+				float adjFoldDistance = foldDistance;
+				if ( adjFoldDistance > halfNodeDistance ) {
+					adjFoldDistance = halfNodeDistance;
+				}
 
-				if ( segmentIndex == 0 ) {
+				lineDirection *= adjFoldDistance;
+				lineNormal *= foldSize / 2.0;
 
-					vec2 startXZ = childPos + foldDir + foldNorm;
-					vec2 endXZ = childPos + foldDir - foldNorm;
-					lineStart = vec3( startXZ.x, 10.0, startXZ.y );
-					lineEnd = vec3( endXZ.x, 10.0, endXZ.y );
-
+				int id = gl_InstanceID % 2;
+				if ( id == 0 ) {
+					lineStart.xz =  childPos + lineDirection + lineNormal;
+					lineEnd.xz =  childPos + lineDirection - lineNormal;
 				} else {
+					lineStart.xz =  parentPos - lineDirection + lineNormal;
+					lineEnd.xz =  parentPos - lineDirection - lineNormal;
 
-					vec2 startXZ = parentPos - foldDir + foldNorm;
-					vec2 endXZ = parentPos - foldDir - foldNorm;
-					lineStart = vec3( startXZ.x, 10.0, startXZ.y );
-					lineEnd = vec3( endXZ.x, 10.0, endXZ.y );
+				}
 
-				}`
+				lineStart.y = 10.0;
+				lineEnd.y = 10.0;`
         )
     }
 

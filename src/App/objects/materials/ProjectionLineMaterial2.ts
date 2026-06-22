@@ -8,84 +8,34 @@ export class ProjectionLineMaterial2 extends InstancedLineMaterial {
         super(parameters)
 
         this.vertexShader = this.vertexShader.replace(
-            /*glsl*/`return mat4( column0, column1, column2, column3 );
+            "#include <instanced_line>",
+            /* glsl */ `
+			int matrixIndex = gl_InstanceID % instanceMatrixCount;
+			int slotIndex = treeBlockOffset * treeBlockSize + matrixIndex;
+				
+			vec4 nodeData = vec4( 0.0 );
+			mat4 nodeMatrix = mat4( 1.0 );
+			readTreeData( slotIndex, nodeMatrix, nodeData );
+			int parentSlot = int(nodeData.x);
 
-			}
+			vec4 parentNodeData = vec4( 0.0 );
+			mat4 parentNodeMatrix = mat4( 1.0 );
+			readTreeData( int( nodeData.x ), parentNodeMatrix, parentNodeData );
+				
 
-		#endif`,
-            /*glsl*/`return mat4( column0, column1, column2, column3 );
+			vec3 childTransformed = ( nodeMatrix * vec4( lineStart, 1.0 ) ).xyz;
+			vec3 parentTransformed = ( parentNodeMatrix * vec4( lineEnd, 1.0 ) ).xyz;
+				
+			lineStart = childTransformed;
+			lineEnd = parentTransformed;
 
-			}
-
-			vec4 readSlotMetadata( const in int slotIndex ) {
-
-				int texelIndex = slotIndex * 5;
-				return readTreeDataTexel( texelIndex + 4 );
-
-			}
-
-			mat4 readMatrixAtSlot( const in int slotIndex ) {
-
-				int texelIndex = slotIndex * 5;
-
-				vec4 column0 = readTreeDataTexel( texelIndex + 0 );
-				vec4 column1 = readTreeDataTexel( texelIndex + 1 );
-				vec4 column2 = readTreeDataTexel( texelIndex + 2 );
-				vec4 column3 = readTreeDataTexel( texelIndex + 3 );
-
-				return mat4( column0, column1, column2, column3 );
-
-			}
-
-		#endif`
-        )
-
-        this.vertexShader = this.vertexShader.replace(
-            /* glsl */ `			float aspect = resolution.x / resolution.y;
-			vec3 lineStart = instanceStart;
-			vec3 lineEnd = instanceEnd;
-			float nodeScale = 1.0;
-
-			#ifdef InstancedLine
-
-				int matrixIndex = gl_InstanceID % instanceMatrixCount;
-				mat4 lineMatrix = readInstanceMatrix( matrixIndex );
-				nodeScale = length( lineMatrix[ 0 ].xyz );
-				lineStart = ( lineMatrix * vec4( lineStart, 1.0 ) ).xyz;
-				lineEnd = ( lineMatrix * vec4( lineEnd, 1.0 ) ).xyz;
-
-			#endif`,
-            /* glsl */ `			float aspect = resolution.x / resolution.y;
-			vec3 lineStart = instanceStart;
-			vec3 lineEnd = instanceEnd;
-			float nodeScale = 1.0;
-
-			#ifdef InstancedLine
-
-				int matrixIndex = gl_InstanceID % instanceMatrixCount;
-				int slotIndex = treeBlockOffset * treeBlockSize + matrixIndex;
-				mat4 lineMatrix = readMatrixAtSlot( slotIndex );
-				vec4 lineMetadata = readSlotMetadata( slotIndex );
-				mat4 parentLineMatrix = readMatrixAtSlot( int( lineMetadata.x ) );
-				nodeScale = length( lineMatrix[ 0 ].xyz );
-				vec3 childTransformed = ( lineMatrix * vec4( lineStart, 1.0 ) ).xyz;
-				vec3 parentTransformed = ( parentLineMatrix * vec4( lineEnd, 1.0 ) ).xyz;
-
-				if ( childTransformed.y > 0.0 && parentTransformed.y > 0.0 ) {
-
-					lineStart = childTransformed;
-					lineEnd = parentTransformed;
-
-				} else {
-
-					lineStart = childTransformed;
-					lineEnd = parentTransformed;
-					lineStart.y = - 5.0;
-					lineEnd.y = - 5.0;
-
-				}
-
-			#endif`
+			if ( childTransformed.y > 0.0 && parentTransformed.y > 0.0 ) {
+				// lineStart.y = 5.0;
+				// lineEnd.y = 5.0;
+			} else {
+				lineStart.y = -5.0;
+				lineEnd.y = -5.0;
+			}`
         )
     }
 }

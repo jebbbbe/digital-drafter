@@ -52,10 +52,12 @@ export class ProjectionLineMaterial extends THREE.LineBasicMaterial {
                 ...shader.uniforms,
                 ...this.customUniforms,
             }
-
             shader.vertexShader = shader.vertexShader.replace(
                 "#include <common>",
-                "#include <common>\n#include <tree_attribute>\n#include <tree_funcitons>"
+                "#include <common>\n" +
+                    "#include <attribute_nodeslot>\n" +
+                    "#include <uniform_tree>\n" +
+                    "#include <tree_funcitons>"
             )
             shader.vertexShader = shader.vertexShader.replace(
                 "void main() {",
@@ -69,6 +71,7 @@ export class ProjectionLineMaterial extends THREE.LineBasicMaterial {
                 vec4 parentMetadata = vec4(0.);
                 mat4 parentNodeMatrix = mat4(1.0);
                 readTreeData(parentSlot, parentNodeMatrix, parentMetadata);
+				
                 vec3 childTransformed = (nodeMatrix * vec4(transformed, 1.0)).xyz;
                 vec3 parentTransformed = (parentNodeMatrix * vec4(transformed, 1.0)).xyz;
 
@@ -77,6 +80,7 @@ export class ProjectionLineMaterial extends THREE.LineBasicMaterial {
                 } else {
                     transformed = parentTransformed;
                 }
+
                 if(childTransformed.y > 0.0 && parentTransformed.y>0.0 ){
                     // transformed.y = 5.0;
                 }else{

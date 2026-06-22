@@ -21,7 +21,10 @@ const nodeMatrixExtension: MaterialExtension = {
     onBeforeCompile: (shader) => {
         shader.vertexShader = shader.vertexShader.replace(
             "#include <common>",
-            "#include <common>\n#include <tree_attribute>\n#include <tree_funcitons>"
+            "#include <common>\n" +
+                "#include <attribute_nodeslot>\n" +
+                "#include <uniform_tree>\n" +
+                "#include <tree_funcitons>"
         )
         shader.vertexShader = shader.vertexShader.replace(
             "void main() {",

@@ -1,12 +1,11 @@
 import * as THREE from "three"
 
-type FoldLineMaterialParameters =
-    THREE.LineBasicMaterialParameters & {
-        treeData?: THREE.DataTexture | null
-        treeDataSize?: number
-        foldDistance?: number
-        foldSize?: number
-    }
+type FoldLineMaterialParameters = THREE.LineBasicMaterialParameters & {
+    treeData?: THREE.DataTexture | null
+    treeDataSize?: number
+    foldDistance?: number
+    foldSize?: number
+}
 
 export class FoldLineMaterial extends THREE.LineBasicMaterial {
     shader?: THREE.WebGLProgramParametersWithUniforms
@@ -88,8 +87,11 @@ export class FoldLineMaterial extends THREE.LineBasicMaterial {
 
             shader.vertexShader = shader.vertexShader.replace(
                 "#include <common>",
-                "#include <common>\n#include <tree_attribute>\n#include <tree_funcitons>" +
-                    `uniform float foldSize;\nuniform float foldDistance;`
+                "#include <common>\n" +
+                    "#include <attribute_nodeslot>\n" +
+                    "#include <uniform_tree>\n" +
+                    "#include <tree_funcitons>\n" +
+                    "#include <uniform_fold>\n"
             )
             shader.vertexShader = shader.vertexShader.replace(
                 "void main() {",
@@ -100,46 +102,39 @@ export class FoldLineMaterial extends THREE.LineBasicMaterial {
                 "#include <begin_vertex>",
                 "#include <begin_vertex>" +
                     /* glsl */ `
-                vec4 parentMetadata = vec4(0.);
+                vec4 parentNodeData = vec4(0.);
                 mat4 parentNodeMatrix = mat4(1.0);
-                readTreeData(parentSlot, parentNodeMatrix, parentMetadata);
+                readTreeData(parentSlot, parentNodeMatrix, parentNodeData);
 
                 // extract matrix info
-                float scale = length(nodeMatrix[0].xyz);
                 vec2 childPos = nodeMatrix[3].xz; 
                 vec2 parentPos = parentNodeMatrix[3].xz; 
-                vec2 dir = normalize(parentPos - childPos);
-                vec2 norm = dir.yx * vec2(-1.,1.);
-                int id = gl_VertexID % 4;
-				float halfNodeDistance = distance(childPos, parentPos)/2.0;
+                vec2 delta = parentPos - childPos;
+                vec2 lineDirection = normalize(length(delta) > 0.0 ? delta : vec2(1.0, 0.0));
+                vec2 lineNormal = lineDirection.yx * vec2(-1.,1.);
+                float halfNodeDistance = distance(childPos, parentPos)/2.0;
 
-				// constrain fold line when nodes are to
+				// constrain fold line when nodes are close
 				float adjFoldDistance = foldDistance;
 				if (adjFoldDistance > halfNodeDistance){
 					adjFoldDistance = halfNodeDistance;
 				}	
 
-                dir *= adjFoldDistance;
-                norm *= foldSize/2.0;
+                lineDirection *= adjFoldDistance;
+                lineNormal *= foldSize/2.0;
 
+                int id = gl_VertexID % 4;
                 if(id == 0){
-                    transformed.xz = childPos + dir + norm;
+                    transformed.xz = childPos + lineDirection + lineNormal;
                 }else if (id == 1){
-                    transformed.xz = childPos + dir - norm;
+                    transformed.xz = childPos + lineDirection - lineNormal;
                 }else if (id == 2){
-                    transformed.xz = parentPos - dir + norm;
+                    transformed.xz = parentPos - lineDirection + lineNormal;
                 }else if (id == 3){
-                    transformed.xz = parentPos - dir - norm;
+                    transformed.xz = parentPos - lineDirection - lineNormal;
                     
                 }
                 
-
-
-                // if ( gl_VertexID % 2 == 0) {
-                //     transformed = (nodeMatrix * vec4(transformed, 1.0)).xyz;
-                // } else {
-                //     transformed = (parentNodeMatrix * vec4(transformed, 1.0)).xyz;
-                // }
                 transformed.y = 10.0;
                 `
             )
