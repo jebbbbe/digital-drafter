@@ -102,21 +102,12 @@ export function init(container: HTMLElement): () => void {
     // Drafter
     drafter = new Drafter(scene)
 
-    const r = Math.random()
-    if (r < 1 / 3) {
-        // prettier-ignore
-        drafter.newInstance(geometryLibrary.custom)
-        drafter.newInstance(geometryLibrary.cube)
-        drafter.newInstance(geometryLibrary.asteriskBox)
-    } else if (r < 2 / 3) {
-        // prettier-ignore
-        drafter.newInstance(geometryLibrary.cube)
-        drafter.newInstance(geometryLibrary.asteriskBox)
-        drafter.newInstance(geometryLibrary.custom)
-    } else {
-        drafter.newInstance(geometryLibrary.asteriskBox)
-        drafter.newInstance(geometryLibrary.custom)
-        drafter.newInstance(geometryLibrary.cube)
+    const geometryItems = Object.values(geometryLibrary) as [
+        THREE.BufferGeometry,
+        ...THREE.BufferGeometry[],
+    ]
+    for (let i = 0; i < 3; i++) {
+        drafter.newInstance(rand.randomItem(geometryItems))
     }
 
     const scale = 1 // rand.random(0.75, 1.5)
