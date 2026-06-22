@@ -44,11 +44,12 @@ export class FoldLineMaterial2 extends InstancedLineMaterial {
 				vec2 childPos = nodeMatrix[ 3 ].xz;
 				vec2 parentPos = parentNodeMatrix[ 3 ].xz;
 				vec2 delta = parentPos - childPos;
-				vec2 lineDirection = normalize( length( delta ) > 0.0 ? delta : vec2( 1.0, 0.0 ) );
+				float deltaLength = length( delta );
+				vec2 lineDirection = deltaLength > 0.0 ? normalize( delta ) : vec2( 0.0, 0.0 );
 				vec2 lineNormal = lineDirection.yx * vec2( -1., 1. );
 				float halfNodeDistance = distance( childPos, parentPos ) / 2.0;
 
-				// constrain fold line when nodes are to
+				// constrain fold line when nodes are close
 				float adjFoldDistance = foldDistance;
 				if ( adjFoldDistance > halfNodeDistance ) {
 					adjFoldDistance = halfNodeDistance;
@@ -57,13 +58,13 @@ export class FoldLineMaterial2 extends InstancedLineMaterial {
 				lineDirection *= adjFoldDistance;
 				lineNormal *= foldSize / 2.0;
 
-				int id = gl_InstanceID % 2;
+				int id = gl_InstanceID / instanceMatrixCount;
 				if ( id == 0 ) {
-					lineStart.xz =  childPos + lineDirection + lineNormal;
-					lineEnd.xz =  childPos + lineDirection - lineNormal;
+					lineStart.xz = childPos + lineDirection + lineNormal;
+					lineEnd.xz = childPos + lineDirection - lineNormal;
 				} else {
-					lineStart.xz =  parentPos - lineDirection + lineNormal;
-					lineEnd.xz =  parentPos - lineDirection - lineNormal;
+					lineStart.xz = parentPos - lineDirection + lineNormal;
+					lineEnd.xz = parentPos - lineDirection - lineNormal;
 
 				}
 
