@@ -27,7 +27,6 @@ const nodeMatrixExtension: MaterialExtension = {
         shader.vertexShader = shader.vertexShader.replace(
             "#include <common>",
             "#include <common>\n" +
-                // "#include <attribute_nodeslot>\n" +
                 "#include <uniform_tree>\n" +
                 "#include <tree_funcitons>"
         )

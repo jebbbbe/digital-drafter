@@ -17,7 +17,7 @@ will revisit when looking more into line aliasing
 
 */
 type ActiveMaterialLib = "gl_Line" | "linewidth"
-const activeMaterialLib: ActiveMaterialLib = "gl_Line"
+const activeMaterialLib: ActiveMaterialLib = "linewidth"
 
 const display = constants.themes.objects[constants.theme].display as any
 
@@ -25,7 +25,7 @@ const matlib = {
     // outline
     mesh: patchNodeMatrix(
         new THREE.MeshBasicMaterial({
-            color: 0xfeefe, //display.mesh.color,
+            color: display.mesh.color,
             side: THREE.DoubleSide,
             polygonOffset: true,
             polygonOffsetFactor: 1,

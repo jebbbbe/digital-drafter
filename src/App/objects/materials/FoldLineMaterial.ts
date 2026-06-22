@@ -121,7 +121,6 @@ export class FoldLineMaterial extends THREE.LineBasicMaterial {
             shader.vertexShader = shader.vertexShader.replace(
                 "#include <common>",
                 "#include <common>\n" +
-                    // "#include <attribute_nodeslot>\n" +
                     "#include <uniform_tree>\n" +
                     "#include <tree_funcitons>\n" +
                     "#include <uniform_fold>\n"

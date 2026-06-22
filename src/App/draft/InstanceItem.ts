@@ -24,7 +24,6 @@ export class InstanceItem {
     localTransform: THREE.Matrix4 // matches head of tree baseTransform..?
     buffers: {
         instanceMatrix: THREE.InstancedBufferAttribute // keep for raycast
-        nodeSlot: THREE.InstancedBufferAttribute
     }
     group: THREE.Group
     instances: {
@@ -246,16 +245,6 @@ export class InstanceItem {
         // need this for raycast
         const instanceMatrix = mesh.instanceMatrix
 
-        // slot lookup
-        const nodeSlot = new THREE.InstancedBufferAttribute(
-            new Float32Array(capacity),
-            1
-        )
-        mesh.geometry.setAttribute("nodeSlot", nodeSlot)
-        dash.geometry.setAttribute("nodeSlot", nodeSlot)
-        proj.geometry.setAttribute("nodeSlot", nodeSlot)
-        fold.geometry.setAttribute("nodeSlot", nodeSlot)
-
         // set frustumCulled
         mesh.frustumCulled = false
         line.frustumCulled = false
@@ -290,7 +279,6 @@ export class InstanceItem {
         this.localTransform = localTransform
         this.buffers = {
             instanceMatrix,
-            nodeSlot,
         }
         this.group = group
         this.instances = {
@@ -341,7 +329,6 @@ export class InstanceItem {
             index,
             node.compoundMatrix
         )
-        setUintAttributeAt(this.buffers.nodeSlot, index, slot)
         updateBufferRanges(index, this.buffers)
     }
 
@@ -355,7 +342,6 @@ export class InstanceItem {
     patch(geometry: THREE.BufferGeometry): InstanceItem {
         const geometries = brushCleaner(geometry)
         const { mesh, line, outline, dash, proj, fold } = this.instances
-        const nodeSlot = this.buffers.nodeSlot
 
         if (activeMaterialLib === "gl_Line") {
             line.geometry.dispose()
@@ -404,12 +390,6 @@ export class InstanceItem {
         mesh.geometry.dispose()
         mesh.geometry = geometries.meshGeometry
         dash.computeLineDistances()
-
-        //set node slot
-        mesh.geometry.setAttribute("nodeSlot", nodeSlot)
-        dash.geometry.setAttribute("nodeSlot", nodeSlot)
-        proj.geometry.setAttribute("nodeSlot", nodeSlot)
-        fold.geometry.setAttribute("nodeSlot", nodeSlot)
 
         geometries.brush.matrixAutoUpdate = false
         this.brush = geometries.brush

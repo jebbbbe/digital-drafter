@@ -1,5 +1,4 @@
 import * as THREE from "three"
-import { LineMaterial,Line2 } from "three/examples/jsm/Addons.js"
 export const maxUpdateRanges = 128 // could use a % of total buffer count, this hsould be fine
 
 export function createLinkedInstanceMatrixTexture(
@@ -67,22 +66,17 @@ export function updateBufferRanges(
     index: number,
     {
         instanceMatrix,
-        nodeSlot,
     }: {
         instanceMatrix: THREE.InstancedBufferAttribute
-        nodeSlot: THREE.InstancedBufferAttribute
     }
 ) {
     if (instanceMatrix.updateRanges.length >= maxUpdateRanges) {
         instanceMatrix.clearUpdateRanges()
-        nodeSlot.clearUpdateRanges()
     } else {
         const offset = index * 16
         instanceMatrix.addUpdateRange(offset, 16)
-        nodeSlot.addUpdateRange(index, 1)
     }
     instanceMatrix.needsUpdate = true
-    nodeSlot.needsUpdate = true
 }
 
 /**
@@ -112,37 +106,6 @@ export function doublePositionBuffer(geometry: THREE.BufferGeometry) {
         doubled[dst + 4] = source[i + 1]
         doubled[dst + 5] = source[i + 2]
         dst += 6
-    }
-
-    geometry.setAttribute("position", new THREE.BufferAttribute(doubled, 3))
-    geometry.setIndex(null)
-
-    return geometry
-}
-
-export function octuplePositionBuffer(geometry: THREE.BufferGeometry) {
-    const position = geometry.getAttribute("position")
-
-    if (!position || position.itemSize !== 3) {
-        throw new Error(
-            "doublePositionBuffer requires a vec3 position attribute"
-        )
-    }
-
-    const source = position.array as ArrayLike<number>
-    const doubled = new Float32Array(source.length * 8)
-
-    let dst = 0
-    for (let i = 0; i < source.length; i += 3) {
-        const x = source[i + 0]
-        const y = source[i + 1]
-        const z = source[i + 2]	
-        for (let j = 0; j < 8; j++) {
-            doubled[dst + 8 * j + 0] = x
-            doubled[dst + 8 * j + 1] = y
-            doubled[dst + 8 * j + 2] = z
-        }
-        dst += 24
     }
 
     geometry.setAttribute("position", new THREE.BufferAttribute(doubled, 3))

@@ -1,6 +1,5 @@
 import * as THREE from "three"
 
-import attributeNodeSlot from "./glsl/attributeNodeSlot.glsl?raw"
 import uniformTree from "./glsl/uniformTree.glsl?raw"
 import treeFuncitons from "./glsl/treeFuncitons.glsl?raw"
 import treeMain from "./glsl/treeMain.glsl?raw"
@@ -55,7 +54,6 @@ shaderChunks["tree_worldpos_vertex"] = replaceShader(
 
 // new chunks
 // tree texture
-shaderChunks["attribute_nodeslot"] = attributeNodeSlot
 shaderChunks["uniform_tree"] = uniformTree
 shaderChunks["tree_funcitons"] = treeFuncitons
 shaderChunks["tree_main"] = treeMain
