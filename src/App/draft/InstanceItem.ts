@@ -1,7 +1,11 @@
 import * as THREE from "three"
+import { LineSegmentsGeometry } from "three/addons/lines/LineSegmentsGeometry.js"
 import { InstancedLineSegments } from "../objects/meshes/InstancedLineSegments"
-import { InstancedProjectionMaterial } from "../objects/materials/InstancedProjectionMaterial"
-import { DataTextureLineMaterial } from "../objects/materials/DataTextureLineMaterial"
+import { InstancedLineSegments2 } from "../objects/meshes/InstancedLineSegments2"
+import { ProjectionLineMaterial } from "../objects/materials/ProjectionLineMaterial"
+import { ProjectionLineMaterial2 } from "../objects/materials/ProjectionLineMaterial2"
+import { InstancedLineMaterial } from "../objects/materials/InstancedLineMaterial"
+import { FoldLineMaterial2 } from "../objects/materials/FoldLineMaterial2"
 import { InstanceCount } from "../constants"
 import { brushCleaner } from "../objects/geometries/brushCleaner"
 import {
@@ -9,7 +13,6 @@ import {
     setUintAttributeAt,
     updateBufferRanges,
 } from "../objects/buffers/buffers"
-import { DataTextureLineSegmentsGeometry } from "../objects/geometries/DataTextureLineSegmentsGeometry"
 import { activeMaterialLib, orders } from "./materialManager"
 import { constants } from "../constants"
 import type { Brush } from "three-bvh-csg"
@@ -21,20 +24,23 @@ export class InstanceItem {
     localTransform: THREE.Matrix4 // matches head of tree baseTransform..?
     buffers: {
         instanceMatrix: THREE.InstancedBufferAttribute // keep for raycast
-        nodeSlot: THREE.InstancedBufferAttribute
     }
     group: THREE.Group
     instances: {
         mesh: THREE.InstancedMesh
         line:
             | InstancedLineSegments<THREE.LineBasicMaterial>
-            | THREE.InstancedMesh
+            | InstancedLineSegments2
         outline:
             | InstancedLineSegments<THREE.LineBasicMaterial>
-            | THREE.InstancedMesh
-        proj: InstancedLineSegments<InstancedProjectionMaterial>
-        dash: InstancedLineSegments<THREE.LineDashedMaterial>
-        fold: InstancedLineSegments
+            | InstancedLineSegments2
+        dash:
+            | InstancedLineSegments<THREE.LineDashedMaterial>
+            | InstancedLineSegments2
+        proj:
+            | InstancedLineSegments<ProjectionLineMaterial>
+            | InstancedLineSegments2
+        fold: InstancedLineSegments | InstancedLineSegments2
     }
     count: number
     maxCount: number
@@ -53,13 +59,25 @@ export class InstanceItem {
             capacity
         )
 
+        // see materialManager for notes on this bad practice
+        mesh.onBeforeRender = (r, s, c, g, material: any) => {
+            material.treeBlockOffset = id
+            material.uniformsNeedUpdate = true
+        }
+
         let line:
             | InstancedLineSegments<THREE.LineBasicMaterial>
-            | THREE.InstancedMesh
-
+            | InstancedLineSegments2
         let outline:
             | InstancedLineSegments<THREE.LineBasicMaterial>
-            | THREE.InstancedMesh
+            | InstancedLineSegments2
+        let dash:
+            | InstancedLineSegments<THREE.LineDashedMaterial>
+            | InstancedLineSegments2
+        let proj:
+            | InstancedLineSegments<ProjectionLineMaterial>
+            | InstancedLineSegments2
+        let fold: InstancedLineSegments | InstancedLineSegments2
 
         if (activeMaterialLib === "gl_Line") {
             line = new InstancedLineSegments<THREE.LineBasicMaterial>(
@@ -67,68 +85,154 @@ export class InstanceItem {
                 materials.line,
                 capacity
             )
+            line.onBeforeRender = (r, s, c, g, material: any) => {
+                material.treeBlockOffset = id
+                material.uniformsNeedUpdate = true
+            }
             outline = new InstancedLineSegments<THREE.LineBasicMaterial>(
                 geometries.lineGeometry,
                 materials.outline,
                 capacity
             )
+            outline.onBeforeRender = (r, s, c, g, material: any) => {
+                material.treeBlockOffset = id
+                material.uniformsNeedUpdate = true
+            }
+            dash = new InstancedLineSegments<THREE.LineDashedMaterial>(
+                geometries.lineGeometry,
+                materials.dash,
+                capacity
+            )
+            dash.onBeforeRender = (r, s, c, g, material: any) => {
+                material.treeBlockOffset = id
+                material.uniformsNeedUpdate = true
+            }
+            fold = new InstancedLineSegments(
+                geometries.foldGeometry,
+                materials.fold,
+                capacity
+            )
+            fold.onBeforeRender = (r, s, c, g, material: any) => {
+                material.treeBlockOffset = id
+                material.uniformsNeedUpdate = true
+            }
+            proj = new InstancedLineSegments(
+                geometries.projGeometry,
+                materials.projection,
+                capacity
+            )
+            proj.onBeforeRender = (r, s, c, g, material: any) => {
+                material.treeBlockOffset = id
+                material.uniformsNeedUpdate = true
+            }
         } else {
-            const lineMaterial =
-                materials.line.clone() as DataTextureLineMaterial
-            const lineGeometry = new DataTextureLineSegmentsGeometry(
+            const lineGeometry = new LineSegmentsGeometry().fromEdgesGeometry(
                 geometries.lineGeometry
             )
-            lineMaterial.segments = lineGeometry.dataTexture
-            lineMaterial.resolution.set(window.innerWidth, window.innerHeight)
-            line = new THREE.InstancedMesh(lineGeometry, lineMaterial, capacity)
-            line.onBeforeRender = () => {
-                lineMaterial.resolution.set(
-                    window.innerWidth,
-                    window.innerHeight
+            line = new InstancedLineSegments2(
+                lineGeometry,
+                materials.line as InstancedLineMaterial,
+                capacity
+            )
+            line.onBeforeRender = (renderer: THREE.WebGLRenderer) => {
+                const material =
+                    line.material as unknown as InstancedLineMaterial
+                // this changes for every mesh isntance, otherwise we need multiple materials
+                material.treeBlockOffset = id
+                // might be abel to set this elsewhere
+                material.instanceMatrixCount = Math.max(1, line.count)
+                // render feature to look over uniforms changed in this fn
+                material.uniformsNeedUpdate = true
+                InstancedLineSegments2.prototype.onBeforeRender.call(
+                    line,
+                    renderer
                 )
             }
 
-            const outLineMaterial =
-                materials.outline.clone() as DataTextureLineMaterial
-            const outLineGeometry = new DataTextureLineSegmentsGeometry(
-                geometries.lineGeometry
-            )
-            outLineMaterial.segments = outLineGeometry.dataTexture
-            outLineMaterial.resolution.set(
-                window.innerWidth,
-                window.innerHeight
-            )
-            outline = new THREE.InstancedMesh(
+            const outLineGeometry =
+                new LineSegmentsGeometry().fromEdgesGeometry(
+                    geometries.lineGeometry
+                )
+            outline = new InstancedLineSegments2(
                 outLineGeometry,
-                outLineMaterial,
+                materials.outline as InstancedLineMaterial,
                 capacity
             )
-            outline.onBeforeRender = () => {
-                outLineMaterial.resolution.set(
-                    window.innerWidth,
-                    window.innerHeight
+            outline.onBeforeRender = (renderer: THREE.WebGLRenderer) => {
+                const material =
+                    outline.material as unknown as InstancedLineMaterial
+                material.treeBlockOffset = id
+                material.instanceMatrixCount = Math.max(1, outline.count)
+                material.uniformsNeedUpdate = true
+                InstancedLineSegments2.prototype.onBeforeRender.call(
+                    outline,
+                    renderer
+                )
+            }
+
+            const dashGeometry = new LineSegmentsGeometry().fromEdgesGeometry(
+                geometries.lineGeometry
+            )
+            dash = new InstancedLineSegments2(
+                dashGeometry,
+                materials.dash as InstancedLineMaterial,
+                capacity
+            )
+            dash.onBeforeRender = (renderer: THREE.WebGLRenderer) => {
+                const material =
+                    dash.material as unknown as InstancedLineMaterial
+                material.treeBlockOffset = id
+                material.instanceMatrixCount = Math.max(1, dash.count)
+                material.uniformsNeedUpdate = true
+                InstancedLineSegments2.prototype.onBeforeRender.call(
+                    dash,
+                    renderer
+                )
+            }
+
+            const projGeometry = new LineSegmentsGeometry().setPositions(
+                geometries.projGeometry.getAttribute("position")
+                    .array as Float32Array
+            )
+            proj = new InstancedLineSegments2(
+                projGeometry,
+                materials.projection as ProjectionLineMaterial2,
+                capacity
+            )
+            proj.onBeforeRender = (renderer: THREE.WebGLRenderer) => {
+                const material =
+                    proj.material as unknown as ProjectionLineMaterial2
+                material.treeBlockOffset = id
+                material.instanceMatrixCount = Math.max(1, proj.count)
+                material.uniformsNeedUpdate = true
+                InstancedLineSegments2.prototype.onBeforeRender.call(
+                    proj,
+                    renderer
+                )
+            }
+
+            const foldGeometry = new LineSegmentsGeometry().setPositions(
+                geometries.foldGeometry.getAttribute("position")
+                    .array as Float32Array
+            )
+            fold = new InstancedLineSegments2(
+                foldGeometry,
+                materials.fold as FoldLineMaterial2,
+                capacity
+            )
+            fold.onBeforeRender = (renderer: THREE.WebGLRenderer) => {
+                const material = fold.material as unknown as FoldLineMaterial2
+                material.treeBlockOffset = id
+                material.instanceMatrixCount = Math.max(1, fold.count)
+                material.uniformsNeedUpdate = true
+                InstancedLineSegments2.prototype.onBeforeRender.call(
+                    fold,
+                    renderer
                 )
             }
         }
 
-        const dash = new InstancedLineSegments<THREE.LineDashedMaterial>(
-            geometries.lineGeometry,
-            materials.dash,
-            capacity
-        ) as any
         dash.computeLineDistances()
-
-        const proj = new InstancedLineSegments<InstancedProjectionMaterial>(
-            geometries.projGeometry,
-            materials.projection,
-            capacity
-        )
-
-        const fold = new InstancedLineSegments<InstancedProjectionMaterial>(
-            geometries.foldGeometry,
-            materials.fold,
-            capacity
-        )
 
         //render order
         mesh.renderOrder = orders.mesh
@@ -138,17 +242,8 @@ export class InstanceItem {
         proj.renderOrder = orders.proj
         fold.renderOrder = orders.fold
 
-        // slot lookup
-        const nodeSlot = new THREE.InstancedBufferAttribute(
-            new Float32Array(capacity),
-            1
-        )
-        mesh.geometry.setAttribute("nodeSlot", nodeSlot)
-        line.geometry.setAttribute("nodeSlot", nodeSlot)
-        outline.geometry.setAttribute("nodeSlot", nodeSlot)
-        dash.geometry.setAttribute("nodeSlot", nodeSlot)
-        proj.geometry.setAttribute("nodeSlot", nodeSlot)
-        fold.geometry.setAttribute("nodeSlot", nodeSlot)
+        // need this for raycast
+        const instanceMatrix = mesh.instanceMatrix
 
         // set frustumCulled
         mesh.frustumCulled = false
@@ -157,9 +252,6 @@ export class InstanceItem {
         dash.frustumCulled = false
         proj.frustumCulled = false
         fold.frustumCulled = false
-
-        // need this for raycast
-        const instanceMatrix = mesh.instanceMatrix
 
         // userdata for raycast lookups
         // copy all info to isntancces.
@@ -187,7 +279,6 @@ export class InstanceItem {
         this.localTransform = localTransform
         this.buffers = {
             instanceMatrix,
-            nodeSlot,
         }
         this.group = group
         this.instances = {
@@ -238,7 +329,6 @@ export class InstanceItem {
             index,
             node.compoundMatrix
         )
-        setUintAttributeAt(this.buffers.nodeSlot, index, slot)
         updateBufferRanges(index, this.buffers)
     }
 
@@ -251,53 +341,55 @@ export class InstanceItem {
 
     patch(geometry: THREE.BufferGeometry): InstanceItem {
         const geometries = brushCleaner(geometry)
-        const { mesh, line, outline, dash, proj } = this.instances
-        const nodeSlot = mesh.geometry.getAttribute(
-            "nodeSlot"
-        ) as THREE.BufferAttribute
+        const { mesh, line, outline, dash, proj, fold } = this.instances
 
         if (activeMaterialLib === "gl_Line") {
             line.geometry.dispose()
             line.geometry = geometries.lineGeometry
             outline.geometry.dispose()
             outline.geometry = geometries.lineGeometry
+            dash.geometry.dispose()
+            dash.geometry = geometries.lineGeometry
+            proj.geometry.dispose()
+            proj.geometry = geometries.projGeometry
+            fold.geometry.dispose()
+            fold.geometry = geometries.foldGeometry
         } else {
-            const nextLineGeometry = new DataTextureLineSegmentsGeometry(
-                geometries.lineGeometry
+            const nextLineGeometry =
+                new LineSegmentsGeometry().fromEdgesGeometry(
+                    geometries.lineGeometry
+                )
+            const nextOutlineGeometry =
+                new LineSegmentsGeometry().fromEdgesGeometry(
+                    geometries.lineGeometry
+                )
+            const nextDashGeometry =
+                new LineSegmentsGeometry().fromEdgesGeometry(
+                    geometries.lineGeometry
+                )
+            const nextProjGeometry = new LineSegmentsGeometry().setPositions(
+                geometries.projGeometry.getAttribute("position")
+                    .array as Float32Array
             )
-            const nextOutlineGeometry = new DataTextureLineSegmentsGeometry(
-                geometries.lineGeometry
+            const nextFoldGeometry = new LineSegmentsGeometry().setPositions(
+                geometries.foldGeometry.getAttribute("position")
+                    .array as Float32Array
             )
 
             line.geometry.dispose()
             line.geometry = nextLineGeometry
             outline.geometry.dispose()
             outline.geometry = nextOutlineGeometry
-            ;(
-                line.material as THREE.ShaderMaterial & {
-                    segments: THREE.DataTexture | null
-                }
-            ).segments = nextLineGeometry.dataTexture
-            ;(
-                outline.material as THREE.ShaderMaterial & {
-                    segments: THREE.DataTexture | null
-                }
-            ).segments = nextOutlineGeometry.dataTexture
+            dash.geometry.dispose()
+            dash.geometry = nextDashGeometry
+            proj.geometry.dispose()
+            proj.geometry = nextProjGeometry
+            fold.geometry.dispose()
+            fold.geometry = nextFoldGeometry
         }
         mesh.geometry.dispose()
         mesh.geometry = geometries.meshGeometry
-        dash.geometry.dispose()
-        dash.geometry = geometries.lineGeometry
-        proj.geometry.dispose()
-        proj.geometry = geometries.projGeometry
         dash.computeLineDistances()
-
-        //set node slot
-        mesh.geometry.setAttribute("nodeSlot", nodeSlot)
-        line.geometry.setAttribute("nodeSlot", nodeSlot)
-        outline.geometry.setAttribute("nodeSlot", nodeSlot)
-        dash.geometry.setAttribute("nodeSlot", nodeSlot)
-        proj.geometry.setAttribute("nodeSlot", nodeSlot)
 
         geometries.brush.matrixAutoUpdate = false
         this.brush = geometries.brush

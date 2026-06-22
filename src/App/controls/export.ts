@@ -1,12 +1,22 @@
 import * as THREE from "three"
 import { OBJExporter } from "three/examples/jsm/exporters/OBJExporter.js"
 import { FoldLineMaterial } from "../objects/materials/FoldLineMaterial"
-import { InstancedProjectionMaterial } from "../objects/materials/InstancedProjectionMaterial"
+import { FoldLineMaterial2 } from "../objects/materials/FoldLineMaterial2"
+import { ProjectionLineMaterial } from "../objects/materials/ProjectionLineMaterial"
+import { ProjectionLineMaterial2 } from "../objects/materials/ProjectionLineMaterial2"
 import { SVGRenderer } from "three/examples/jsm/renderers/SVGRenderer.js"
+import { InstanceCount } from "../constants"
 import { orders } from "../draft/materialManager"
 import { getMaxRenderTargetSize } from "../utils/capabilities"
 import { downloadBlob, saveAsGlb, saveAsGltf } from "../utils/loader"
-import { camera, drafter, interactionManager, orbitControls, renderer, scene } from "../main"
+import {
+    camera,
+    drafter,
+    interactionManager,
+    orbitControls,
+    renderer,
+    scene,
+} from "../main"
 import { cube } from "../main"
 
 const exportSize = new THREE.Vector2()
@@ -213,7 +223,11 @@ function createSelectedObjectObjScene(location: {
     const exportScene = new THREE.Scene()
     const instanceItem = drafter.getInstance(location.id)
 
-    addInstancedObjObject(exportScene, instanceItem.instances.mesh, location.index)
+    addInstancedObjObject(
+        exportScene,
+        instanceItem.instances.mesh,
+        location.index
+    )
 
     return exportScene
 }
@@ -351,26 +365,24 @@ function readTreeDataSlot(
     target: THREE.Matrix4,
     metadataTarget: THREE.Vector4
 ): boolean {
-    const nodeSlot = source.geometry.getAttribute("nodeSlot")
-    if (!nodeSlot) {
+    const slot = getTreeDataSlot(source, index)
+    if (slot === undefined) {
         return false
     }
 
-    const treeData = getTreeDataTexture(source.material)
-    const array = treeData?.source.data.data
-    if (!(array instanceof Float32Array)) {
-        return false
+    return readTreeDataSlotAtSlot(source.material, slot, target, metadataTarget)
+}
+
+function getTreeDataSlot(
+    source: InstancedRenderable,
+    index: number
+): number | undefined {
+    const blockId = source.userData?.id
+    if (typeof blockId !== "number") {
+        return undefined
     }
 
-    const slot = Math.round(nodeSlot.getX(index))
-    const offset = slot * 20
-    if (offset + 19 >= array.length) {
-        return false
-    }
-
-    target.fromArray(array, offset)
-    metadataTarget.fromArray(array, offset + 16)
-    return true
+    return blockId * InstanceCount + index
 }
 
 function getInstancedSvgGeometry(
@@ -418,7 +430,14 @@ function createProjectionGeometry(
     }
 
     const parentSlot = Math.round(treeDataMetadata.x)
-    if (!readTreeDataSlotAtSlot(source.material, parentSlot, parentMatrix, parentMetadata)) {
+    if (
+        !readTreeDataSlotAtSlot(
+            source.material,
+            parentSlot,
+            parentMatrix,
+            parentMetadata
+        )
+    ) {
         return
     }
 
@@ -457,7 +476,14 @@ function createFoldGeometry(
     }
 
     const parentSlot = Math.round(treeDataMetadata.x)
-    if (!readTreeDataSlotAtSlot(source.material, parentSlot, parentMatrix, parentMetadata)) {
+    if (
+        !readTreeDataSlotAtSlot(
+            source.material,
+            parentSlot,
+            parentMatrix,
+            parentMetadata
+        )
+    ) {
         return
     }
 
@@ -474,7 +500,8 @@ function createFoldGeometry(
     foldNorm.set(-foldDir.y, foldDir.x)
 
     const material = getFirstMaterial(source.material)
-    const foldDistance = (material as TreeDataMaterial | undefined)?.foldDistance ?? 1.1
+    const foldDistance =
+        (material as TreeDataMaterial | undefined)?.foldDistance ?? 1.1
     const foldSize = (material as TreeDataMaterial | undefined)?.foldSize ?? 1.1
     const adjustedFoldDistance = Math.min(foldDistance, nodeDistance / 2)
 
@@ -520,23 +547,34 @@ function readTreeDataSlotAtSlot(
     return true
 }
 
-function hasProjectionMaterial(material: THREE.Material | THREE.Material[]): boolean {
+function hasProjectionMaterial(
+    material: THREE.Material | THREE.Material[]
+): boolean {
+    const isProjectionMaterial = (mat: THREE.Material): boolean =>
+        mat instanceof ProjectionLineMaterial ||
+        mat instanceof ProjectionLineMaterial2
+
     if (Array.isArray(material)) {
-        return material.some((entry) => entry instanceof InstancedProjectionMaterial)
+        return material.some(isProjectionMaterial)
     }
 
-    return material instanceof InstancedProjectionMaterial
+    return isProjectionMaterial(material)
 }
 
 function hasFoldMaterial(material: THREE.Material | THREE.Material[]): boolean {
+    const isFoldMaterial = (mat: THREE.Material): boolean =>
+        mat instanceof FoldLineMaterial || mat instanceof FoldLineMaterial2
+
     if (Array.isArray(material)) {
-        return material.some((entry) => entry instanceof FoldLineMaterial)
+        return material.some(isFoldMaterial)
     }
 
-    return material instanceof FoldLineMaterial
+    return isFoldMaterial(material)
 }
 
-function usesBakedTreeGeometry(material: THREE.Material | THREE.Material[]): boolean {
+function usesBakedTreeGeometry(
+    material: THREE.Material | THREE.Material[]
+): boolean {
     return hasProjectionMaterial(material) || hasFoldMaterial(material)
 }
 
@@ -593,7 +631,10 @@ function instantiateSvgObject(
     geometry: THREE.BufferGeometry,
     material: THREE.Material | THREE.Material[]
 ): THREE.Object3D | undefined {
-    if (source instanceof THREE.Line && !(source instanceof THREE.LineSegments)) {
+    if (
+        source instanceof THREE.Line &&
+        !(source instanceof THREE.LineSegments)
+    ) {
         return new THREE.Line(geometry, material)
     }
 
@@ -617,7 +658,6 @@ function shouldRenderAsLine(
     return (
         source instanceof THREE.Line ||
         source instanceof THREE.LineSegments ||
-        isDataTextureLineGeometry(getObjectGeometry(source)) ||
         isFatLineGeometry(geometry)
     )
 }
@@ -625,13 +665,11 @@ function shouldRenderAsLine(
 function getSvgGeometry(
     source: THREE.Object3D | InstancedRenderable
 ): THREE.BufferGeometry | undefined {
-    const geometry = (source as any).geometry as THREE.BufferGeometry | undefined
+    const geometry = (source as any).geometry as
+        | THREE.BufferGeometry
+        | undefined
     if (!geometry) {
         return
-    }
-
-    if (isDataTextureLineGeometry(geometry)) {
-        return createLineSegmentsGeometryFromPositions(geometry.typedArray)
     }
 
     if (isFatLineGeometry(geometry)) {
@@ -644,13 +682,11 @@ function getSvgGeometry(
 function getObjGeometry(
     source: THREE.Object3D | InstancedRenderable
 ): THREE.BufferGeometry | undefined {
-    const geometry = (source as any).geometry as THREE.BufferGeometry | undefined
+    const geometry = (source as any).geometry as
+        | THREE.BufferGeometry
+        | undefined
     if (!geometry) {
         return
-    }
-
-    if (isDataTextureLineGeometry(geometry)) {
-        return createLineSegmentsGeometryFromPositions(geometry.typedArray)
     }
 
     return geometry
@@ -673,9 +709,7 @@ function createGroundedWorldLineGeometry(
     const positions = new Float32Array(position.count * 3)
 
     for (let index = 0; index < position.count; index++) {
-        childPoint
-            .fromBufferAttribute(position, index)
-            .applyMatrix4(matrix)
+        childPoint.fromBufferAttribute(position, index).applyMatrix4(matrix)
         childPoint.y = 0
         childPoint.toArray(positions, index * 3)
     }
@@ -719,7 +753,10 @@ function createSvgMaterial(
     if (Array.isArray(material)) {
         const materials = material
             .map((entry) => createSvgMaterial(source, entry, colorOverride))
-            .filter((entry): entry is THREE.Material => entry instanceof THREE.Material)
+            .filter(
+                (entry): entry is THREE.Material =>
+                    entry instanceof THREE.Material
+            )
 
         return materials.length > 0 ? materials : undefined
     }
@@ -749,7 +786,8 @@ function createSvgMaterial(
         opacity: material.opacity,
         transparent: material.transparent || material.opacity < 1,
         side: "side" in material ? material.side : THREE.FrontSide,
-        wireframe: "wireframe" in material ? Boolean(material.wireframe) : false,
+        wireframe:
+            "wireframe" in material ? Boolean(material.wireframe) : false,
     })
 }
 
@@ -786,7 +824,9 @@ function getInstanceColor(
     return instanceColor.clone()
 }
 
-function isInstancedRenderable(object: THREE.Object3D): object is InstancedRenderable {
+function isInstancedRenderable(
+    object: THREE.Object3D
+): object is InstancedRenderable {
     return (
         "isInstancedMesh" in object &&
         object.isInstancedMesh === true &&
@@ -795,18 +835,15 @@ function isInstancedRenderable(object: THREE.Object3D): object is InstancedRende
     )
 }
 
-function isDataTextureLineGeometry(
-    geometry: THREE.BufferGeometry
-): geometry is THREE.BufferGeometry & { typedArray: THREE.TypedArray } {
-    return "typedArray" in geometry && ArrayBuffer.isView((geometry as any).typedArray)
-}
-
 function isFatLineGeometry(geometry: THREE.BufferGeometry): boolean {
     return geometry.getAttribute("instanceStart") !== undefined
 }
 
 function shouldExportInstancedObjObject(source: InstancedRenderable): boolean {
-    if (hasProjectionMaterial(source.material) || hasFoldMaterial(source.material)) {
+    if (
+        hasProjectionMaterial(source.material) ||
+        hasFoldMaterial(source.material)
+    ) {
         return true
     }
 
@@ -838,7 +875,9 @@ function disposeSvgExportScene(exportScene: THREE.Scene): void {
 
         disposeSvgMaterial(material)
 
-        const geometry = (object as any).geometry as THREE.BufferGeometry | undefined
+        const geometry = (object as any).geometry as
+            | THREE.BufferGeometry
+            | undefined
         if (geometry?.userData.exportDisposable) {
             geometry.dispose()
         }
@@ -847,7 +886,9 @@ function disposeSvgExportScene(exportScene: THREE.Scene): void {
 
 function disposeObjExportScene(exportScene: THREE.Scene): void {
     exportScene.traverse((object) => {
-        const geometry = (object as any).geometry as THREE.BufferGeometry | undefined
+        const geometry = (object as any).geometry as
+            | THREE.BufferGeometry
+            | undefined
         if (geometry?.userData.exportDisposable) {
             geometry.dispose()
         }
@@ -875,7 +916,6 @@ export function downloadImage(
     filename = "drawing.png",
     maxRes = 4096 * 2
 ): void {
-
     const viewportSize = renderer.getSize(new THREE.Vector2())
     const aspect = viewportSize.x / viewportSize.y
     const glSize = getMaxRenderTargetSize(renderer)

@@ -1,7 +1,11 @@
 import * as THREE from "three"
-import treeAttribute from "./glsl/treeAttribute.glsl?raw"
+
+import uniformTree from "./glsl/uniformTree.glsl?raw"
 import treeFuncitons from "./glsl/treeFuncitons.glsl?raw"
 import treeMain from "./glsl/treeMain.glsl?raw"
+
+import uniformFold from "./glsl/uniformFoldLine.glsl?raw"
+import instancedLine from "./glsl/instancedLine.glsl?raw"
 
 const replaceGLSL = {
     // oldString:newString
@@ -48,7 +52,12 @@ shaderChunks["tree_worldpos_vertex"] = replaceShader(
     replaceGLSL
 )
 
-// // new chunks
-shaderChunks["tree_attribute"] = treeAttribute
+// new chunks
+// tree texture
+shaderChunks["uniform_tree"] = uniformTree
 shaderChunks["tree_funcitons"] = treeFuncitons
 shaderChunks["tree_main"] = treeMain
+//instancedLine
+shaderChunks["instanced_line"] = instancedLine
+// fold line
+shaderChunks["uniform_fold"] = uniformFold

@@ -1,11 +1,11 @@
 import * as THREE from "three"
 import { LineSegments2 } from "three/addons/lines/LineSegments2.js"
 import { LineSegmentsGeometry } from "three/addons/lines/LineSegmentsGeometry.js"
-import { matlib, orders } from "../../draft/materialManager"
+import { matlib, orders, activeMaterialLib } from "../../draft/materialManager"
 
 export class SectionFaceGroup extends THREE.Group {
     face: THREE.Mesh
-    edges: LineSegments2
+    edges: THREE.LineSegments | LineSegments2
 
     constructor(
         faceGeometry: THREE.BufferGeometry = new THREE.BufferGeometry()
@@ -15,22 +15,40 @@ export class SectionFaceGroup extends THREE.Group {
         this.face = new THREE.Mesh(faceGeometry, matlib.sectionFace)
         this.face.renderOrder = orders.sectionFace
 
-        this.edges = new LineSegments2(
-            new LineSegmentsGeometry(),
-            matlib.sectionEdge
-        )
-        this.edges.renderOrder = orders.sectionEdge
-        matlib.sectionEdge.resolution.set(window.innerWidth, window.innerHeight)
-        this.edges.onBeforeRender = () => {
-            matlib.sectionEdge.resolution.set(
-                window.innerWidth,
-                window.innerHeight
+        if (activeMaterialLib === "linewidth") {
+            this.edges = new LineSegments2(
+                new LineSegmentsGeometry(),
+                matlib.sectionEdge
+            )
+        } else {
+            this.edges = new THREE.LineSegments(
+                new THREE.BufferGeometry(),
+                matlib.sectionEdge
             )
         }
+        this.edges.renderOrder = orders.sectionEdge
 
         this.add(this.face)
         this.add(this.edges)
         this.matrixAutoUpdate = false
+    }
+
+    setEdgePositions(positions: number[] | Float32Array) {
+        if (this.edges instanceof LineSegments2) {
+            ;(this.edges.geometry as LineSegmentsGeometry).setPositions(positions)
+            return
+        }
+
+        const geometry = this.edges.geometry
+        const buffer =
+            positions instanceof Float32Array
+                ? positions
+                : new Float32Array(positions)
+
+        geometry.setAttribute("position", new THREE.BufferAttribute(buffer, 3))
+        geometry.setDrawRange(0, buffer.length / 3)
+        geometry.computeBoundingSphere()
+        geometry.computeBoundingBox()
     }
 
     setFaceGeometry(faceGeometry: THREE.BufferGeometry) {

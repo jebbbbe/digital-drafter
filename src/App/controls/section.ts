@@ -178,7 +178,7 @@ export function createNewCutNode(sectionParent: TransformNode) {
         return
     }
     const { brush1, face1Brush, positions } = cutResult
-    sectionFace.edges.geometry.setPositions(positions)
+    sectionFace.setEdgePositions(positions)
     sectionFace.setFaceGeometry(face1Brush.geometry)
 
     // add instance
@@ -267,7 +267,7 @@ export function updateCutNode(
     const cutResult = csgFromParent(start, end, instanceItem, sectionParent)
     if (!cutResult) return
     const { brush1, face1Brush, positions } = cutResult
-    group.edges.geometry.setPositions(positions)
+    group.setEdgePositions(positions)
 
     drafter.patchInstanceGeometry(childId, brush1.geometry)
 

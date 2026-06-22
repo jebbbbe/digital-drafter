@@ -37,7 +37,7 @@ export class Drafter {
         },
         enable: false,
     }
-    sectionCutter = new SectionCutter(this.materials.section)
+    sectionCutter = new SectionCutter(this.materials.sectionLine)
     constructor(scene: THREE.Scene, debug: boolean = false) {
         this.scene = scene
         this.assignTexture()
@@ -48,33 +48,22 @@ export class Drafter {
         this.interactivObjects.push(mesh)
     }
     assignTexture() {
-        try {
-            const text = this.globalTreeTexture.texture
-            const size = this.globalTreeTexture.textureSize
-            this.materials.mesh.treeData = text
-            this.materials.line.treeData = text
-            this.materials.outline.treeData = text
-            this.materials.dash.treeData = text
-            this.materials.projection.treeData = text
-            this.materials.fold.treeData = text
-            this.materials.mesh.treeDataSize = size
-            this.materials.line.treeDataSize = size
-            this.materials.outline.treeDataSize = size
-            this.materials.dash.treeDataSize = size
-            this.materials.projection.treeDataSize = size
-            this.materials.fold.treeDataSize = size
-            for (let i = 0; i < this.instanceItems.length; i++) {
-                const instanceItem = this.getInstance(i)
-                // @ts-ignore
-                instanceItem.instances.line.material.treeData = text
-                // @ts-ignore
-                instanceItem.instances.outline.material.treeData = text
-                // @ts-ignore
-                instanceItem.instances.line.material.treeDataSize = size
-                // @ts-ignore
-                instanceItem.instances.outline.material.treeDataSize = size
-            }
-        } catch {}
+        const text = this.globalTreeTexture.texture
+        const size = this.globalTreeTexture.textureSize
+
+        this.materials.mesh.treeData = text
+        this.materials.line.treeData = text
+        this.materials.outline.treeData = text
+        this.materials.dash.treeData = text
+        this.materials.projection.treeData = text
+        this.materials.fold.treeData = text
+        this.materials.mesh.treeDataSize = size
+        this.materials.line.treeDataSize = size
+        this.materials.outline.treeDataSize = size
+        this.materials.dash.treeDataSize = size
+        this.materials.projection.treeDataSize = size
+        this.materials.fold.treeDataSize = size
+		
     }
 
     setUpDebug() {

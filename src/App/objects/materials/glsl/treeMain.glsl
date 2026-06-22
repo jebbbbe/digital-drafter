@@ -1,4 +1,8 @@
-vec4 metadata = vec4(0.);
+vec4 nodeData = vec4(0.);
 mat4 nodeMatrix = mat4(1.0);
-readTreeData(int(nodeSlot), nodeMatrix, metadata);
-int parentSlot = int(metadata.x);
+
+int matrixIndex = gl_InstanceID;
+int slotIndex = treeBlockOffset * treeBlockSize + matrixIndex;
+
+readTreeData(slotIndex, nodeMatrix, nodeData);
+int parentSlot = int(nodeData.x);

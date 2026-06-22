@@ -16,27 +16,78 @@
 ### v0.5.0
 
 - [s] perf compare batched mesh? update geo...?
-- [ ] do update range at the end of recursive by keeping track of dirty locations.
-- [ ] recursive function only calc compundMatrix, not baseMatrix as well
-- [ ] see if notes on matrix prefix can be used here?
-- [ ] dynamic draw usage
-- [ ] boolean BVH
+- [ ] circular arc
+- [ ] model import
+- [ ] session data
+- [ ] control z
+- [ ] control c + v
+- [ ] cli?
+- [ ]
 
 ### v0.4.0
+
+- [ ] rm nodeSlot
+- [ ] scale fix in nodeData
+- [ ] node anchors
+- [ ] select multiple
+- [ ] multi update node
+- [ ] interaction class
+- [ ] main exports
+- [ ] drafter error pass
+- [ ] remaning material + issues
+
+- [ ] issues
+    - [ ] delete section grandchildren should detach
+    - [ ] delte section grandchildren leaves gizmo in view
+    - [ ] drafter instance item map for duplicates
+    - [x] lwinstance merge
+    - [x] gl line working with nodeSlot
+    - [x] FoldLine2 issues
+
+- [] materials
+    - [x] rm nodeslot and use just ID uniform
+    - [x] glsl snippets for nodeslot
+    - [x] glsl snippets for projection
+    - [x] reorg constants for materials
+    - [x] gline for attachments
+    - [x] select Line in Shader
+    - [ ] UI for all materials
+    - [ ] redo material settings
+    - [ ] for next pass
+        - [ ] remove gl_lines, why would we use them?
+        - [ ] custom dashes in frag
+        - [ ] fix issues written in MaterialManagers
+        - [ ] uniform group & multiple materials
+        - [ ] materail aliasing / transparency for super thin lw
+        - [ ] line thickness for printing
+        - [ ] tile renderer for export?
+        - [ ] Profile Edge Depthmap Read..?
+
+- INTERFACE
+    - [x] InstancedLineMaterial
+    - [x] dataTexture wip finish...
+    - [x] lineweight in shader, with dash, etc..
+    - [x] materail resolution tracker, use world space size for lw..?
+    - [/] gl lines -> normal materail with wireframe?
+
+- [ ] organize
+    - [ ] more classes, import structure
+    - [ ] attachment update lyfecycle
+    - [ ] scale prop on node for datatexture
+    - [ ] class for interaciotn modes to easily add more
+    - [ ] select multiple, gizmo + position ref
+    - [ ] gizmo offset
+    - [ ] interseciton logic
 
 - [ ] select multiple
     - [ ] window select multiple
     - [ ] transform controls - gizmo origin from multiple selects
-	
+
 - [ ] Interface
     - [x] rm react dynamic import, use module splitting
     - [ ] transform controls- leva proxy link
     - [ ] better theme loader, with functions
     - [ ] three/react - import/returns?
-- [ ] todo
-    - [ ] switch to OOP for ISntance Item and Node? to many imports/util fns.
-    - [ ] interacction classes..?
-    - [ ] diff based move for gizmo..?
 
 - [x] section cut
     - [x] transform controls- fix scale
@@ -114,20 +165,3 @@ https://github.com/WestLangley
 https://discourse.threejs.org/t/setdrawrange-on-three-line2/2891
 https://stackoverflow.com/questions/31399856/drawing-a-line-with-three-js-dynamically/31411794#31411794
 https://blog.fastforwardlabs.com/2017/10/04/first-look-using-three.js-for-2d-data-visualization.html
-
-# \*
-
-before continuing with section cut logic, there a a few crucial issues:
-
-- how initial transform is set on root nodes
-- pos offset from parent in xyz, works for section, but gizmo placement is wrong, will need for boolean logic later
-- how to deal with both transform issue in TransoformNode type
-- add a arent/ child relationship type in TransoformNode
-    - rotate, normal rotation
-    - mirror, flip UP axis in rotate
-    - arc, rotate entire node, will need additional geometry
-    - slide, constrain node pos to current Line position
-    - section, section cut
-    - boolean, bool fns
-- this will let us get specific updates, allow dsf search for specific changes
-- when doing dfs, switch how base, compound matrix is calc'd

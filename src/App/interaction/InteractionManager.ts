@@ -173,10 +173,13 @@ export class InteractionManager {
         let selectedObject // select obj ref
         if (first.object === this.drafter.sectionCutter.mesh) {
             // hit section cutter
-            const { index, object }: any = intersects[0]
-            selectedObject = {
+            const { index, faceIndex, object }: any = intersects[0]
+            selectedObject = { 
                 kind: "SectionSegment",
-                target: { object, index },
+                target: {
+                    object,
+                    index: index ?? faceIndex * 2,
+                },
             } as SelectObject
         } else {
             // find node from raycast

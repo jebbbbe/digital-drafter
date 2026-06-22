@@ -1,5 +1,4 @@
 import * as THREE from "three"
-
 export const maxUpdateRanges = 128 // could use a % of total buffer count, this hsould be fine
 
 export function createLinkedInstanceMatrixTexture(
@@ -67,22 +66,17 @@ export function updateBufferRanges(
     index: number,
     {
         instanceMatrix,
-        nodeSlot,
     }: {
         instanceMatrix: THREE.InstancedBufferAttribute
-        nodeSlot: THREE.InstancedBufferAttribute
     }
 ) {
     if (instanceMatrix.updateRanges.length >= maxUpdateRanges) {
         instanceMatrix.clearUpdateRanges()
-        nodeSlot.clearUpdateRanges()
     } else {
         const offset = index * 16
         instanceMatrix.addUpdateRange(offset, 16)
-        nodeSlot.addUpdateRange(index, 1)
     }
     instanceMatrix.needsUpdate = true
-    nodeSlot.needsUpdate = true
 }
 
 /**
