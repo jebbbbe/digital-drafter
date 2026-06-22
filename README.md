@@ -40,7 +40,6 @@
     - [ ] delete section grandchildren should detach
     - [ ] delte section grandchildren leaves gizmo in view
     - [ ] drafter instance item map for duplicates
-    - [x] seciton line selection color
     - [x] lwinstance merge
     - [x] gl line working with nodeSlot
     - [x] FoldLine2 issues
@@ -51,8 +50,8 @@
     - [x] glsl snippets for projection
     - [x] reorg constants for materials
     - [x] gline for attachments
+    - [x] select Line in Shader
     - [ ] UI for all materials
-    - [ ] select Line in Shader
     - [ ] redo material settings
     - [ ] for next pass
         - [ ] remove gl_lines, why would we use them?
