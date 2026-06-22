@@ -11,6 +11,7 @@ uniform float linewidth;
 #endif
 
 varying float vLineDistance;
+varying vec4 _nodeData;
 
 #ifdef WORLD_UNITS
 
@@ -76,6 +77,10 @@ void main() {
 
 	float alpha = opacity;
 	vec4 diffuseColor = vec4( diffuse, alpha );
+
+	if(_nodeData.y == 1.0){
+		diffuseColor.rgb = vec3(0.9 ,0.9, 0.);
+	}
 
 	#include <clipping_planes_fragment>
 

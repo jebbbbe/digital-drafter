@@ -1,4 +1,4 @@
-		#include <common>
+#include <common>
 #include <color_pars_vertex>
 #include <fog_pars_vertex>
 #include <logdepthbuf_pars_vertex>
@@ -14,7 +14,7 @@ attribute vec3 instanceColorStart;
 attribute vec3 instanceColorEnd;
 
 #ifdef InstancedLine
-
+	varying vec4 _nodeData;
 	#include <uniform_tree>
 	uniform int instanceMatrixCount;
 	#include <tree_funcitons>

@@ -40,7 +40,7 @@
     - [ ] delete section grandchildren should detach
     - [ ] delte section grandchildren leaves gizmo in view
     - [ ] drafter instance item map for duplicates
-    - [ ] seciton line selection color
+    - [x] seciton line selection color
     - [x] lwinstance merge
     - [x] gl line working with nodeSlot
     - [x] FoldLine2 issues
@@ -56,13 +56,13 @@
     - [ ] redo material settings
     - [ ] for next pass
         - [ ] remove gl_lines, why would we use them?
-        - [ ] custom dashes
+        - [ ] custom dashes in frag
         - [ ] fix issues written in MaterialManagers
         - [ ] uniform group & multiple materials
-            - [ ] materail aliasing / transparency for super thin lw
-            - [ ] line thickness for printing
-            - [ ] tile renderer for export?
-            - [ ] Profile Edge Depthmap Read..?
+        - [ ] materail aliasing / transparency for super thin lw
+        - [ ] line thickness for printing
+        - [ ] tile renderer for export?
+        - [ ] Profile Edge Depthmap Read..?
 
 - INTERFACE
     - [x] InstancedLineMaterial
