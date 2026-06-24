@@ -129,6 +129,9 @@ export function moveNodeFromSelection(pos: { x: number; z: number }) {
 
     node.position.set(pos.x, 0, pos.z)
     drafter.updatePatchedNode(node)
+
+    const anchor = drafter.getNodesAnchoredCenter(node)
+    interactionManager.controllers.setAnchorCache(node.position, anchor)
     interactionManager.controllers.setGizmoPosition(node.position)
 
     console.log(pos)

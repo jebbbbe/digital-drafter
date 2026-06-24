@@ -26,6 +26,10 @@ function noop(o: SelectObject) {
 function setupNodeGizmo(object: SelectObject) {
     const node = object.target as TransformNode
     interactionManager.controllers.setGizmoTranslate()
+    interactionManager.controllers.cachedAnchorOffset.set(0, 0, 0)
+
+    const anchor = drafter.getNodesAnchoredCenter(node)
+    interactionManager.controllers.setAnchorCache(node.position, anchor)
     interactionManager.controllers.setGizmoPosition(node.position)
 }
 

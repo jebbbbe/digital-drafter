@@ -28,7 +28,7 @@
 
 - [x] rm nodeSlot
 - [x] scale fix in nodeData
-- [ ] node anchors
+- [x] node anchors
 - [ ] select multiple
 - [ ] multi update node
 - [ ] interaction class

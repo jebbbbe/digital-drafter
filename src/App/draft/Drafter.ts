@@ -14,6 +14,8 @@ import { matlib } from "./materialManager"
 import type { TransformNode } from "./TransformNode"
 import type { NodeLocation } from "./TransformTree"
 
+const _anchoredCenter = new THREE.Vector3()
+
 export class Drafter {
     tree = new TransformTree()
     instanceItems: FreeList<InstanceItem> = new FreeList()
@@ -63,7 +65,6 @@ export class Drafter {
         this.materials.dash.treeDataSize = size
         this.materials.projection.treeDataSize = size
         this.materials.fold.treeDataSize = size
-		
     }
 
     setUpDebug() {
@@ -122,6 +123,16 @@ export class Drafter {
         // get item
         const instanceItem = this.getInstance(id)
         return instanceItem.patch(geometry)
+    }
+
+    getNodesAnchoredCenter(
+        node: TransformNode,
+        target: THREE.Vector3 = _anchoredCenter
+    ) {
+        const instanceItem = this.getInstance(node.location.id)
+        target.copy(instanceItem.anchor).applyMatrix4(node.compoundMatrix)
+        target.y = 0
+        return target
     }
 
     findReusableInstance(

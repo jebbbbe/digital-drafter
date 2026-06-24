@@ -3,11 +3,13 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
 import { TransformControls } from "three/examples/jsm/controls/TransformControls.js"
 
 let _prevEnableTransform: boolean = false
+const _nodePosition = new THREE.Vector3()
 
 export class ThreeControllersManager {
     orbitControls: OrbitControls
     transformControls: TransformControls
     transformProxy = new THREE.Object3D()
+    cachedAnchorOffset = new THREE.Vector3()
     useTransformControls: boolean
     constructor(
         orbitControls: OrbitControls,
@@ -60,24 +62,34 @@ export class ThreeControllersManager {
     }
 
     setGizmoPosition(position: THREE.Vector3) {
-        this.transformProxy.position.copy(position)
+        this.transformProxy.position
+            .copy(position)
+            .add(this.cachedAnchorOffset)
         this.transformProxy.rotation.set(0, 0, 0)
         this.transformProxy.scale.set(1, 1, 1)
         this.transformProxy.updateMatrixWorld(true)
     }
 
     updateGizmoPosition(position: THREE.Vector3) {
-        this.transformProxy.position.copy(position)
+        this.transformProxy.position
+            .copy(position)
+            .add(this.cachedAnchorOffset)
         this.transformProxy.updateMatrixWorld(true)
+    }
+
+    setAnchorCache(nodePosition: THREE.Vector3, anchoredCenter: THREE.Vector3) {
+        this.cachedAnchorOffset.subVectors(anchoredCenter, nodePosition)
+    }
+
+    getGizmoPosition(target = _nodePosition) {
+        return target
+            .copy(this.transformProxy.position)
+            .sub(this.cachedAnchorOffset)
     }
 
     setGizmoQuaternion(quaternion: THREE.Quaternion) {
         this.transformProxy.quaternion.copy(quaternion)
         this.transformProxy.updateMatrixWorld(true)
-    }
-
-    getGizmoPosition() {
-        return this.transformProxy.position
     }
 
     /*

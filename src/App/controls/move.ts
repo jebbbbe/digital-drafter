@@ -103,6 +103,8 @@ export function attachNodeMove(
         }
         prevHit.copy(hit)
 
+        const anchor = drafter.getNodesAnchoredCenter(node)
+        interactionManager.controllers.setAnchorCache(node.position, anchor)
         moveNodeToPosition(node, _candidatePosition)
     }
 
@@ -160,6 +162,7 @@ export function setupSegmentGizmo(line: SectionSegment) {
     _segmentMidPoint.addVectors(a, b).multiplyScalar(0.5)
     _segmentDirection.subVectors(b, a)
 
+    interactionManager.controllers.cachedAnchorOffset.set(0, 0, 0)
     interactionManager.controllers.setGizmoTranslate1d()
     interactionManager.controllers.setGizmoPosition(_segmentMidPoint)
 

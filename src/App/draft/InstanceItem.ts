@@ -21,6 +21,7 @@ import type { TransformNode } from "./TransformNode"
 export class InstanceItem {
     brush: Brush
     geometry: THREE.BufferGeometry
+    anchor: THREE.Vector3
     localTransform: THREE.Matrix4 // matches head of tree baseTransform..?
     buffers: {
         instanceMatrix: THREE.InstancedBufferAttribute // keep for raycast
@@ -284,6 +285,7 @@ export class InstanceItem {
 
         this.brush = geometries.brush // original geometries brush
         this.geometry = geometry // possibly changed buffers, uv, normal, etc
+        this.anchor = new THREE.Vector3()
         this.localTransform = localTransform
         this.buffers = {
             instanceMatrix,
@@ -300,6 +302,17 @@ export class InstanceItem {
         this.count = 0
         this.maxCount = capacity
         this.setInstanceCount(0)
+        this.updateAnchor()
+    }
+
+    updateAnchor(): THREE.Vector3 {
+        this.geometry.computeBoundingBox()
+        const boundingBox = this.geometry.boundingBox
+        if (!boundingBox) {
+            return this.anchor.set(0, 0, 0)
+        }
+		boundingBox.getCenter(this.anchor)
+        return this.anchor
     }
 
     private setInstanceCount(count: number = this.count): void {
@@ -402,6 +415,7 @@ export class InstanceItem {
         geometries.brush.matrixAutoUpdate = false
         this.brush = geometries.brush
         this.geometry = geometry
+        this.updateAnchor()
         this.computeBoundingSphere()
         return this
     }
