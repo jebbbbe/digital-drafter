@@ -35,6 +35,7 @@ function normalizeAndApplyMatrix(mergedGeometry: THREE.BufferGeometry) {
 
 for (const key in geometryLibrary) {
     normalizeAndApplyMatrix(geometryLibrary[key])
+	geometryLibrary[key].name = key
 }
 
 export const geometryTitles: Record<string, THREE.BufferGeometry> = {

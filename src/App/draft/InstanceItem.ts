@@ -228,6 +228,7 @@ export class InstanceItem {
                 const material = fold.material as unknown as FoldLineMaterial2
                 material.treeBlockOffset = id
                 material.instanceMatrixCount = Math.max(1, fold.count)
+                material.anchor = this.anchor
 
                 const boundingBox = mesh.geometry.boundingBox as THREE.Box3
                 const size = new THREE.Vector3()
@@ -417,6 +418,7 @@ export class InstanceItem {
         this.geometry = geometry
         this.updateAnchor()
         this.computeBoundingSphere()
+
         return this
     }
 }
