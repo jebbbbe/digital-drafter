@@ -26,8 +26,8 @@
 
 ### v0.4.0
 
-- [ ] rm nodeSlot
-- [ ] scale fix in nodeData
+- [x] rm nodeSlot
+- [x] scale fix in nodeData
 - [ ] node anchors
 - [ ] select multiple
 - [ ] multi update node
