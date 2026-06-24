@@ -20,7 +20,8 @@ export function brushCleaner(
     brush.matrixAutoUpdate = false
 
     const localTransform = new THREE.Matrix4()
-    normalizeGeometryBox(geometry, localTransform)
+    // normalizeGeometryBox(geometry, localTransform)
+    // localTransform can prob be passed in now, as only use is model upload?
 
     if (settings.applyLocalTranform) {
         geometry.applyMatrix4(localTransform)

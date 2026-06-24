@@ -176,7 +176,7 @@ function Controls() {
                     },
                     foldDistance: {
                         label: "Distance",
-                        min: 0,
+                        min: 0.5,
                         max: 5,
                         step: 0.01,
                         value: constants.display.fold.foldDistance,
@@ -185,7 +185,7 @@ function Controls() {
                     foldSize: {
                         label: "Size",
                         min: 0,
-                        max: 5,
+                        max: 2,
                         step: 0.01,
                         value: constants.display.fold.foldSize,
                         onChange: wControls.setFoldSize,

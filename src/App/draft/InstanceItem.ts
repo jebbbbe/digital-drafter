@@ -220,10 +220,18 @@ export class InstanceItem {
                 materials.fold as FoldLineMaterial2,
                 capacity
             )
+
+            mesh.geometry.computeBoundingBox()
+            const boundingBox = mesh.geometry.boundingBox as THREE.Box3
+            const size = new THREE.Vector3()
+            boundingBox.getSize(size)
+            const largestDimension = Math.max(size.x, size.y, size.z)
+
             fold.onBeforeRender = (renderer: THREE.WebGLRenderer) => {
                 const material = fold.material as unknown as FoldLineMaterial2
                 material.treeBlockOffset = id
                 material.instanceMatrixCount = Math.max(1, fold.count)
+                material.boundingEdge = largestDimension
                 material.uniformsNeedUpdate = true
                 InstancedLineSegments2.prototype.onBeforeRender.call(
                     fold,
