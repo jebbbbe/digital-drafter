@@ -37,7 +37,7 @@ const matlib = {
     // fold
     // line
     sectionFace: new THREE.MeshBasicMaterial({
-        color: 0xd8abd8, //0xd8abd8,
+        color: 0xffffff, //0xd8abd8,
         side: THREE.DoubleSide,
         depthWrite: false,
         depthTest: true, // nice result on/off

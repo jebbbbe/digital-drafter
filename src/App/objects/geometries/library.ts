@@ -10,6 +10,7 @@ import {
     makeSphereGeometry,
     makeTorusGeometry,
 } from "./geometry"
+import { normalizeGeometryBox } from "./brushCleaner"
 
 export const geometryLibrary: Record<string, THREE.BufferGeometry> = {
     cube: makeCube(),
@@ -24,6 +25,16 @@ export const geometryLibrary: Record<string, THREE.BufferGeometry> = {
     asteriskAsymetrical: makeAsteriskAsym(10),
     custom: makeCustomBVHShape(),
     menger: createMengerSpongeCSG(2),
+}
+
+const _normalizeMatrix = new THREE.Matrix4()
+function normalizeAndApplyMatrix(mergedGeometry: THREE.BufferGeometry) {
+    normalizeGeometryBox(mergedGeometry, _normalizeMatrix)
+    mergedGeometry.applyMatrix4(_normalizeMatrix)
+}
+
+for (const key in geometryLibrary) {
+    normalizeAndApplyMatrix(geometryLibrary[key])
 }
 
 export const geometryTitles: Record<string, THREE.BufferGeometry> = {

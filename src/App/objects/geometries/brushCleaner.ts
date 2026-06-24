@@ -51,8 +51,7 @@ export function brushCleaner(
     }
 }
 
-const _vec = new THREE.Vector3()
-function normalizeGeometryBox(
+export function normalizeGeometryBox(
     geometry: THREE.BufferGeometry,
     result = new THREE.Matrix4()
 ): THREE.Matrix4 {

@@ -106,6 +106,7 @@ export function init(container: HTMLElement): () => void {
         THREE.BufferGeometry,
         ...THREE.BufferGeometry[],
     ]
+    geometryItems.pop()
     for (let i = 0; i < 3; i++) {
         drafter.newInstance(rand.randomItem(geometryItems))
     }
