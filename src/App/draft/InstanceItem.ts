@@ -223,16 +223,18 @@ export class InstanceItem {
             )
 
             mesh.geometry.computeBoundingBox()
-            const boundingBox = mesh.geometry.boundingBox as THREE.Box3
-            const size = new THREE.Vector3()
-            boundingBox.getSize(size)
-            const largestDimension = Math.max(size.x, size.y, size.z)
 
             fold.onBeforeRender = (renderer: THREE.WebGLRenderer) => {
                 const material = fold.material as unknown as FoldLineMaterial2
                 material.treeBlockOffset = id
                 material.instanceMatrixCount = Math.max(1, fold.count)
+
+                const boundingBox = mesh.geometry.boundingBox as THREE.Box3
+                const size = new THREE.Vector3()
+                boundingBox.getSize(size)
+                const largestDimension = Math.max(size.x, size.y, size.z)
                 material.boundingEdge = largestDimension
+
                 material.uniformsNeedUpdate = true
                 InstancedLineSegments2.prototype.onBeforeRender.call(
                     fold,
@@ -311,7 +313,7 @@ export class InstanceItem {
         if (!boundingBox) {
             return this.anchor.set(0, 0, 0)
         }
-		boundingBox.getCenter(this.anchor)
+        boundingBox.getCenter(this.anchor)
         return this.anchor
     }
 
@@ -355,9 +357,7 @@ export class InstanceItem {
 
     computeBoundingSphere(): void {
         this.instances.mesh.computeBoundingSphere()
-        // this.instances.line.computeBoundingSphere()
-        // this.instances.dash.computeBoundingSphere()
-        // this.instances.proj.computeBoundingSphere()
+        this.instances.mesh.computeBoundingBox()
     }
 
     patch(geometry: THREE.BufferGeometry): InstanceItem {
