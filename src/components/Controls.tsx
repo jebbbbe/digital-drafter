@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { controls } from "../App/index"
 import { button, buttonGroup, folder, Leva, useControls } from "leva"
-import { constants } from "../App/constants"
+import { constants, themeOptions } from "../App/constants"
 import { geometryTitles } from "../App/objects/geometries/library"
 
 const isDev = import.meta.env.DEV
@@ -206,7 +206,7 @@ function Controls() {
                 theme: {
                     label: "Theme",
                     value: constants.theme,
-                    options: constants.themeOptions,
+                    options: themeOptions,
                     onChange: (value, path, context) => {
                         const result = (
                             wControls.themeSelect as (...args: any[]) => unknown

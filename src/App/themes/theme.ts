@@ -1,5 +1,6 @@
 export const themes = {
     paper: {
+        theme: "paper",
         display: {
             background: "#fffcee",
             mesh: {
@@ -32,6 +33,7 @@ export const themes = {
         },
     },
     light: {
+        theme: "light",
         display: {
             background: "#ffffff",
             mesh: {
@@ -78,6 +80,7 @@ export const themes = {
         },
     },
     dark: {
+        theme: "dark",
         display: {
             background: "#000000",
             mesh: {
@@ -124,6 +127,7 @@ export const themes = {
         },
     },
     horn: {
+        theme: "horn",
         display: {
             background: "#B4B4B4",
             mesh: {
@@ -156,6 +160,7 @@ export const themes = {
         },
     },
     blade: {
+        theme: "blade",
         display: {
             background: "#363636",
             mesh: {
@@ -188,6 +193,7 @@ export const themes = {
         },
     },
     cab: {
+        theme: "cab",
         display: {
             background: "#2B2B2B",
             mesh: {
@@ -220,6 +226,7 @@ export const themes = {
         },
     },
     gum: {
+        theme: "gum",
         display: {
             background: "#ffdcd5",
             mesh: {
@@ -252,6 +259,7 @@ export const themes = {
         },
     },
     orchid: {
+        theme: "orchid",
         display: {
             background: "#d0d5b7",
             mesh: {
@@ -284,6 +292,7 @@ export const themes = {
         },
     },
     monaki: {
+        theme: "monaki",
         /*
                 black background 272822
                 white text F8F8F2
@@ -347,4 +356,4 @@ export const themes = {
             },
         },
     },
-}
+} as const

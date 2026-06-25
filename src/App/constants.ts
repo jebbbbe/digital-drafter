@@ -1,8 +1,8 @@
 import { themes } from "./themes/theme"
 
 export const InstanceCount = 32 as const
+
 /* 
-leve them comments
 leva: {
     colors: {
         elevation1: "#272822", // title BK
@@ -19,8 +19,17 @@ leva: {
 },
 */
 
-const defaultLeva = undefined
-const defaultGizmo = undefined
+export const themeOptions = {
+    Paper: "paper",
+    Light: "light",
+    Dark: "dark",
+    Horn: "horn",
+    Blade: "blade",
+    Cab: "cab",
+    Gum: "gum",
+    Orchid: "orchid",
+    Monaki: "monaki",
+}
 
 export const constants = {
     camera: {
@@ -60,16 +69,5 @@ export const constants = {
         },
     },
     theme: "light",
-    themeOptions: {
-        Paper: "paper",
-        Light: "light",
-        Dark: "dark",
-        Horn: "horn",
-        Blade: "blade",
-        Cab: "cab",
-        Gum: "gum",
-        Orchid: "orchid",
-        Monaki: "monaki",
-    },
     themes,
 } as const
