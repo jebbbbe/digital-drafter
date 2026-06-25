@@ -275,7 +275,7 @@ export class InstanceItem {
         fold.userData = mesh.userData
 
         // set visible
-        const display = constants.themes.objects[constants.theme].display as any
+        const display = constants.themes[constants.theme].display as any
         mesh.visible = display.mesh.visible
         line.visible = display.line.visible
         outline.visible = display.line.visible

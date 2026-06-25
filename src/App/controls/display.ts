@@ -107,7 +107,7 @@ export function setFoldSize(value: number): void {
 }
 
 export function setSectionColor(value: string): void {
-    drafter.materials.section.color.set(value)
+    drafter.materials.sectionLine.color.set(value)
 }
 
 export function setGizmoColors(colors: {
@@ -134,8 +134,7 @@ export function randomizeMeshColor(): void {
 }
 
 export function themeSelect(theme: string): boolean {
-    const themeObject =
-        constants.themes.objects[theme as keyof typeof constants.themes.objects]
+    const themeObject = constants.themes[theme as keyof typeof constants.themes]
     if (!themeObject) return false
 
     if ("display" in themeObject) {

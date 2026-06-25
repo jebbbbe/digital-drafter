@@ -76,7 +76,7 @@ export function init(container: HTMLElement): () => void {
     // scene
     scene = new THREE.Scene()
     scene.background = new THREE.Color(
-        constants.themes.objects[constants.theme].display.background
+        constants.themes[constants.theme].display.background
     )
 
     //camera

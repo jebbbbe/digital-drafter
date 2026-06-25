@@ -8,8 +8,8 @@ const isDev = import.meta.env.DEV
 
 function Controls() {
     function getLevaTheme(themeKey: string) {
-        const theme = constants.themes.objects[
-            themeKey as keyof typeof constants.themes.objects
+        const theme = constants.themes[
+            themeKey as keyof typeof constants.themes
         ] as { leva?: Record<string, unknown> } | undefined
 
         return theme?.leva ?? {}

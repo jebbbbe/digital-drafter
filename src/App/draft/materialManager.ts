@@ -19,7 +19,7 @@ will revisit when looking more into line aliasing
 type ActiveMaterialLib = "gl_Line" | "linewidth"
 const activeMaterialLib: ActiveMaterialLib = "linewidth"
 
-const display = constants.themes.objects[constants.theme].display as any
+const display = constants.themes[constants.theme].display as any
 
 const matlib = {
     // outline
