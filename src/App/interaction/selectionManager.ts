@@ -12,7 +12,11 @@ export {
     SegmentSelectionObject,
     SelectionObject,
 } from "./SelectionObject"
-export type { SectionSegment, SelectObject, SelectType } from "./SelectionObject"
+export type {
+    SectionSegment,
+    SelectObject,
+    SelectType,
+} from "./SelectionObject"
 
 export class SelectionManager {
     selection: SelectObject[]
@@ -20,7 +24,7 @@ export class SelectionManager {
         this.selection = array
     }
     setSelectedUpdate(object: SelectObject, isSelected: boolean) {
-		/*
+        /*
 		if we are hiding a SectionSegment, need to check if its parent is in selection and leep it active.
 		if(){
 			return	
@@ -28,9 +32,34 @@ export class SelectionManager {
 		*/
         object.setSelected(isSelected)
     }
-    push(item: SelectObject) {
+    push(item: SelectObject): boolean {
+        // check if item already in the seleciton
+        const hasSeen = this.selection.some((selected) => {
+            if (
+                selected instanceof NodeSelectionObject &&
+                item instanceof NodeSelectionObject
+            ) {
+                return selected.target === item.target
+            }
+
+            if (
+                selected instanceof SegmentSelectionObject &&
+                item instanceof SegmentSelectionObject
+            ) {
+                return (
+                    selected.target.object === item.target.object &&
+                    selected.target.index === item.target.index
+                )
+            }
+
+            return false
+        })
+
+        if (hasSeen) return true
+
         this.setSelectedUpdate(item, true)
-        return this.selection.push(item)
+        this.selection.push(item)
+        return false
     }
     set(array: SelectObject[]) {
         this.clear()
@@ -61,9 +90,9 @@ export class SelectionManager {
         return this.selection[0]
     }
     firstTarget(search: "SectionSegment"): SectionSegment | undefined
-    firstTarget(search: Exclude<SelectType, "SectionSegment">):
-        | TransformNode
-        | undefined
+    firstTarget(
+        search: Exclude<SelectType, "SectionSegment">
+    ): TransformNode | undefined
     firstTarget(search?: SelectType) {
         const item = this.selection[0]
         if (!item) return undefined

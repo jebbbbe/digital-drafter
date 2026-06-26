@@ -175,7 +175,8 @@ export class InteractionManager {
 
             selectedObject = new NodeSelectionObject(node)
         }
-        this.selection.push(selectedObject)
+        const seen = this.selection.push(selectedObject)
+        if (seen) return
         this.attachTransformControls(selectedObject)
         const moveFns = selectedObject.move(startHit) as MoveListener
         if (moveFns === undefined) return
