@@ -67,7 +67,7 @@ function Controls() {
                   {
                       showStats: {
                           label: "Show Stats",
-                          value: false,
+                          value: true,
                           onChange: wControls.setStatsVisible,
                       },
                       "Reset Camera": button(controls.resetCamera),

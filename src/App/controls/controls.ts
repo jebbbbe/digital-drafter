@@ -1,4 +1,4 @@
-import { isAppReady } from "../main"
+import { isAppReady } from "../AppContext"
 
 import * as display from "./display.ts"
 import * as camera from "./camera.ts"

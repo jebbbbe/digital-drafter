@@ -1,6 +1,6 @@
 import * as THREE from "three"
 import type { SelectObject } from "../interaction/selectionManager"
-import { interactionManager } from "../main"
+import { interactionManager } from "../AppContext"
 
 function getSelectionObject(object = interactionManager.selection.first()) {
     return object

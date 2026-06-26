@@ -1,6 +1,6 @@
 import * as THREE from "three"
 import { constants } from "../constants"
-import { camera, orbitControls } from "../main"
+import { camera, orbitControls } from "../AppContext"
 
 export function resetCamera(): void {
     camera.zoom = constants.camera.zoom

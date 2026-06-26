@@ -16,8 +16,16 @@ import {
     orbitControls,
     renderer,
     scene,
-} from "../main"
-import { cube } from "../main"
+} from "../AppContext"
+
+const cube = new THREE.Mesh(
+    new THREE.BoxGeometry(1, 1, 1),
+    new THREE.MeshStandardMaterial({
+        color: "#1d8bff",
+        roughness: 0.35,
+        metalness: 0.08,
+    })
+)
 
 const exportSize = new THREE.Vector2()
 const instanceMatrix = new THREE.Matrix4()

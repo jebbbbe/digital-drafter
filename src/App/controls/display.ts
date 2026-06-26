@@ -1,5 +1,5 @@
 import * as THREE from "three"
-import { drafter, scene, interactionManager } from "../main"
+import { drafter, scene, interactionManager } from "../AppContext"
 import { constants } from "../constants"
 import { syncLevaDisplayControls } from "../../components/Leva/LevaStore"
 

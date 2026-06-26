@@ -1,7 +1,6 @@
 import * as THREE from "three"
 import { constants } from "./constants"
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
-import Stats from "three/examples/jsm/libs/stats.module.js"
 import { AspectLayout } from "./utils/AspectLayout"
 import { loadGlb } from "./utils/loader"
 import { InteractionManager } from "./interaction/InteractionManager"
@@ -15,14 +14,6 @@ import { StatsPanel } from "./test/StatsPanel"
 
 let isAppReady = false
 
-const cube = new THREE.Mesh(
-    new THREE.BoxGeometry(1, 1, 1),
-    new THREE.MeshStandardMaterial({
-        color: "#1d8bff",
-        roughness: 0.35,
-        metalness: 0.08,
-    })
-)
 let renderer!: THREE.WebGLRenderer
 let scene!: THREE.Scene
 let camera!: THREE.OrthographicCamera
@@ -36,10 +27,6 @@ let drafter!: Drafter
 
 export function init(container: HTMLElement): () => void {
     // const assetsLoader = loadAssets()x
-
-    if (import.meta.env.DEV) {
-        console.log("DEV")
-    }
 
     dispose()
 
@@ -55,7 +42,7 @@ export function init(container: HTMLElement): () => void {
     renderer.setPixelRatio(globalThis.devicePixelRatio)
     container.appendChild(renderer.domElement)
 
-    statsPanel = new StatsPanel(document.body, true)
+    statsPanel = new StatsPanel(document.body, import.meta.env.DEV)
 
     // scene
     scene = new THREE.Scene()
@@ -205,21 +192,6 @@ export function init(container: HTMLElement): () => void {
     }
     addTrees(drafter, initalTrees)
 
-    // const [loadedCubeModel] = await assetsLoader
-    // if (!loadedCubeModel) {
-    //     throw new Error('Failed to resolve asset "/cube.glb"')
-    // }
-    // scene.add(loadedCubeModel)
-
-    interactionManager = new InteractionManager({
-        camera,
-        scene,
-        domElement: renderer.domElement,
-        orbitControls,
-        drafter,
-    })
-    interactionManager.addEventListeners()
-
     // Secction Cut Node Tests
     let nodeToCut
     nodeToCut = drafter.findNode({ id: 0, index: 4 })
@@ -230,9 +202,27 @@ export function init(container: HTMLElement): () => void {
     if (nodeToCut) createNewCutNode(nodeToCut)
     nodeToCut = drafter.findNode({ id: 2, index: 5 })
     if (nodeToCut) createNewCutNode(nodeToCut)
+
+    interactionManager = new InteractionManager({
+        camera,
+        scene,
+        domElement: renderer.domElement,
+        orbitControls,
+        drafter,
+    })
+    interactionManager.addEventListeners()
+
+    //
     ;(globalThis as any).drafter = drafter
     ;(globalThis as any).constants = constants
     ;(globalThis as any).interactionManager = interactionManager
+
+    // async
+    // const [loadedCubeModel] = await assetsLoader
+    // if (!loadedCubeModel) {
+    //     throw new Error('Failed to resolve asset "/cube.glb"')
+    // }
+    // scene.add(loadedCubeModel)
 
     layout.addResizeListener(renderer, camera, render)
 
@@ -298,7 +288,6 @@ export {
     scene,
     camera,
     orbitControls,
-    cube,
     drafter,
     interactionManager,
     statsPanel,

@@ -2,7 +2,7 @@ import * as THREE from "three"
 import { Brush } from "three-bvh-csg"
 import type { CSGOperation } from "three-bvh-csg"
 
-import { drafter, interactionManager } from "../main"
+import { drafter, interactionManager } from "../AppContext"
 import type { TransformNode } from "../draft/TransformNode"
 import { evaluateCSG, boolean } from "../utils/csg"
 

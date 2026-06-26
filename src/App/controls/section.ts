@@ -1,6 +1,6 @@
 import * as THREE from "three"
 import { LineSegments2 } from "three/addons/lines/LineSegments2.js"
-import { drafter, interactionManager } from "../main"
+import { drafter, interactionManager } from "../AppContext"
 import {
     createSectionAttachment,
     createSegmentAttachment,

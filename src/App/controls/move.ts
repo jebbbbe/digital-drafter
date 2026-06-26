@@ -4,7 +4,7 @@ import {
     NodeSelectionObject,
     type SectionSegment,
 } from "../interaction/selectionManager"
-import { interactionManager, drafter } from "../main"
+import { interactionManager, drafter } from "../AppContext"
 import { getNodevalues } from "./nodes"
 import { rotatePointOnXZPlane, getXZRotationAngle } from "../utils/rotation"
 import * as levaStore from "../../components/Leva/LevaStore"

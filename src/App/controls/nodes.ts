@@ -1,6 +1,6 @@
 import * as THREE from "three"
 import * as rand from "../utils/random"
-import { drafter, interactionManager } from "../main"
+import { drafter, interactionManager } from "../AppContext"
 import type { TransformNode } from "../draft/TransformNode"
 import {
     enableNodeStub,

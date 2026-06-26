@@ -9,7 +9,7 @@ import {
     detachNodeChildren,
 } from "../controls/nodes"
 import { deleteSegment } from "../controls/section"
-import { drafter, interactionManager } from "../main"
+import { drafter, interactionManager } from "../AppContext"
 import {
     attachSegmentMove,
     attachNodeMove,
