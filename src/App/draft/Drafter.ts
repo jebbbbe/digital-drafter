@@ -275,9 +275,6 @@ export class Drafter {
         instanceItem.incrementInstanceCount()
         this.updatePatchedNode(node)
 
-        // console.log("addLeafNode")
-        // console.log({node})
-        // console.log({parent})
         return node
     }
 

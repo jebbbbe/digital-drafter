@@ -133,8 +133,6 @@ export function moveNodeFromSelection(pos: { x: number; z: number }) {
     const anchor = drafter.getNodesAnchoredCenter(node)
     interactionManager.controllers.setAnchorCache(node.position, anchor)
     interactionManager.controllers.setGizmoPosition(node.position)
-
-    console.log(pos)
 }
 
 export function rotateRootFromSelection(rot: { x: number; y: number }) {
@@ -278,7 +276,6 @@ export function detachNode(node: TransformNode) {
 export function detachNodeChildren(node: TransformNode) {
     const children = [...node.children]
     children.forEach((child) => {
-        console.log(child)
         detachNode(child)
     })
 }

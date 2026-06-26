@@ -14,7 +14,6 @@ import { SectionFaceGroup } from "../objects/meshes/sectionFaceGroup"
 
 export function createNewCutNodeFromSelection() {
     const node = interactionManager.selection.firstNode()
-    console.log(node)
     if (!node) return
     createNewCutNode(node)
 }
