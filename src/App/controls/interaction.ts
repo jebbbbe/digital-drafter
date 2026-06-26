@@ -41,7 +41,7 @@ function listenNodeGizmo(object: SelectObject) {
 function moveLeaf(object: SelectObject, startHit: THREE.Vector3) {
     const node = object.target as TransformNode
     levaStore.syncLevaDisplayStub(getNodevalues(node))
-    levaStore.enableLeafStub()
+    levaStore.enableNodeStub(node.parent === node)
     return attachNodeMove(node, startHit)
 }
 
@@ -72,12 +72,7 @@ const fnLib = {
             return attachSegmentMove(line, startHit)
         },
         leaf: moveLeaf,
-        root: (object: SelectObject, startHit: THREE.Vector3) => {
-            const node = object.target as TransformNode
-            levaStore.syncLevaDisplayStub(getNodevalues(node))
-            levaStore.enableRootStub()
-            return attachNodeMove(node, startHit)
-        },
+        root: moveLeaf,
         sectionChild: moveLeaf,
         sectionParent: moveLeaf,
     },

@@ -3,7 +3,7 @@ import * as rand from "../utils/random"
 import { drafter, interactionManager } from "../main"
 import type { TransformNode } from "../draft/TransformNode"
 import {
-    enableRootStub,
+    enableNodeStub,
     syncLevaInsertOptions,
     syncLevaDisplayStub,
 } from "../../components/Leva/LevaStore"
@@ -269,7 +269,7 @@ export function detachNode(node: TransformNode) {
     drafter.detachNode(node)
 
     // update stub panel
-    enableRootStub()
+    enableNodeStub(node.parent === node)
 
     // todo the rotation value derived from this are wong due to how rebaseDetachedMatrixNodeToRoot gets the new matrix..
     syncLevaDisplayStub(getNodevalues(node))

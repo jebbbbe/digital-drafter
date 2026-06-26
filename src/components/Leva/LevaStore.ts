@@ -136,7 +136,6 @@ export function setStubDisabled(disabled: boolean = true) {
 export const enableStub = () => setStubDisabled(false)
 export const disableStub = () => setStubDisabled(true)
 
-export const enableRootStub = () => setStubDisabled(false)
 export const disableRootStub = () => setStubDisabled(true)
 
 export function setStubLeafDisabled(disabled: boolean = true) {
@@ -145,8 +144,15 @@ export function setStubLeafDisabled(disabled: boolean = true) {
     levaStore.disableInputAtPath(panelPaths.stubScale, true)
     setButtonsDisabled(disabled)
 }
-export const enableLeafStub = () => setStubLeafDisabled(false)
 export const disableLeafStub = () => setStubLeafDisabled(true)
+
+export function enableNodeStub(isRoot: boolean) {
+    if (isRoot) {
+        setStubDisabled(false)
+    } else {
+        setStubLeafDisabled(false)
+    }
+}
 
 export function setLevaInsertDefault() {
     const sync = {} as any
