@@ -274,3 +274,16 @@ export function detachNode(node: TransformNode) {
     // todo the rotation value derived from this are wong due to how rebaseDetachedMatrixNodeToRoot gets the new matrix..
     syncLevaDisplayStub(getNodevalues(node))
 }
+
+export function detachNodeChildren(node: TransformNode) {
+    const children = [...node.children]
+    children.forEach((child) => {
+        console.log(child)
+        detachNode(child)
+    })
+}
+
+export function detachNodeAll(node: TransformNode) {
+    detachNode(node)
+    detachNodeChildren(node)
+}

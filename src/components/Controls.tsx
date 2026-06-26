@@ -291,6 +291,12 @@ function Controls() {
             "Detach View": button(() => controls.detachFirstObject(), {
                 disabled: true,
             }),
+            "Detach Children": button(
+                () => controls.detachChildrenFirstObject(),
+                {
+                    disabled: true,
+                }
+            ),
             "Union View": button(() => controls.startUnionFromSelection(), {
                 disabled: true,
             }),

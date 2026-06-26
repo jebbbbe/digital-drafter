@@ -12,6 +12,13 @@ export const deleteFirstObject = (object?: SelectObject) =>
 export const detachFirstObject = (object?: SelectObject) =>
     getSelectionObject(object)?.detach()
 
+
+
+export const detachChildrenFirstObject = (object?: SelectObject) => {
+    object = getSelectionObject(object)
+    object?.detachChildren()
+}
+
 export const moveFirstObject = (
     object?: SelectObject,
     startHit?: THREE.Vector3

@@ -2,7 +2,12 @@ import * as THREE from "three"
 import type { Mesh } from "three"
 import type { TransformNode } from "../draft/TransformNode"
 import { getSlotIndex } from "../objects/textures/GlobalTreeTexture"
-import { pruneNode, detachNode, getNodevalues } from "../controls/nodes"
+import {
+    pruneNode,
+    detachNode,
+    getNodevalues,
+    detachNodeChildren,
+} from "../controls/nodes"
 import { deleteSegment } from "../controls/section"
 import { drafter, interactionManager } from "../main"
 import {
@@ -45,13 +50,11 @@ export abstract class SelectionObject<TTarget> {
 
     abstract setSelected(isSelected: boolean): void
 
-    detach() {
-        // console.warn("noop detach", this)
-    }
+    detach() {}
 
-    mirror() {
-        // console.warn("noop mirror", this)s
-    }
+    detachChildren() {}
+
+    mirror() {}
 }
 
 export class NodeSelectionObject extends SelectionObject<TransformNode> {
@@ -99,6 +102,10 @@ export class NodeSelectionObject extends SelectionObject<TransformNode> {
 
     detach() {
         detachNode(this.target)
+    }
+
+    detachChildren() {
+        detachNodeChildren(this.target)
     }
 
     mirror() {

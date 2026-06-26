@@ -220,7 +220,6 @@ export function init(container: HTMLElement): () => void {
         }
     }
     addTrees(drafter, initalTrees)
-    ;(globalThis as any).drafter = drafter
 
     testNode = drafter.findNode({ id: 0, index: 2 })
 
@@ -249,6 +248,11 @@ export function init(container: HTMLElement): () => void {
     if (nodeToCut) createNewCutNode(nodeToCut)
     nodeToCut = drafter.findNode({ id: 2, index: 5 })
     if (nodeToCut) createNewCutNode(nodeToCut)
+
+		
+    ;(globalThis as any).drafter = drafter
+    ;(globalThis as any).constants = constants
+    ;(globalThis as any).interactionManager = interactionManager
 
     layout.addResizeListener(renderer, camera, render)
 
