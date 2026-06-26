@@ -55,7 +55,7 @@ export class InteractionManager {
         this.domElement = domElement
         this.drafter = drafter
         this.raycastHelper = new RaycastHelper(camera, targets, domElement)
-        this.selection = new SelectionManager(drafter)
+        this.selection = new SelectionManager()
         this.listeners = new ListenerManager(this.domElement)
 
         const transformControls = new TransformControls(camera, domElement)

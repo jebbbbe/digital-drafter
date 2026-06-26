@@ -1,6 +1,4 @@
 import type { TransformNode } from "../draft/TransformNode"
-import type { Drafter } from "../draft/Drafter"
-import { getSlotIndex } from "../objects/textures/GlobalTreeTexture"
 import {
     NodeSelectionObject,
     SegmentSelectionObject,
@@ -18,20 +16,17 @@ export type { SectionSegment, SelectObject, SelectType } from "./SelectionObject
 
 export class SelectionManager {
     selection: SelectObject[]
-    drafter: Drafter
-    constructor(drafter: Drafter, array: SelectObject[] = []) {
+    constructor(array: SelectObject[] = []) {
         this.selection = array
-        this.drafter = drafter
     }
     setSelectedUpdate(object: SelectObject, isSelected: boolean) {
-        if (object instanceof NodeSelectionObject) {
-            const node = object.target
-            const slot = getSlotIndex(node.location)
-            this.drafter.globalTreeTexture.writeNodeSelected(slot, isSelected)
-            this.drafter.globalTreeTexture.sendUpdate(slot)
-        } else {
-            console.warn("not implemented Select for ", object)
-        }
+		/*
+		if we are hiding a SectionSegment, need to check if its parent is in selection and leep it active.
+		if(){
+			return	
+		}
+		*/
+        object.setSelected(isSelected)
     }
     push(item: SelectObject) {
         this.setSelectedUpdate(item, true)

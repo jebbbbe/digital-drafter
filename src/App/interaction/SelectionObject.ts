@@ -1,6 +1,7 @@
 import * as THREE from "three"
 import type { Mesh } from "three"
 import type { TransformNode } from "../draft/TransformNode"
+import { getSlotIndex } from "../objects/textures/GlobalTreeTexture"
 import { pruneNode, detachNode, getNodevalues } from "../controls/nodes"
 import { deleteSegment } from "../controls/section"
 import { drafter, interactionManager } from "../main"
@@ -41,6 +42,8 @@ export abstract class SelectionObject<TTarget> {
     abstract gizmoListener(): void
 
     abstract delete(): void
+
+    abstract setSelected(isSelected: boolean): void
 
     detach() {
         // console.warn("noop detach", this)
@@ -88,6 +91,12 @@ export class NodeSelectionObject extends SelectionObject<TransformNode> {
         pruneNode(this.target)
     }
 
+    setSelected(isSelected: boolean) {
+        const slot = getSlotIndex(this.target.location)
+        drafter.globalTreeTexture.writeNodeSelected(slot, isSelected)
+        drafter.globalTreeTexture.sendUpdate(slot)
+    }
+
     detach() {
         detachNode(this.target)
     }
@@ -121,6 +130,10 @@ export class SegmentSelectionObject extends SelectionObject<SectionSegment> {
 
     delete() {
         deleteSegment(this.target)
+    }
+
+    setSelected(isSelected: boolean) {
+        console.warn("not implemented Select for ", this)
     }
 }
 
