@@ -4,9 +4,13 @@ import Stats from "three/examples/jsm/libs/stats.module.js"
 export class StatsPanel {
     stats = new Stats()
     statsEnabled: boolean = false
-    constructor(element: HTMLElement = document.body, enabled: boolean = false) {
+    constructor(
+        element: HTMLElement = document.body,
+        enabled: boolean = false
+    ) {
         element.appendChild(this.stats.dom)
         this.statsEnabled = enabled
+
         // show all 3
         // Array.from(this.stats.dom.children).forEach((panel) => {
         //     const el = panel as HTMLElement
@@ -28,7 +32,6 @@ export class StatsPanel {
             this.stats?.update()
         }
     }
-
     syncStatsVisibility(): void {
         this.stats.dom.style.display = this.statsEnabled ? "" : "none"
     }
