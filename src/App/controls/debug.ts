@@ -1,5 +1,5 @@
-import { setStatsEnabled } from "../main"
+import { statsPanel } from "../main"
 
 export function setStatsVisible(value: boolean): void {
-    setStatsEnabled(value)
+    statsPanel.setStatsEnabled(value)
 }

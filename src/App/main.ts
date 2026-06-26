@@ -11,9 +11,9 @@ import type { TransformNode } from "./draft/TransformNode"
 import type { NodeLocation } from "./draft/TransformTree"
 import { geometryLibrary } from "./objects/geometries/library"
 import { createNewCutNode } from "./controls/section"
+import { StatsPanel } from "./test/StatsPanel"
 
 let isAppReady = false
-let statsEnabled = false
 
 const cube = new THREE.Mesh(
     new THREE.BoxGeometry(1, 1, 1),
@@ -29,24 +29,10 @@ let camera!: THREE.OrthographicCamera
 let orbitControls!: OrbitControls
 let layout!: AspectLayout
 let frameId = 0
-let stats: Stats | undefined
+let statsPanel: StatsPanel
 
 let interactionManager!: InteractionManager
 let drafter!: Drafter
-// let bvhBooleanTest: BvhBooleanTest | undefined
-
-let testNode: any
-let testNodeVelocityX = 0.001
-
-function syncStatsVisibility(): void {
-    if (!stats) return
-    stats.dom.style.display = statsEnabled ? "" : "none"
-}
-
-export function setStatsEnabled(value: boolean): void {
-    statsEnabled = value
-    syncStatsVisibility()
-}
 
 export function init(container: HTMLElement): () => void {
     // const assetsLoader = loadAssets()x
@@ -69,9 +55,7 @@ export function init(container: HTMLElement): () => void {
     renderer.setPixelRatio(globalThis.devicePixelRatio)
     container.appendChild(renderer.domElement)
 
-    stats = new Stats()
-    container.appendChild(stats.dom)
-    syncStatsVisibility()
+    statsPanel = new StatsPanel(document.body, true)
 
     // scene
     scene = new THREE.Scene()
@@ -221,8 +205,6 @@ export function init(container: HTMLElement): () => void {
     }
     addTrees(drafter, initalTrees)
 
-    testNode = drafter.findNode({ id: 0, index: 2 })
-
     // const [loadedCubeModel] = await assetsLoader
     // if (!loadedCubeModel) {
     //     throw new Error('Failed to resolve asset "/cube.glb"')
@@ -248,8 +230,6 @@ export function init(container: HTMLElement): () => void {
     if (nodeToCut) createNewCutNode(nodeToCut)
     nodeToCut = drafter.findNode({ id: 2, index: 5 })
     if (nodeToCut) createNewCutNode(nodeToCut)
-
-		
     ;(globalThis as any).drafter = drafter
     ;(globalThis as any).constants = constants
     ;(globalThis as any).interactionManager = interactionManager
@@ -263,19 +243,9 @@ export function init(container: HTMLElement): () => void {
 }
 
 function render(): void {
-    if (statsEnabled) {
-        stats?.update()
-    }
+    statsPanel.update()
     orbitControls.update()
-    // bvhBooleanTest?.update(globalThis.performance.now() * 0.001)
     renderer.render(scene, camera)
-    if (testNode && false) {
-        testNode.position.x += testNodeVelocityX
-        if (testNode.position.x >= 2.75 || testNode.position.x <= 1.25) {
-            testNodeVelocityX *= -1
-        }
-        drafter.updatePatchedNode(testNode)
-    }
 }
 
 function animate(): void {
@@ -292,8 +262,7 @@ function dispose(): void {
     globalThis.cancelAnimationFrame(frameId)
     layout.removeResizeListener()
     interactionManager.dispose()
-    stats?.dom.remove()
-    stats = undefined
+    statsPanel.dispose()
     renderer.dispose()
     renderer.domElement.remove()
 }
@@ -332,6 +301,7 @@ export {
     cube,
     drafter,
     interactionManager,
+    statsPanel,
 }
 
 function loadAssets(): Promise<[THREE.Object3D]> {
