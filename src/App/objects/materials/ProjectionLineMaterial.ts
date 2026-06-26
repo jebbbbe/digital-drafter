@@ -9,12 +9,11 @@ type ProjectionLineMaterialParameters = THREE.LineBasicMaterialParameters & {
 }
 
 export class ProjectionLineMaterial extends THREE.LineBasicMaterial {
-    shader?: THREE.WebGLProgramParametersWithUniforms
-    customUniforms: {
-        treeData: { value: THREE.DataTexture | null }
-        treeDataSize: { value: number }
-        treeBlockOffset: { value: number }
-        treeBlockSize: { value: number }
+    uniforms: {
+        treeData: THREE.IUniform<THREE.DataTexture | null>
+        treeDataSize: THREE.IUniform<number>
+        treeBlockOffset: THREE.IUniform<number>
+        treeBlockSize: THREE.IUniform<number>
     }
 
     constructor(parameters: ProjectionLineMaterialParameters = {}) {
@@ -25,7 +24,7 @@ export class ProjectionLineMaterial extends THREE.LineBasicMaterial {
         delete params.treeBlockSize
         super(params)
 
-        this.customUniforms = {
+        this.uniforms = {
             treeData: {
                 value: parameters.treeData ?? null,
             },
@@ -41,49 +40,37 @@ export class ProjectionLineMaterial extends THREE.LineBasicMaterial {
         }
 
         Object.defineProperty(this, "treeData", {
-            get: () => this.customUniforms.treeData.value,
+            get: () => this.uniforms.treeData.value,
             set: (value: THREE.DataTexture | null) => {
-                this.customUniforms.treeData.value = value
-                if (this.shader) {
-                    this.shader.uniforms.treeData.value = value
-                }
+                this.uniforms.treeData.value = value
             },
         })
 
         Object.defineProperty(this, "treeDataSize", {
-            get: () => this.customUniforms.treeDataSize.value,
+            get: () => this.uniforms.treeDataSize.value,
             set: (value: number) => {
-                this.customUniforms.treeDataSize.value = value
-                if (this.shader) {
-                    this.shader.uniforms.treeDataSize.value = value
-                }
+                this.uniforms.treeDataSize.value = value
             },
         })
 
         Object.defineProperty(this, "treeBlockOffset", {
-            get: () => this.customUniforms.treeBlockOffset.value,
+            get: () => this.uniforms.treeBlockOffset.value,
             set: (value: number) => {
-                this.customUniforms.treeBlockOffset.value = value
-                if (this.shader) {
-                    this.shader.uniforms.treeBlockOffset.value = value
-                }
+                this.uniforms.treeBlockOffset.value = value
             },
         })
 
         Object.defineProperty(this, "treeBlockSize", {
-            get: () => this.customUniforms.treeBlockSize.value,
+            get: () => this.uniforms.treeBlockSize.value,
             set: (value: number) => {
-                this.customUniforms.treeBlockSize.value = value
-                if (this.shader) {
-                    this.shader.uniforms.treeBlockSize.value = value
-                }
+                this.uniforms.treeBlockSize.value = value
             },
         })
 
         this.onBeforeCompile = (shader) => {
             shader.uniforms = {
                 ...shader.uniforms,
-                ...this.customUniforms,
+                ...this.uniforms,
             }
             shader.vertexShader = shader.vertexShader.replace(
                 "#include <common>",
@@ -120,7 +107,6 @@ export class ProjectionLineMaterial extends THREE.LineBasicMaterial {
                 }
                 `
             )
-            this.shader = shader
         }
     }
 }

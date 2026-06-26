@@ -2,14 +2,14 @@ import * as THREE from "three"
 
 export type MaterialClass = new (parameters?: any) => THREE.Material
 
-type UniformMap = Record<string, { value: any }>
+type UniformMap = Record<string, THREE.IUniform>
 
 type ExtendedBaseMaterial = THREE.Material & {
-    customUniforms?: UniformMap
+    uniforms?: UniformMap
 }
 
 export type ExtendedMaterial<T extends Record<string, any>> = T & {
-    customUniforms: { [K in keyof T]-?: { value: T[K] } }
+    uniforms: { [K in keyof T]-?: THREE.IUniform<T[K]> }
 }
 
 export type ExtendedMaterialClass<
@@ -20,7 +20,7 @@ export type ExtendedMaterialClass<
 ) => InstanceType<TBase> & ExtendedMaterial<T>
 
 export type MaterialExtension = {
-    customUniforms?: Record<string, any>
+    uniforms?: Record<string, any>
     onBeforeCompile?: (
         shader: THREE.WebGLProgramParametersWithUniforms,
         material: ExtendedBaseMaterial,
@@ -33,23 +33,23 @@ function applyMaterialExtension(
     material: ExtendedBaseMaterial,
     parameters: Record<string, any> = {}
 ) {
-    const customUniforms = material.customUniforms ?? {}
-    const uniformKeys = Object.keys(extension.customUniforms ?? {})
+    const uniforms = material.uniforms ?? {}
+    const uniformKeys = Object.keys(extension.uniforms ?? {})
 
-    material.customUniforms = customUniforms
+    material.uniforms = uniforms
 
     for (const key of uniformKeys) {
-        if (!(key in customUniforms)) {
-            customUniforms[key] = {
-                value: parameters[key] ?? extension.customUniforms?.[key],
+        if (!(key in uniforms)) {
+            uniforms[key] = {
+                value: parameters[key] ?? extension.uniforms?.[key],
             }
         }
 
         Object.defineProperty(material, key, {
             configurable: true,
-            get: () => customUniforms[key].value,
+            get: () => uniforms[key].value,
             set: (value) => {
-                customUniforms[key].value = value
+                uniforms[key].value = value
             },
         })
     }
@@ -60,7 +60,7 @@ function applyMaterialExtension(
         if (uniformKeys.length > 0) {
             shader.uniforms = {
                 ...shader.uniforms,
-                ...customUniforms,
+                ...uniforms,
             }
         }
 
@@ -81,10 +81,11 @@ function applyMaterialExtension(
             source as Record<string, any>
         )
 
-        for (const [key, uniform] of Object.entries(
-            (source as ExtendedBaseMaterial).customUniforms ?? {}
-        )) {
-            ;(copied as Record<string, any>)[key] = uniform.value
+        for (const key of uniformKeys) {
+            const sourceUniform = (source as ExtendedBaseMaterial).uniforms?.[key]
+            if (sourceUniform) {
+                ;(copied as Record<string, any>)[key] = sourceUniform.value
+            }
         }
 
         return copied
@@ -122,7 +123,7 @@ export function extendMaterialClass<TBase extends MaterialClass>(
             const parameters = (args[0] ?? {}) as Parameters
             const baseParameters = { ...parameters }
 
-            for (const key of Object.keys(extension.customUniforms ?? {})) {
+            for (const key of Object.keys(extension.uniforms ?? {})) {
                 delete baseParameters[key]
             }
 

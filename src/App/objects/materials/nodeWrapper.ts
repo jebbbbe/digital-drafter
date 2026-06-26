@@ -17,7 +17,7 @@ type GlobalNodeMaterial = {
 }
 
 const nodeMatrixExtension: MaterialExtension = {
-    customUniforms: {
+    uniforms: {
         treeData: null,
         treeDataSize: 1,
         treeBlockOffset: 0,
