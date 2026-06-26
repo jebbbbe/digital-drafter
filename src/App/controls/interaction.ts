@@ -1,146 +1,30 @@
 import * as THREE from "three"
-import type {
-    SelectObject,
-    SectionSegment,
-} from "../interaction/selectionManager"
-import type { TransformNode } from "../draft/TransformNode"
-import { pruneNode, detachNode } from "./nodes"
-import { deleteSegment } from "./section"
-import { drafter, interactionManager } from "../main"
-import {
-    attachSegmentMove,
-    attachNodeMove,
-    setupSegmentGizmo,
-    moveNodeToPosition,
-    moveSegmentToPosition,
-} from "./move"
-import * as levaStore from "../../components/Leva/LevaStore"
-import { getNodevalues } from "./nodes"
+import type { SelectObject } from "../interaction/selectionManager"
+import { interactionManager } from "../main"
 
-type ControlFn = (object: SelectObject, ...args: any[]) => unknown
-
-function noop(o: SelectObject) {
-    console.warn("noop", o)
+function getSelectionObject(object = interactionManager.selection.first()) {
+    return object
 }
 
-function setupNodeGizmo(object: SelectObject) {
-    const node = object.target as TransformNode
-    interactionManager.controllers.setGizmoTranslate()
-    interactionManager.controllers.cachedAnchorOffset.set(0, 0, 0)
+export const deleteFirstObject = (object?: SelectObject) =>
+    getSelectionObject(object)?.delete()
 
-    const anchor = drafter.getNodesAnchoredCenter(node)
-    interactionManager.controllers.setAnchorCache(node.position, anchor)
-    interactionManager.controllers.setGizmoPosition(node.position)
+export const detachFirstObject = (object?: SelectObject) =>
+    getSelectionObject(object)?.detach()
+
+export const moveFirstObject = (
+    object?: SelectObject,
+    startHit?: THREE.Vector3
+) => {
+    if (!startHit) return
+    return getSelectionObject(object)?.move(startHit)
 }
 
-function listenNodeGizmo(object: SelectObject) {
-    const node = object.target as TransformNode
-    moveNodeToPosition(node, interactionManager.controllers.getGizmoPosition())
-}
+export const gizmoSetupFirstObject = (object?: SelectObject) => () =>
+    getSelectionObject(object)?.gizmoSetup()
 
-function moveLeaf(object: SelectObject, startHit: THREE.Vector3) {
-    const node = object.target as TransformNode
-    levaStore.syncLevaDisplayStub(getNodevalues(node))
-    levaStore.enableNodeStub(node.parent === node)
-    return attachNodeMove(node, startHit)
-}
+export const gizmoListenerFirstObject = (object?: SelectObject) => () =>
+    getSelectionObject(object)?.gizmoListener()
 
-function deleteNodeFromObject(object: SelectObject) {
-    const node = object.target as TransformNode
-    interactionManager.deselectAll()
-    pruneNode(node)
-}
-
-function detachNodeFromObject(object: SelectObject) {
-    const node = object.target as TransformNode
-    detachNode(node)
-}
-
-function mirrorNode(object: SelectObject) {
-    const node = object.target as TransformNode
-    node.mirror = !node.mirror
-    console.log(node.mirror)
-    drafter.updatePatchedNode(node)
-}
-
-const fnLib = {
-    // add:{},
-    move: {
-        SectionSegment: (object: SelectObject, startHit: THREE.Vector3) => {
-            const line = object.target as SectionSegment
-            // return interactionManager.attachSegmentMove(line, startHit)
-            return attachSegmentMove(line, startHit)
-        },
-        leaf: moveLeaf,
-        root: moveLeaf,
-        sectionChild: moveLeaf,
-        sectionParent: moveLeaf,
-    },
-    gizmoSetup: {
-        SectionSegment: (object: SelectObject) =>
-            setupSegmentGizmo(object.target as SectionSegment),
-        leaf: setupNodeGizmo,
-        root: setupNodeGizmo,
-        sectionChild: setupNodeGizmo,
-        sectionParent: setupNodeGizmo,
-    },
-    gizmoListener: {
-        SectionSegment: (object: SelectObject) => {
-            const line = object.target as SectionSegment
-            moveSegmentToPosition(
-                line,
-                interactionManager.controllers.getGizmoPosition()
-            )
-        },
-        leaf: listenNodeGizmo,
-        root: listenNodeGizmo,
-        sectionChild: listenNodeGizmo,
-        sectionParent: listenNodeGizmo,
-    },
-    // prune:{},
-    delete: {
-        SectionSegment: (object: SelectObject) => {
-            const line = object.target as SectionSegment
-            deleteSegment(line)
-        },
-        leaf: deleteNodeFromObject,
-        root: deleteNodeFromObject,
-        sectionChild: deleteNodeFromObject,
-        sectionParent: deleteNodeFromObject,
-    },
-    detach: {
-        SectionSegment: noop,
-        leaf: detachNodeFromObject,
-        root: detachNodeFromObject,
-        sectionChild: detachNodeFromObject,
-        sectionParent: detachNodeFromObject,
-    },
-    mirror: {
-        SectionSegment: noop,
-        leaf: mirrorNode,
-        root: mirrorNode,
-        sectionChild: mirrorNode,
-        sectionParent: mirrorNode,
-    },
-}
-
-function runTypedfn(
-    key: keyof typeof fnLib,
-    object: SelectObject = interactionManager.selection.first(),
-    ...args: any[]
-) {
-    if (!object) return
-    return (fnLib[key][object.kind] as ControlFn)(object, ...args)
-}
-
-export const deleteFirstObject = (o?: SelectObject) => runTypedfn("delete", o)
-export const detachFirstObject = (o?: SelectObject) => runTypedfn("detach", o)
-export const moveFirstObject = (o?: SelectObject, ...args: any[]) =>
-    runTypedfn("move", o, ...args)
-export const gizmoSetupFirstObject = (o?: SelectObject) => () =>
-    runTypedfn("gizmoSetup", o)
-
-export const gizmoListenerFirstObject = (o?: SelectObject) => () =>
-    runTypedfn("gizmoListener", o)
-
-export const mirrorFirstObject = (o?: SelectObject) => runTypedfn("mirror", o)
+export const mirrorFirstObject = (object?: SelectObject) =>
+    getSelectionObject(object)?.mirror()

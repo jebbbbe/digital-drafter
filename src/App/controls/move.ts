@@ -1,6 +1,9 @@
 import * as THREE from "three"
 import type { TransformNode } from "../draft/TransformNode"
-import type { SectionSegment } from "../interaction/selectionManager"
+import {
+    NodeSelectionObject,
+    type SectionSegment,
+} from "../interaction/selectionManager"
 import { interactionManager, drafter } from "../main"
 import { getNodevalues } from "./nodes"
 import { rotatePointOnXZPlane, getXZRotationAngle } from "../utils/rotation"
@@ -288,10 +291,7 @@ export function attachInsertGeometry(node: TransformNode) {
     const insertPointerUpEvent = "insert.pointerup"
 
     interactionManager.selection.clear()
-    interactionManager.selection.push({
-        kind: "root",
-        target: node,
-    })
+    interactionManager.selection.push(new NodeSelectionObject(node))
 
     let hasStartedInsert = false
 

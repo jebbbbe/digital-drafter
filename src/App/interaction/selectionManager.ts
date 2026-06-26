@@ -1,66 +1,20 @@
-import type { Mesh } from "three"
 import type { TransformNode } from "../draft/TransformNode"
 import type { Drafter } from "../draft/Drafter"
 import { getSlotIndex } from "../objects/textures/GlobalTreeTexture"
+import {
+    NodeSelectionObject,
+    SegmentSelectionObject,
+    type SectionSegment,
+    type SelectObject,
+    type SelectType,
+} from "./SelectionObject"
 
-// wrapper for line geometry with index to get line segment
-export type SectionSegment = {
-    object: Mesh
-    index: number
-}
-
-export type SelectType =
-    | "SectionSegment"
-    | "leaf"
-    | "root"
-    | "sectionChild"
-    | "sectionParent"
-
-type SelectBase = {
-    kind: SelectType
-}
-
-export type SegmentObject = SelectBase & {
-    kind: "SectionSegment"
-    target: SectionSegment
-}
-
-export type NodeObject = SelectBase & {
-    kind: "leaf"
-    target: TransformNode
-}
-
-export type RootObject = SelectBase & {
-    kind: "root"
-    target: TransformNode
-}
-
-export type SectionParentObject = SelectBase & {
-    kind: "sectionParent"
-    target: TransformNode
-}
-
-export type SectionChildObject = SelectBase & {
-    kind: "sectionChild"
-    target: TransformNode
-}
-
-// export type SectionObject = SelectBase & {
-//     kind: "SectionNode"
-//     target: TransformNode
-// }
-
-// export type SectionResultObject = SelectBase & {
-//     kind: "SeccrtionResultNode"
-//     target: TransformNode
-// }
-
-export type SelectObject =
-    | NodeObject
-    | SegmentObject
-    | RootObject
-    | SectionChildObject
-    | SectionParentObject
+export {
+    NodeSelectionObject,
+    SegmentSelectionObject,
+    SelectionObject,
+} from "./SelectionObject"
+export type { SectionSegment, SelectObject, SelectType } from "./SelectionObject"
 
 export class SelectionManager {
     selection: SelectObject[]
@@ -70,7 +24,7 @@ export class SelectionManager {
         this.drafter = drafter
     }
     setSelectedUpdate(object: SelectObject, isSelected: boolean) {
-        if (object.kind !== "SectionSegment") {
+        if (object instanceof NodeSelectionObject) {
             const node = object.target
             const slot = getSlotIndex(node.location)
             this.drafter.globalTreeTexture.writeNodeSelected(slot, isSelected)
@@ -112,9 +66,10 @@ export class SelectionManager {
         return this.selection[0]
     }
     firstTarget(search: "SectionSegment"): SectionSegment | undefined
-    firstTarget(search: "leaf"): TransformNode | undefined
-    firstTarget(search: "root"): TransformNode | undefined
-    firstTarget(search?: SelectObject["kind"]) {
+    firstTarget(search: Exclude<SelectType, "SectionSegment">):
+        | TransformNode
+        | undefined
+    firstTarget(search?: SelectType) {
         const item = this.selection[0]
         if (!item) return undefined
         if (search === undefined) return item.target
@@ -124,15 +79,13 @@ export class SelectionManager {
     // get fisrt item if its a node,
     firstNode(): TransformNode | undefined {
         const item = this.selection[0]
-        // index prop only in the TransformNode object
-        if ("location" in item.target) return item.target as TransformNode
-        return
+        if (!item || !(item instanceof NodeSelectionObject)) return
+        return item.target
     }
     firstSegment(): SectionSegment | undefined {
         const item = this.selection[0]
-        // index prop only in the TransformNode object
-        if ("location" in item.target) return
-        return item.target as SectionSegment
+        if (!item || !(item instanceof SegmentSelectionObject)) return
+        return item.target
     }
     remove(item: SelectObject) {
         const idx = this.selection.indexOf(item)

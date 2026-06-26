@@ -1,22 +1,19 @@
 import * as THREE from "three"
-import type { TransformNode } from "../draft/TransformNode"
 import type { NodeLocation } from "../draft/TransformTree"
 import type { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
 import type { Drafter } from "../draft/Drafter"
-import type { SelectObject } from "./selectionManager"
-import type { SelectType } from "./selectionManager"
 import { TransformControls } from "three/examples/jsm/controls/TransformControls.js"
 import { RaycastHelper } from "./RaycastHelper"
-import { SelectionManager } from "./selectionManager"
+import {
+    NodeSelectionObject,
+    SegmentSelectionObject,
+    SelectionManager,
+    type SelectObject,
+} from "./selectionManager"
 import { ListenerManager } from "./ListenerManager"
 import { ThreeControllersManager } from "./controllers"
 import * as levaStore from "../../components/Leva/LevaStore"
 import { controls } from "../controls/controls"
-import {
-    gizmoListenerFirstObject,
-    gizmoSetupFirstObject,
-    moveFirstObject,
-} from "../controls/interaction"
 
 type InteractionManagerArgs = {
     camera: THREE.Camera
@@ -36,15 +33,6 @@ const startHit = new THREE.Vector3()
 
 const spaceHoldMax = 20
 let spaceHoldCurr = 0
-
-type NodeSelectType = Exclude<SelectType, "SectionSegment">
-
-function getNodeSelectType(node: TransformNode): NodeSelectType {
-    if (node.sectionChild) return "sectionChild"
-    if (node.sectionParent) return "sectionParent"
-    if (node.type === "root") return "root"
-    return "leaf"
-}
 
 export class InteractionManager {
     domElement: HTMLCanvasElement
@@ -104,17 +92,13 @@ export class InteractionManager {
     attachTransformControls(object: SelectObject) {
         if (!this.useTransformControls) return
 
-        const gizmoSetup = gizmoSetupFirstObject(object)
-        const gizmoListener = gizmoListenerFirstObject(object)
-        if (!gizmoSetup || !gizmoListener) return
-
-        gizmoSetup()
+        object.gizmoSetup()
         this.controllers.attachTransformProxy()
 
         this.listeners.addActiveEvent(
             "transformObjectChange",
             "objectChange",
-            gizmoListener,
+            () => object.gizmoListener(),
             this.controllers.transformControls
         )
     }
@@ -174,13 +158,11 @@ export class InteractionManager {
         if (first.object === this.drafter.sectionCutter.mesh) {
             // hit section cutter
             const { index, faceIndex, object }: any = intersects[0]
-            selectedObject = { 
-                kind: "SectionSegment",
-                target: {
-                    object,
-                    index: index ?? faceIndex * 2,
-                },
-            } as SelectObject
+            selectedObject = new SegmentSelectionObject({
+                object,
+				// for gl_line or LineMaterial
+                index: index ?? faceIndex * 2,
+            })
         } else {
             // find node from raycast
             const id = first.object.userData.id
@@ -191,16 +173,11 @@ export class InteractionManager {
             const node = this.drafter.findNode(location)
             if (!node) return
 
-            // create SelectObject
-            selectedObject = { target: node } as SelectObject
-            selectedObject.kind = getNodeSelectType(node)
+            selectedObject = new NodeSelectionObject(node)
         }
         this.selection.push(selectedObject)
         this.attachTransformControls(selectedObject)
-        const moveFns = moveFirstObject(
-            selectedObject,
-            startHit
-        ) as MoveListener
+        const moveFns = selectedObject.move(startHit) as MoveListener
         if (moveFns === undefined) return
         // prettier-ignore
         this.listeners.addActiveEvent("pointermove", "pointermove", moveFns.move)
