@@ -12,7 +12,7 @@ import { downloadBlob, saveAsGlb, saveAsGltf } from "../utils/loader"
 import {
     camera,
     drafter,
-    interactionManager,
+    selection,
     orbitControls,
     renderer,
     scene,
@@ -113,7 +113,7 @@ export function downloadSceneAsObj(
 }
 
 export function downloadSelectedObjectAsObj(filename = "object.obj"): void {
-    const node = interactionManager.selection.firstNode()
+    const node = selection.firstNode()
     if (!node || node.location.index < 0) {
         return
     }

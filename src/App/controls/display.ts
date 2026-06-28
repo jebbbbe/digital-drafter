@@ -1,5 +1,5 @@
 import * as THREE from "three"
-import { drafter, scene, interactionManager } from "../AppContext"
+import { drafter, scene, controllers } from "../AppContext"
 import { constants } from "../constants"
 import { syncLevaDisplayControls } from "../../components/Leva/LevaStore"
 
@@ -116,7 +116,7 @@ export function setGizmoColors(colors: {
     zAxis: string
     active: string
 }): void {
-    interactionManager.controllers.transformControls.setColors(
+    controllers.transformControls.setColors(
         colors.xAxis,
         colors.yAxis,
         colors.zAxis,

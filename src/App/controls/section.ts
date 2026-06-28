@@ -1,6 +1,5 @@
 import * as THREE from "three"
-import { LineSegments2 } from "three/addons/lines/LineSegments2.js"
-import { drafter, interactionManager } from "../AppContext"
+import { drafter, selection } from "../AppContext"
 import {
     createSectionAttachment,
     createSegmentAttachment,
@@ -13,7 +12,7 @@ import type { InstanceItem } from "../draft/InstanceItem"
 import { SectionFaceGroup } from "../objects/meshes/sectionFaceGroup"
 
 export function createNewCutNodeFromSelection() {
-    const node = interactionManager.selection.firstNode()
+    const node = selection.firstNode()
     if (!node) return
     createNewCutNode(node)
 }

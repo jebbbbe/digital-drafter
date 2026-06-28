@@ -1,8 +1,8 @@
 import * as THREE from "three"
 import type { SelectObject } from "../interaction/selectionManager"
-import { interactionManager } from "../AppContext"
+import { selection } from "../AppContext"
 
-function getSelectionObject(object = interactionManager.selection.first()) {
+function getSelectionObject(object = selection.first()) {
     return object
 }
 
@@ -11,8 +11,6 @@ export const deleteFirstObject = (object?: SelectObject) =>
 
 export const detachFirstObject = (object?: SelectObject) =>
     getSelectionObject(object)?.detach()
-
-
 
 export const detachChildrenFirstObject = (object?: SelectObject) => {
     object = getSelectionObject(object)

@@ -105,6 +105,8 @@ export class ThreeControllersManager {
     }
 
     dispose() {
+        this.transformProxy.removeFromParent()
+        this.transformControls.getHelper().removeFromParent()
         this.transformControls.detach()
     }
 }

@@ -2,7 +2,7 @@ import * as THREE from "three"
 import { Brush } from "three-bvh-csg"
 import type { CSGOperation } from "three-bvh-csg"
 
-import { drafter, interactionManager } from "../AppContext"
+import { drafter, selection } from "../AppContext"
 import type { TransformNode } from "../draft/TransformNode"
 import { evaluateCSG, boolean } from "../utils/csg"
 
@@ -104,19 +104,19 @@ export function startIntersection(
 }
 
 export function startIntersectionFromSelection() {
-    const node = interactionManager.selection.firstNode()
+    const node = selection.firstNode()
     if (!node) return
     startIntersection(node, boolean.intersection)
 }
 
 export function startUnionFromSelection() {
-    const node = interactionManager.selection.firstNode()
+    const node = selection.firstNode()
     if (!node) return
     startIntersection(node, boolean.union)
 }
 
 export function startDifferenceFromSelection() {
-    const node = interactionManager.selection.firstNode()
+    const node = selection.firstNode()
     if (!node) return
     startIntersection(node, boolean.difference)
 }

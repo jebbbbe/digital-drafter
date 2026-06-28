@@ -9,7 +9,7 @@ import {
     detachNodeChildren,
 } from "../controls/nodes"
 import { deleteSegment } from "../controls/section"
-import { drafter, interactionManager } from "../AppContext"
+import { drafter, controllers, interactionManager } from "../AppContext"
 import {
     attachSegmentMove,
     attachNodeMove,
@@ -74,23 +74,20 @@ export class NodeSelectionObject extends SelectionObject<TransformNode> {
 
     gizmoSetup() {
         const node = this.target
-        interactionManager.controllers.setGizmoTranslate()
-        interactionManager.controllers.cachedAnchorOffset.set(0, 0, 0)
+        controllers.setGizmoTranslate()
+        controllers.cachedAnchorOffset.set(0, 0, 0)
 
         const anchor = drafter.getNodesAnchoredCenter(node)
-        interactionManager.controllers.setAnchorCache(node.position, anchor)
-        interactionManager.controllers.setGizmoPosition(node.position)
+        controllers.setAnchorCache(node.position, anchor)
+        controllers.setGizmoPosition(node.position)
     }
 
     gizmoListener() {
-        moveNodeToPosition(
-            this.target,
-            interactionManager.controllers.getGizmoPosition()
-        )
+        moveNodeToPosition(this.target, controllers.getGizmoPosition())
     }
 
     delete() {
-        interactionManager.deselectAll()
+        interactionManager.deSelectAll()
         pruneNode(this.target)
     }
 
@@ -129,13 +126,11 @@ export class SegmentSelectionObject extends SelectionObject<SectionSegment> {
     }
 
     gizmoListener() {
-        moveSegmentToPosition(
-            this.target,
-            interactionManager.controllers.getGizmoPosition()
-        )
+        moveSegmentToPosition(this.target, controllers.getGizmoPosition())
     }
 
     delete() {
+        interactionManager.deSelectAll()
         deleteSegment(this.target)
     }
 

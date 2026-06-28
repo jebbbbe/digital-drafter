@@ -9,6 +9,9 @@ export {
     camera,
     orbitControls,
     drafter,
+    raycastHelper,
+    selection,
+    controllers,
     interactionManager,
     statsPanel,
 } from "./main"

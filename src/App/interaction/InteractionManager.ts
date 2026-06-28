@@ -16,12 +16,11 @@ import * as levaStore from "../../components/Leva/LevaStore"
 import { controls } from "../controls/controls"
 
 type InteractionManagerArgs = {
-    camera: THREE.Camera
-    scene: THREE.Scene
     domElement: HTMLCanvasElement
-    orbitControls: OrbitControls
     drafter: Drafter
-    targets?: THREE.Object3D[]
+    raycastHelper: RaycastHelper
+    selection: SelectionManager
+    controllers: ThreeControllersManager
 }
 
 type MoveListener = {
@@ -35,39 +34,24 @@ const spaceHoldMax = 20
 let spaceHoldCurr = 0
 
 export class InteractionManager {
-    domElement: HTMLCanvasElement
-    scene: THREE.Scene
     drafter: Drafter
     raycastHelper: RaycastHelper
-    useTransformControls = true
     selection: SelectionManager
     listeners: ListenerManager
     controllers: ThreeControllersManager
     constructor({
-        camera,
-        scene,
         domElement,
-        orbitControls,
         drafter,
-        targets = drafter.interactivObjects,
+        raycastHelper,
+        selection,
+        controllers,
     }: InteractionManagerArgs) {
-        this.scene = scene
-        this.domElement = domElement
         this.drafter = drafter
-        this.raycastHelper = new RaycastHelper(camera, targets, domElement)
-        this.selection = new SelectionManager()
-        this.listeners = new ListenerManager(this.domElement)
+        this.raycastHelper = raycastHelper
+        this.selection = selection
+        this.controllers = controllers
 
-        const transformControls = new TransformControls(camera, domElement)
-
-        this.controllers = new ThreeControllersManager(
-            orbitControls,
-            transformControls,
-            this.useTransformControls
-        )
-
-        this.scene.add(this.controllers.transformProxy)
-        this.scene.add(transformControls.getHelper())
+        this.listeners = new ListenerManager(domElement)
     }
 
     addEventListeners(): void {
@@ -84,13 +68,11 @@ export class InteractionManager {
     dispose(): void {
         this.listeners.removeAllActiveEvents()
         this.controllers.dispose()
-        this.scene.remove(this.controllers.transformProxy)
-        this.scene.remove(this.controllers.transformControls.getHelper())
     }
 
     // Transform Controls
     attachTransformControls(object: SelectObject) {
-        if (!this.useTransformControls) return
+        if (!this.controllers.useTransformControls) return
 
         object.gizmoSetup()
         this.controllers.attachTransformProxy()
@@ -109,7 +91,7 @@ export class InteractionManager {
 
     gizmoCLicked(e: PointerEvent): boolean {
         if (
-            this.useTransformControls &&
+            this.controllers.useTransformControls &&
             this.listeners.activeEvents["transformObjectChange"]
         ) {
             const gizmoHits = this.raycastHelper.castFromEvent(
@@ -139,7 +121,7 @@ export class InteractionManager {
 
         // nothing hit!
         if (intersects.length === 0) {
-            this.deselectAll()
+            this.deSelectAll()
             return
         }
 
@@ -160,7 +142,7 @@ export class InteractionManager {
             const { index, faceIndex, object }: any = intersects[0]
             selectedObject = new SegmentSelectionObject({
                 object,
-				// for gl_line or LineMaterial
+                // for gl_line or LineMaterial
                 index: index ?? faceIndex * 2,
             })
         } else {
@@ -199,7 +181,7 @@ export class InteractionManager {
             }
         } else if (keyEvent.key === "Escape") {
             if (keyEvent.repeat) return
-            this.deselectAll()
+            this.deSelectAll()
         }
     }
 
@@ -211,7 +193,7 @@ export class InteractionManager {
         }
     }
 
-    deselectAll() {
+    deSelectAll() {
         // hide transform controls
         this.detachTransformControls()
         //clear selecction geo

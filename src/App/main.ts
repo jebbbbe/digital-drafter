@@ -11,6 +11,10 @@ import type { NodeLocation } from "./draft/TransformTree"
 import { geometryLibrary } from "./objects/geometries/library"
 import { createNewCutNode } from "./controls/section"
 import { StatsPanel } from "./test/StatsPanel"
+import { RaycastHelper } from "./interaction/RaycastHelper"
+import { SelectionManager } from "./interaction/selectionManager"
+import { TransformControls } from "three/examples/jsm/Addons.js"
+import { ThreeControllersManager } from "./interaction/controllers"
 
 let isAppReady = false
 
@@ -22,8 +26,11 @@ let layout!: AspectLayout
 let frameId = 0
 let statsPanel: StatsPanel
 
-let interactionManager!: InteractionManager
 let drafter!: Drafter
+let raycastHelper!: RaycastHelper
+let selection!: SelectionManager
+let controllers!: ThreeControllersManager
+let interactionManager!: InteractionManager
 
 export function init(container: HTMLElement): () => void {
     // const assetsLoader = loadAssets()x
@@ -55,9 +62,6 @@ export function init(container: HTMLElement): () => void {
     camera.zoom = constants.camera.zoom
     camera.position.set(...constants.camera.position)
     camera.lookAt(0, 0, 0)
-
-    //orbitControls
-    orbitControls = initOrbit(camera, renderer)
 
     // content
     // const ambient = new THREE.AmbientLight(0xffffff, 0.7)
@@ -203,12 +207,32 @@ export function init(container: HTMLElement): () => void {
     nodeToCut = drafter.findNode({ id: 2, index: 5 })
     if (nodeToCut) createNewCutNode(nodeToCut)
 
-    interactionManager = new InteractionManager({
+    // raycaster
+    raycastHelper = new RaycastHelper(
         camera,
-        scene,
-        domElement: renderer.domElement,
+        drafter.interactivObjects,
+        renderer.domElement
+    )
+    // selectionManager
+    selection = new SelectionManager()
+
+    // controllers
+    orbitControls = initOrbit(camera, renderer)
+    const transformControls = new TransformControls(camera, renderer.domElement)
+    controllers = new ThreeControllersManager(
         orbitControls,
+        transformControls,
+        true
+    )
+    scene.add(controllers.transformProxy)
+    scene.add(transformControls.getHelper())
+
+    interactionManager = new InteractionManager({
+        domElement: renderer.domElement,
         drafter,
+        raycastHelper,
+        selection,
+        controllers,
     })
     interactionManager.addEventListeners()
 
@@ -289,6 +313,9 @@ export {
     camera,
     orbitControls,
     drafter,
+    raycastHelper,
+    selection,
+    controllers,
     interactionManager,
     statsPanel,
 }

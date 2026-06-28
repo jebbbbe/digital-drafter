@@ -4,7 +4,13 @@ import {
     NodeSelectionObject,
     type SectionSegment,
 } from "../interaction/selectionManager"
-import { interactionManager, drafter } from "../AppContext"
+import {
+    drafter,
+    raycastHelper,
+    selection,
+    controllers,
+    interactionManager,
+} from "../AppContext"
 import { getNodevalues } from "./nodes"
 import { rotatePointOnXZPlane, getXZRotationAngle } from "../utils/rotation"
 import * as levaStore from "../../components/Leva/LevaStore"
@@ -38,11 +44,7 @@ function updateSectionParentAttachments(node: TransformNode) {
         if (attachment === undefined) continue
 
         const index = attachment.index
-        interactionManager.drafter.sectionCutter.moveSegmentVector(
-            _delta,
-            _delta,
-            index
-        )
+        drafter.sectionCutter.moveSegmentVector(_delta, _delta, index)
     }
 }
 
@@ -56,8 +58,8 @@ export function moveNodeToPosition(
     if (_delta.lengthSq() === 0) return false
 
     if (node.sectionParent) updateSectionParentAttachments(node)
-    interactionManager.drafter.updatePatchedNode(node)
-    interactionManager.controllers.updateGizmoPosition(node.position)
+    drafter.updatePatchedNode(node)
+    controllers.updateGizmoPosition(node.position)
     levaStore.syncLevaDisplayStub(getNodevalues(node))
 
     return true
@@ -79,12 +81,11 @@ export function attachNodeMove(
               .subVectors(node.position, node.parent.position)
               .lengthSq()
         : 0
-    interactionManager.controllers.pauseControls()
+    controllers.pauseControls()
 
     const handlePointerMove = (moveEvent: PointerEvent) => {
         // get xz pos
-        const hit =
-            interactionManager.raycastHelper.castFromEventToPlane(moveEvent)
+        const hit = raycastHelper.castFromEventToPlane(moveEvent)
         if (!hit) return
 
         _delta.subVectors(hit, prevHit)
@@ -107,7 +108,7 @@ export function attachNodeMove(
         prevHit.copy(hit)
 
         const anchor = drafter.getNodesAnchoredCenter(node)
-        interactionManager.controllers.setAnchorCache(node.position, anchor)
+        controllers.setAnchorCache(node.position, anchor)
         moveNodeToPosition(node, _candidatePosition)
     }
 
@@ -115,7 +116,7 @@ export function attachNodeMove(
         levaStore.syncLevaDisplayStub(getNodevalues(node))
         interactionManager.listeners.removeActiveEvent("pointermove")
         interactionManager.listeners.removeActiveEvent("pointerup")
-        interactionManager.controllers.resumeControls()
+        controllers.resumeControls()
     }
 
     return {
@@ -165,9 +166,9 @@ export function setupSegmentGizmo(line: SectionSegment) {
     _segmentMidPoint.addVectors(a, b).multiplyScalar(0.5)
     _segmentDirection.subVectors(b, a)
 
-    interactionManager.controllers.cachedAnchorOffset.set(0, 0, 0)
-    interactionManager.controllers.setGizmoTranslate1d()
-    interactionManager.controllers.setGizmoPosition(_segmentMidPoint)
+    controllers.cachedAnchorOffset.set(0, 0, 0)
+    controllers.setGizmoTranslate1d()
+    controllers.setGizmoPosition(_segmentMidPoint)
 
     if (_segmentDirection.lengthSq() === 0) {
         _segmentQuaternion.identity()
@@ -178,7 +179,7 @@ export function setupSegmentGizmo(line: SectionSegment) {
         )
     }
 
-    interactionManager.controllers.setGizmoQuaternion(_segmentQuaternion)
+    controllers.setGizmoQuaternion(_segmentQuaternion)
 }
 
 export function moveSegmentToPosition(
@@ -186,8 +187,7 @@ export function moveSegmentToPosition(
     nextPosition: THREE.Vector3
 ) {
     const index = line.index
-    const sectionChild =
-        interactionManager.drafter.sectionCutter.nodeMap.get(index)
+    const sectionChild = drafter.sectionCutter.nodeMap.get(index)
     if (sectionChild === undefined) return false
 
     const sectionParent = sectionChild.parent
@@ -208,16 +208,12 @@ export function moveSegmentToPosition(
     _delta.copy(_segmentLineDirection).multiplyScalar(deltaAlongLine)
     if (_delta.lengthSq() === 0) return false
 
-    interactionManager.drafter.sectionCutter.moveSegmentVector(
-        _delta,
-        _delta,
-        index
-    )
+    drafter.sectionCutter.moveSegmentVector(_delta, _delta, index)
 
     const [nextA, nextB] = drafter.sectionCutter.getSegmentAsVector(index)
     drafter.updatePatchedNode(sectionChild)
     _segmentMidPoint.addVectors(nextA, nextB).multiplyScalar(0.5)
-    interactionManager.controllers.updateGizmoPosition(_segmentMidPoint)
+    controllers.updateGizmoPosition(_segmentMidPoint)
 
     return true
 }
@@ -229,16 +225,15 @@ export function attachSegmentMove(
     if (!line) return
     const index = line.index
     const prevHit = new THREE.Vector3().copy(startHit)
-    const sectionCutter = interactionManager.drafter.sectionCutter
+    const sectionCutter = drafter.sectionCutter
 
-    interactionManager.controllers.pauseControls()
+    controllers.pauseControls()
 
     const p1 = _delta
     const p2 = _delta
 
     // origin
-    const sectionChild =
-        interactionManager.drafter.sectionCutter.nodeMap.get(index)
+    const sectionChild = drafter.sectionCutter.nodeMap.get(index)
     if (sectionChild === undefined) return
     const sectionParent = sectionChild.parent
     if (sectionParent === undefined) return
@@ -250,8 +245,7 @@ export function attachSegmentMove(
     const lineLengthSq = _segmentLineDirection.lengthSq()
 
     const handlePointerMove = (moveEvent: PointerEvent) => {
-        const hit =
-            interactionManager.raycastHelper.castFromEventToPlane(moveEvent)
+        const hit = raycastHelper.castFromEventToPlane(moveEvent)
         if (!hit) return
 
         // normal move
@@ -269,7 +263,7 @@ export function attachSegmentMove(
         drafter.updatePatchedNode(sectionChild)
 
         _segmentMidPoint.addVectors(a, b).multiplyScalar(0.5)
-        interactionManager.controllers.updateGizmoPosition(_segmentMidPoint)
+        controllers.updateGizmoPosition(_segmentMidPoint)
 
         prevHit.copy(hit)
     }
@@ -277,7 +271,7 @@ export function attachSegmentMove(
     const handlePointerUp = () => {
         interactionManager.listeners.removeActiveEvent("pointermove")
         interactionManager.listeners.removeActiveEvent("pointerup")
-        interactionManager.controllers.resumeControls()
+        controllers.resumeControls()
     }
 
     return {
@@ -290,22 +284,21 @@ export function attachInsertGeometry(node: TransformNode) {
     const insertPointerMoveEvent = "insert.pointermove"
     const insertPointerUpEvent = "insert.pointerup"
 
-    interactionManager.selection.clear()
-    interactionManager.selection.push(new NodeSelectionObject(node))
+    selection.clear()
+    selection.push(new NodeSelectionObject(node))
 
     let hasStartedInsert = false
 
     const handlePointerUp = () => {
         levaStore.syncLevaDisplayStub(getNodevalues(node))
         levaStore.setLevaInsertDefault()
-        interactionManager.selection.clear()
+        selection.clear()
         interactionManager.listeners.removeActiveEvent(insertPointerMoveEvent)
         interactionManager.listeners.removeActiveEvent(insertPointerUpEvent)
     }
 
     const handlePointerMove = (moveEvent: PointerEvent) => {
-        const hit =
-            interactionManager.raycastHelper.castFromEventToPlane(moveEvent)
+        const hit = raycastHelper.castFromEventToPlane(moveEvent)
         if (!hit) return
 
         if (!hasStartedInsert) {
@@ -319,7 +312,7 @@ export function attachInsertGeometry(node: TransformNode) {
         }
 
         node.position.copy(hit)
-        interactionManager.drafter.updatePatchedNode(node)
+        drafter.updatePatchedNode(node)
     }
 
     // prettier-ignore

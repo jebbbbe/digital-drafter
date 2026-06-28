@@ -1,6 +1,6 @@
 import * as THREE from "three"
 import * as rand from "../utils/random"
-import { drafter, interactionManager } from "../AppContext"
+import { drafter, selection, controllers } from "../AppContext"
 import type { TransformNode } from "../draft/TransformNode"
 import {
     enableNodeStub,
@@ -35,7 +35,7 @@ export function addTestNode(x: number = 10, z: number = 5): void {
 }
 
 export function addLeafNearbyRandomlyFromSelection() {
-    const node = interactionManager.selection.firstNode()
+    const node = selection.firstNode()
     if (!node) return
     // addLeafNearbyRandomly(node)
     addLeafNearbyRandomlyNicely(node)
@@ -124,19 +124,19 @@ export function pruneNode(node: TransformNode) {
 }
 
 export function moveNodeFromSelection(pos: { x: number; z: number }) {
-    const node = interactionManager.selection.firstNode()
+    const node = selection.firstNode()
     if (!node) return
 
     node.position.set(pos.x, 0, pos.z)
     drafter.updatePatchedNode(node)
 
     const anchor = drafter.getNodesAnchoredCenter(node)
-    interactionManager.controllers.setAnchorCache(node.position, anchor)
-    interactionManager.controllers.setGizmoPosition(node.position)
+    controllers.setAnchorCache(node.position, anchor)
+    controllers.setGizmoPosition(node.position)
 }
 
 export function rotateRootFromSelection(rot: { x: number; y: number }) {
-    const rootNode = interactionManager.selection.firstNode()
+    const rootNode = selection.firstNode()
     if (!rootNode) return
     if (rootNode !== rootNode.parent) return
 
@@ -154,7 +154,7 @@ export function rotateRootFromSelection(rot: { x: number; y: number }) {
 }
 
 export function scaleRootFromSelection(n: number) {
-    const rootNode = interactionManager.selection.firstTarget("root")
+    const rootNode = selection.firstTarget("root")
     if (!rootNode) return
     if (rootNode !== rootNode.parent) return
 
@@ -235,7 +235,7 @@ function addGeometryToLibrary(
 }
 
 export function addObjectToLibraryFromSelection(): void {
-    const node = interactionManager.selection.firstNode()
+    const node = selection.firstNode()
     if (!node) return
 
     const instanceItem = drafter.getInstance(node.location.id)
@@ -246,7 +246,7 @@ export function addObjectToLibraryFromSelection(): void {
 }
 
 export function detachNodeFromSelection() {
-    const node = interactionManager.selection.firstNode()
+    const node = selection.firstNode()
     if (!node) return
     detachNode(node)
 }
