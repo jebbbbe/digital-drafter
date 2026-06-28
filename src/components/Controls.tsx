@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useState } from "react"
-import { controls } from "../App/index"
 import { button, buttonGroup, folder, Leva, useControls } from "leva"
-import { constants, themeOptions } from "../App/constants"
-import { geometryTitles } from "../App/objects/geometries/library"
+import {
+    controls,
+    constants,
+    themeOptions,
+    geometryTitles,
+} from "../AppEventManager/index"
 
 const isDev = import.meta.env.DEV
 

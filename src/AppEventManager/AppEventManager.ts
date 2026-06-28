@@ -1,7 +1,7 @@
-import type { AppContext } from "../AppContext"
-import type { Tool, ToolId, NormalizedPointerEvent } from "../ToolRegistry"
-import { ToolRegistry } from "../ToolRegistry"
-import { handleKeyboardDown, handleKeyboardUp } from "../events/keyboard"
+import type { AppContext } from "../App/AppContext"
+import type { Tool, ToolId, NormalizedPointerEvent } from "./ToolRegistry"
+import { ToolRegistry } from "./ToolRegistry"
+import { handleKeyboardDown, handleKeyboardUp } from "../App/events/keyboard"
 
 export class AppEventManager {
     ctx!: AppContext

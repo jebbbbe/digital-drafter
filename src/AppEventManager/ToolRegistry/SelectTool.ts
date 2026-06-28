@@ -1,6 +1,6 @@
-import { Tool, type NormalizedPointerEvent } from "./index"
+import { Tool, type NormalizedPointerEvent } from "./Tool"
 
-export class MoveTool extends Tool {
+export class SelectTool extends Tool {
     private dragging = false
 
     override onPointerDown(e: NormalizedPointerEvent): boolean {

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react"
-import { init } from "./App/index"
+import { init } from "./AppEventManager/index"
 
 function App() {
     const threeSceneMountRef = useRef<HTMLDivElement | null>(null)
@@ -14,7 +14,7 @@ function App() {
         let disposeScene = currentInit(threeSceneMountRef.current)
 
         if (import.meta.hot) {
-            import.meta.hot.accept("./App/index", (updatedModule) => {
+            import.meta.hot.accept("./AppEventManager/index", (updatedModule) => {
                 if (!updatedModule || !isMounted || !threeSceneMountRef.current) {
                     return
                 }
