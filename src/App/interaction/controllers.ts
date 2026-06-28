@@ -1,6 +1,6 @@
 import * as THREE from "three"
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
-import { TransformControls } from "three/examples/jsm/controls/TransformControls.js"
+import type { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
+import type { TransformControls } from "three/examples/jsm/controls/TransformControls.js"
 
 let _prevEnableTransform: boolean = false
 const _nodePosition = new THREE.Vector3()
@@ -62,18 +62,14 @@ export class ThreeControllersManager {
     }
 
     setGizmoPosition(position: THREE.Vector3) {
-        this.transformProxy.position
-            .copy(position)
-            .add(this.cachedAnchorOffset)
+        this.transformProxy.position.copy(position).add(this.cachedAnchorOffset)
         this.transformProxy.rotation.set(0, 0, 0)
         this.transformProxy.scale.set(1, 1, 1)
         this.transformProxy.updateMatrixWorld(true)
     }
 
     updateGizmoPosition(position: THREE.Vector3) {
-        this.transformProxy.position
-            .copy(position)
-            .add(this.cachedAnchorOffset)
+        this.transformProxy.position.copy(position).add(this.cachedAnchorOffset)
         this.transformProxy.updateMatrixWorld(true)
     }
 
