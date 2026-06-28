@@ -7,7 +7,7 @@ import {
     syncLevaInsertOptions,
     syncLevaDisplayStub,
 } from "../../components/Leva/LevaStore"
-import { attachInsertGeometry } from "./move"
+import { attachInsertGeometry } from "../events/events" 
 import { geometryLibrary, geometryTitles } from "../objects/geometries/library"
 const PI = Math.PI
 const PIo2 = PI / 2

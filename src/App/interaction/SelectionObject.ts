@@ -11,12 +11,12 @@ import {
 import { deleteSegment } from "../controls/section"
 import { drafter, controllers, interactionManager } from "../AppContext"
 import {
-    attachSegmentMove,
-    attachNodeMove,
     setupSegmentGizmo,
     moveNodeToPosition,
     moveSegmentToPosition,
 } from "../controls/move"
+
+import { attachNodeMove, attachSegmentMove } from "../events/events"
 import * as levaStore from "../../components/Leva/LevaStore"
 
 export type SectionSegment = {
