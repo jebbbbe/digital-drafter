@@ -234,7 +234,7 @@ export function init(container: HTMLElement): () => void {
         selection,
         controllers,
     })
-    interactionManager.addEventListeners()
+    // interactionManager.addEventListeners()
 
     //
     ;(globalThis as any).drafter = drafter
