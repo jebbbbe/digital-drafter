@@ -199,7 +199,7 @@ export function selectPointerDown(e: PointerEvent): void {
     if (interactionManager.gizmoCLicked(e)) return
 
     //raycast to interactive objects in the scene
-    const intersects = interactionManager.raycastHelper.castFromEvent(e)
+    const intersects = raycastHelper.castFromEvent(e)
 
     // nothing hit!
     if (intersects.length === 0) {
@@ -212,16 +212,16 @@ export function selectPointerDown(e: PointerEvent): void {
     const first = intersects[0]
     // console.log(first)
 
-    interactionManager.raycastHelper.castFromEventToPlane(e, startHit)
+    raycastHelper.castFromEventToPlane(e, startHit)
     if (!startHit) return
 
     //clear seleciton
     if (!e.shiftKey) {
-        interactionManager.selection.clear()
+        selection.clear()
     }
 
     let selectedObject // select obj ref
-    if (first.object === interactionManager.drafter.sectionCutter.mesh) {
+    if (first.object === drafter.sectionCutter.mesh) {
         // hit section cutter
         const { index, faceIndex, object }: any = intersects[0]
         selectedObject = new SegmentSelectionObject({
@@ -236,12 +236,12 @@ export function selectPointerDown(e: PointerEvent): void {
         const location = { id, index } as NodeLocation
 
         // add node to selection
-        const node = interactionManager.drafter.findNode(location)
+        const node = drafter.findNode(location)
         if (!node) return
 
         selectedObject = new NodeSelectionObject(node)
     }
-    const seen = interactionManager.selection.push(selectedObject)
+    const seen = selection.push(selectedObject)
     if (seen) return
     interactionManager.attachTransformControls(selectedObject)
     const moveFns = selectedObject.move(startHit) as MoveListener
