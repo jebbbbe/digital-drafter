@@ -39,14 +39,13 @@ export class InteractionManager {
 
     addEventListeners(): void {
         // prettier-ignore
-        // this.listeners.addActiveEvent( "pointerDown", "pointerdown", this.handlePointerDown )
-        this.listeners.addActiveEvent( "pointerDown", "pointerdown", selectPointerDown )
+        // this.listeners.addActiveEvent( "pointerDown", "pointerdown", selectPointerDown )
         // prettier-ignore
         this.listeners.addActiveEvent( "transformDraggingChanged", "dragging-changed", this.controllers.handleTransformDraggingChanged, this.controllers.transformControls )
         // prettier-ignore
-        this.listeners.addActiveEvent( "general.keydown", "keydown", handleKeyboardDown, window )
+        // this.listeners.addActiveEvent( "general.keydown", "keydown", handleKeyboardDown, window )
         // prettier-ignore
-        this.listeners.addActiveEvent( "general.keyup", "keyup", handleKeyboardUp, window )
+        // this.listeners.addActiveEvent( "general.keyup", "keyup", handleKeyboardUp, window )
     }
 
     dispose(): void {

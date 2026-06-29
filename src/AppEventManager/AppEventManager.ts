@@ -6,6 +6,7 @@ import { handleKeyboardDown, handleKeyboardUp } from "../App/events/keyboard"
 export class AppEventManager {
     ctx!: AppContext
     registry!: ToolRegistry
+    private readonly pointerListenerOptions = { capture: true }
     private currentToolId: ToolId
     private currentTool: Tool
 

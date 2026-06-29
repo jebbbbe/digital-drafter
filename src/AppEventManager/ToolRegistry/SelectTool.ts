@@ -1,4 +1,8 @@
-import { Tool, type NormalizedPointerEvent } from "./Tool"
+import {
+    Interaction,
+    InteractiveTool,
+    type NormalizedPointerEvent,
+} from "./Tool"
 import type { AppContext } from "../../App/AppContext"
 import {
     SegmentSelectionObject,
@@ -9,11 +13,44 @@ import type { NodeLocation } from "../../App/draft/TransformTree"
 
 const startHit = new THREE.Vector3()
 
-export class SelectTool extends Tool {
-    constructor(ctx: AppContext) {
+type MoveHandlers = {
+    move: (event: PointerEvent) => void
+    up: () => void
+}
+
+class SelectionMoveInteraction extends Interaction {
+    private finished = false
+    private moveHandlers: MoveHandlers
+
+    constructor(ctx: AppContext, moveHandlers: MoveHandlers) {
         super(ctx)
-        console.log(ctx)
+        this.moveHandlers = moveHandlers
     }
+
+    override onPointerMove(event: NormalizedPointerEvent): boolean {
+        if (this.finished) return false
+
+        this.moveHandlers.move(event.event)
+        return true
+    }
+
+    override onPointerUp(): boolean {
+        if (this.finished) return false
+
+        this.finished = true
+        this.moveHandlers.up()
+        return true
+    }
+
+    override cancel(): void {
+        if (this.finished) return
+
+        this.finished = true
+        this.moveHandlers.up()
+    }
+}
+
+export class SelectTool extends InteractiveTool {
 
     override onPointerDown(normalized: NormalizedPointerEvent) {
         const e = normalized.event
@@ -38,16 +75,16 @@ export class SelectTool extends Tool {
         }
 
         const first = intersects[0]
-        // console.log(first)
 
-        raycastHelper.castFromEventToPlane(e, startHit)
-        if (!startHit) return
+        const hit = raycastHelper.castFromEventToPlane(e, startHit)
+        if (!hit) return
 
         //clear seleciton
         if (!e.shiftKey) {
             selection.clear()
         }
-        let selectedObject // select obj ref
+
+        let selectedObject: NodeSelectionObject | SegmentSelectionObject
         if (first.object === drafter.sectionCutter.mesh) {
             // hit section cutter
             const { index, faceIndex, object }: any = intersects[0]
@@ -70,29 +107,25 @@ export class SelectTool extends Tool {
         }
         const seen = selection.push(selectedObject)
         if (seen) return
+
         interactionManager.attachTransformControls(selectedObject)
-        const moveFns = selectedObject.move(startHit)
+
+        this.cancel()
+
+        const moveFns = selectedObject.move(startHit) as MoveHandlers | undefined
         if (moveFns === undefined) return
-        // prettier-ignore
-        interactionManager.listeners.addActiveEvent("pointermove", "pointermove", moveFns.move)
-        interactionManager.listeners.addActiveEvent(
-            "pointerup",
-            "pointerup",
-            moveFns.up
+
+        this.startInteraction(
+            new SelectionMoveInteraction(this.ctx, moveFns),
+            normalized
         )
     }
 
-    override onPointerMove(e: NormalizedPointerEvent): boolean {
-        console.log("Dragging", e.event.clientX, e.event.clientY)
-        return true
-    }
+    override onKeyDown(event: KeyboardEvent): boolean {
+        if (event.key !== "Escape" || !this.interaction) return false
 
-    override onPointerUp(): boolean {
-        console.log("Finish Move")
+        this.cancel()
+        this.ctx.interactionManager.deSelectAll()
         return true
-    }
-
-    override cancel(): void {
-        console.log("Move cancelled")
     }
 }
