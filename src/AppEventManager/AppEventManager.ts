@@ -6,7 +6,6 @@ import { handleKeyboardDown, handleKeyboardUp } from "../App/events/keyboard"
 export class AppEventManager {
     ctx!: AppContext
     registry!: ToolRegistry
-    private readonly pointerListenerOptions = { capture: true }
     private currentToolId: ToolId
     private currentTool: Tool
 
@@ -16,6 +15,7 @@ export class AppEventManager {
         initialToolId: ToolId
     ) {
         this.ctx = ctx
+		console.log(ctx)
         this.registry = registry
         this.currentToolId = initialToolId
 
@@ -33,6 +33,18 @@ export class AppEventManager {
         window.addEventListener("wheel", this.onWheel, { passive: false })
 
         window.addEventListener("dblclick", this.onDoubleClick)
+    }
+
+    dispose() {
+        window.removeEventListener("pointerdown", this.onPointerDown)
+        window.removeEventListener("pointermove", this.onPointerMove)
+        window.removeEventListener("pointerup", this.onPointerUp)
+        window.removeEventListener("pointercancel", this.onPointerCancel)
+        window.removeEventListener("keydown", this.onKeyDown)
+        window.removeEventListener("keyup", this.onKeyUp)
+        window.removeEventListener("wheel", this.onWheel)
+        window.removeEventListener("dblclick", this.onDoubleClick)
+        this.currentTool.cancel()
     }
 
     setTool(id: ToolId) {
