@@ -1,15 +1,11 @@
 import { useEffect, useMemo, useState } from "react"
 import { button, buttonGroup, folder, Leva, useControls } from "leva"
-import {
-    controls,
-    constants,
-    themeOptions,
-    geometryTitles,
-} from "../AppEventManager/index"
 
 const isDev = import.meta.env.DEV
 
-function Controls() {
+function Controls({ bridge }: any) {
+    const { controls, constants, themeOptions, geometryTitles } = bridge
+
     function getLevaTheme(themeKey: string) {
         const theme = constants.themes[
             themeKey as keyof typeof constants.themes

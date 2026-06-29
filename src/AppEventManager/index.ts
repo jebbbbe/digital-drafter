@@ -3,11 +3,11 @@ import { init as initApp } from "../App/main"
 import { AppEventManager } from "./AppEventManager"
 import * as Tools from "./ToolRegistry"
 
-export { controls } from "../App/controls/controls"
-export { constants, themeOptions } from "../App/constants"
-export { geometryTitles } from "../App/objects/geometries/library"
+import { controls } from "../App/controls/controls"
+import { constants, themeOptions } from "../App/constants"
+import { geometryTitles } from "../App/objects/geometries/library"
 
-export function init(container: HTMLElement): () => void {
+export async function linkThreeApp(container: HTMLElement) {
     const disposeApp = initApp(container)
     const registry = new Tools.ToolRegistry()
     registry.register("move", new Tools.MoveTool(ctx))
@@ -15,8 +15,16 @@ export function init(container: HTMLElement): () => void {
 
     const events = new AppEventManager(ctx, registry, "select")
 
-    return () => {
-        events.dispose()
-        disposeApp()
+    return {
+        bridge: {
+            controls,
+            constants,
+            themeOptions,
+            geometryTitles,
+        },
+        dispose: () => {
+            events.dispose()
+            disposeApp()
+        },
     }
 }

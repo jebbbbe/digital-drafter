@@ -1,37 +1,41 @@
-import { useEffect, useRef } from "react"
-import { init } from "./AppEventManager/index"
+import { StrictMode } from "react"
+import { useEffect, useRef, useState } from "react"
+import Controls from "./components/Controls"
+import { linkThreeApp } from "./AppEventManager/index"
 
 function App() {
     const threeSceneMountRef = useRef<HTMLDivElement | null>(null)
+    const [app, setApp] = useState<any | null>(null)
 
     useEffect(() => {
-        if (!threeSceneMountRef.current) {
-            return
-        }
+        let cancelled = false
 
-        let isMounted = true
-        let currentInit = init
-        let disposeScene = currentInit(threeSceneMountRef.current)
+        ;(async () => {
+            if (!threeSceneMountRef.current) {
+                return
+            }
 
-        if (import.meta.hot) {
-            import.meta.hot.accept("./AppEventManager/index", (updatedModule) => {
-                if (!updatedModule || !isMounted || !threeSceneMountRef.current) {
-                    return
-                }
+            const app = await linkThreeApp(threeSceneMountRef.current)
+            if (cancelled) return app.dispose()
 
-                currentInit = updatedModule.init
-                disposeScene()
-                disposeScene = currentInit(threeSceneMountRef.current)
-            })
-        }
+            setApp(app)
+        })()
 
         return () => {
-            isMounted = false
-            disposeScene()
+            cancelled = true
+            app.dispose()
+            setApp(null)
         }
     }, [])
 
-    return <div id="app" ref={threeSceneMountRef} />
+    return (
+        <div id="screen">
+            <StrictMode>
+				{app && <Controls bridge={app.bridge} />}
+			</StrictMode>
+            <div id="app" ref={threeSceneMountRef} />
+        </div>
+    )
 }
 
 export default App

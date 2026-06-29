@@ -15,17 +15,18 @@ export class AppEventManager {
         initialToolId: ToolId
     ) {
         this.ctx = ctx
-		console.log(ctx)
+        console.log(ctx)
         this.registry = registry
         this.currentToolId = initialToolId
 
         this.currentTool = registry.get(initialToolId)
         this.currentTool.enter()
 
-        window.addEventListener("pointerdown", this.onPointerDown)
-        window.addEventListener("pointermove", this.onPointerMove)
-        window.addEventListener("pointerup", this.onPointerUp)
-        window.addEventListener("pointercancel", this.onPointerCancel)
+        const renderElement = this.ctx.renderer.domElement
+        renderElement.addEventListener("pointerdown", this.onPointerDown)
+        renderElement.addEventListener("pointermove", this.onPointerMove)
+        renderElement.addEventListener("pointerup", this.onPointerUp)
+        renderElement.addEventListener("pointercancel", this.onPointerCancel)
 
         window.addEventListener("keydown", this.onKeyDown)
         window.addEventListener("keyup", this.onKeyUp)
@@ -36,10 +37,11 @@ export class AppEventManager {
     }
 
     dispose() {
-        window.removeEventListener("pointerdown", this.onPointerDown)
-        window.removeEventListener("pointermove", this.onPointerMove)
-        window.removeEventListener("pointerup", this.onPointerUp)
-        window.removeEventListener("pointercancel", this.onPointerCancel)
+        const renderElement = this.ctx.renderer.domElement
+        renderElement.removeEventListener("pointerdown", this.onPointerDown)
+        renderElement.removeEventListener("pointermove", this.onPointerMove)
+        renderElement.removeEventListener("pointerup", this.onPointerUp)
+        renderElement.removeEventListener("pointercancel", this.onPointerCancel)
         window.removeEventListener("keydown", this.onKeyDown)
         window.removeEventListener("keyup", this.onKeyUp)
         window.removeEventListener("wheel", this.onWheel)
