@@ -15,7 +15,6 @@ export class AppEventManager {
         initialToolId: ToolId
     ) {
         this.ctx = ctx
-        console.log(ctx)
         this.registry = registry
         this.currentToolId = initialToolId
 

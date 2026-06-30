@@ -236,10 +236,6 @@ export function init(container: HTMLElement): () => void {
     })
     interactionManager.addEventListeners()
 
-    //
-    ;(globalThis as any).drafter = drafter
-    ;(globalThis as any).constants = constants
-    ;(globalThis as any).interactionManager = interactionManager
 
     // async
     // const [loadedCubeModel] = await assetsLoader
