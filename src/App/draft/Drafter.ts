@@ -446,4 +446,60 @@ export class Drafter {
             sphereUpdate[key].computeBoundingSphere()
         }
     }
+    updatePatchedNodeArray(nodePatchArray: TransformNode | TransformNode[]) {
+        if (!Array.isArray(nodePatchArray)) {
+            nodePatchArray = [nodePatchArray]
+        }
+
+		// out nodes are always unique
+        // nodePatchArray = [...new Set(nodePatchArray)]
+
+        for (let i = 0; i < nodePatchArray.length; i++) {
+            calculateBaseMatrix(nodePatchArray[i])
+        }
+
+		// can we keep track of this on each node..?
+        const depth = (node: TransformNode) => {
+            let count = 0
+            let current = node
+            while (current !== current.parent) {
+                count++
+                current = current.parent
+            }
+            return count
+        }
+        nodePatchArray.sort((a, b) => depth(a) - depth(b))
+
+        const seen = new Set<TransformNode>()
+        const subtree: TransformNode[] = []
+        const sphereUpdate = {} as Record<number, InstanceItem>
+
+        for (let i = 0; i < nodePatchArray.length; i++) {
+            const patchedNode = nodePatchArray[i]
+            if (seen.has(patchedNode)) continue
+
+            const instanceItem = this.getInstance(patchedNode.location.id)
+
+            const fn = (n: TransformNode) => {
+                calculateCompoundMatrix(n, subtree, instanceItem.localTransform)
+            }
+
+            walkSeenSubtree(patchedNode, seen, fn)
+        }
+
+        // update buffers of the accumulated subtree
+        for (let i = 0; i < subtree.length; i++) {
+            const node = subtree[i]
+            const id = node.location.id
+            const instanceItem = this.getInstance(id)
+            const slot = this.globalTreeTexture.setNodeTextureAt(node)
+            instanceItem.setInstanceBuffersIndex(node, slot)
+            sphereUpdate[id] = instanceItem
+        }
+
+        // update bounding sphere of seen instanceItems
+        for (const key in sphereUpdate) {
+            sphereUpdate[key].computeBoundingSphere()
+        }
+    }
 }
