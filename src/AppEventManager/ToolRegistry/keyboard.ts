@@ -1,6 +1,5 @@
-import { controls } from "../controls/controls"
-import { selection } from "../AppContext"
-import { deSelectAll } from "../controls/interaction"
+import { controls } from "../../App/controls/controls"
+import { selection } from "../../App/AppContext"
 
 const spaceHoldMax = 20
 let spaceHoldCurr = 0
@@ -19,7 +18,7 @@ export const handleKeyboardDown = (keyEvent: KeyboardEvent) => {
         }
     } else if (keyEvent.key === "Escape") {
         if (keyEvent.repeat) return
-        deSelectAll()
+        controls.deSelectAll()
     }
 }
 
