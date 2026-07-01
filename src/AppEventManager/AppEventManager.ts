@@ -1,6 +1,6 @@
 import type { AppContext } from "../App/AppContext"
 import type { Tool, NormalizedPointerEvent } from "./ToolRegistry"
-import { handleKeyboardDown, handleKeyboardUp } from "../App/events/keyboard"
+import { handleKeyboardDown, handleKeyboardUp } from "./ToolRegistry/keyboard"
 
 export type ToolId = "select" | "move" | "insert"
 

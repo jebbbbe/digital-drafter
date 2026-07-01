@@ -9,57 +9,198 @@ import {
     NodeSelectionObject,
 } from "../../App/interaction/SelectionObject"
 import * as THREE from "three"
+import type { TransformNode } from "../../App/draft/TransformNode"
 import type { NodeLocation } from "../../App/draft/TransformTree"
+import type { SectionSegment } from "../../App/interaction/SelectionObject"
 import { deSelectAll } from "../../App/controls/interaction"
+import { getNodevalues } from "../../App/controls/nodes"
+import { moveNodeToPosition } from "../../App/controls/move"
+import * as levaStore from "../../components/Leva/LevaStore"
 
 const startHit = new THREE.Vector3()
 
-type MoveHandlers = {
-    move: (event: PointerEvent) => void
-    up: () => void
+abstract class InteractionMode extends Interaction {
+    protected finished = false
+
+    protected finish(): void {
+        this.finished = true
+    }
 }
 
-class SelectionMoveInteraction extends Interaction {
-    private finished = false
-    private moveHandlers: MoveHandlers
+class NodeMoveInteractionMode extends InteractionMode {
+    private readonly ctx: AppContext
+    private readonly node: TransformNode
+    private readonly prevHit = new THREE.Vector3().copy(startHit)
+    private readonly candidatePosition = new THREE.Vector3()
+    private readonly delta = new THREE.Vector3()
+    private readonly lineDirection = new THREE.Vector3()
+    private readonly parentToCandidate = new THREE.Vector3()
+    private readonly parentPosition?: THREE.Vector3
+    private readonly lineLengthSq: number
 
-    constructor(ctx: AppContext, moveHandlers: MoveHandlers) {
+    constructor(ctx: AppContext, node: TransformNode) {
         super(ctx)
-        this.moveHandlers = moveHandlers
+        this.ctx = ctx
+        this.node = node
+
+        levaStore.syncLevaDisplayStub(getNodevalues(node))
+        levaStore.enableNodeStub(node.parent === node)
+
+        const hasParentConstraint = this.node.parent !== this.node
+        this.parentPosition = hasParentConstraint
+            ? this.node.parent.position.clone()
+            : undefined
+        this.lineLengthSq = hasParentConstraint
+            ? this.lineDirection
+                  .subVectors(this.node.position, this.node.parent.position)
+                  .lengthSq()
+            : 0
+
+        this.ctx.controllers.pauseControls()
     }
 
     override onPointerMove(event: NormalizedPointerEvent): boolean {
         if (this.finished) return false
 
-        this.moveHandlers.move(event.event)
+        const hit = this.ctx.raycastHelper.castFromEventToPlane(event.event)
+        if (!hit) return false
+
+        this.delta.subVectors(hit, this.prevHit)
+        if (this.delta.lengthSq() === 0) return false
+
+        this.candidatePosition.copy(this.node.position).add(this.delta)
+
+        const constrainMove =
+            event.event.shiftKey && this.parentPosition && this.lineLengthSq > 0
+
+        if (constrainMove) {
+            const t = this.parentToCandidate
+                .subVectors(this.candidatePosition, this.parentPosition)
+                .dot(this.lineDirection)
+
+            this.candidatePosition
+                .copy(this.parentPosition)
+                .addScaledVector(this.lineDirection, t / this.lineLengthSq)
+        }
+
+        this.prevHit.copy(hit)
+
+        const anchor = this.ctx.drafter.getNodesAnchoredCenter(this.node)
+        this.ctx.controllers.setAnchorCache(this.node.position, anchor)
+        moveNodeToPosition(this.node, this.candidatePosition)
+
         return true
     }
 
     override onPointerUp(): boolean {
         if (this.finished) return false
 
-        this.finished = true
-        this.moveHandlers.up()
+        this.finish()
+        levaStore.syncLevaDisplayStub(getNodevalues(this.node))
+        this.ctx.controllers.resumeControls()
         return true
     }
 
     override cancel(): void {
         if (this.finished) return
 
-        this.finished = true
-        this.moveHandlers.up()
+        this.finish()
+        this.ctx.controllers.resumeControls()
+    }
+}
+
+class SegmentMoveInteractionMode extends InteractionMode {
+    private readonly ctx: AppContext
+    private readonly line: SectionSegment
+    private readonly prevHit = new THREE.Vector3().copy(startHit)
+    private readonly delta = new THREE.Vector3()
+    private readonly segmentLineDirection = new THREE.Vector3()
+    private readonly segmentMidPoint = new THREE.Vector3()
+    private readonly sectionCutter: AppContext["drafter"]["sectionCutter"]
+    private readonly sectionChild?: TransformNode
+    private readonly sectionParent?: TransformNode
+    private readonly lineLengthSq: number
+
+    constructor(ctx: AppContext, line: SectionSegment) {
+        super(ctx)
+        this.ctx = ctx
+        this.line = line
+        this.sectionCutter = this.ctx.drafter.sectionCutter
+
+        this.sectionChild = this.sectionCutter.nodeMap.get(this.line.index)
+        if (this.sectionChild === undefined) {
+            this.lineLengthSq = 0
+            return
+        }
+
+        this.sectionParent = this.sectionChild.parent
+        if (this.sectionParent === undefined) {
+            this.lineLengthSq = 0
+            return
+        }
+
+        this.segmentLineDirection.subVectors(
+            this.sectionChild.position,
+            this.sectionParent.position
+        )
+        this.lineLengthSq = this.segmentLineDirection.lengthSq()
+        this.ctx.controllers.pauseControls()
+    }
+
+    override onPointerMove(event: NormalizedPointerEvent): boolean {
+        if (this.finished || this.lineLengthSq === 0) return false
+
+        const hit = this.ctx.raycastHelper.castFromEventToPlane(event.event)
+        if (!hit) return false
+
+        this.delta.subVectors(hit, this.prevHit)
+        if (this.delta.lengthSq() === 0) return false
+
+        const deltaAlongLine =
+            this.delta.dot(this.segmentLineDirection) / this.lineLengthSq
+        this.delta
+            .copy(this.segmentLineDirection)
+            .multiplyScalar(deltaAlongLine)
+        if (this.delta.lengthSq() === 0) return false
+
+        this.sectionCutter.moveSegmentVector(
+            this.delta,
+            this.delta,
+            this.line.index
+        )
+
+        const [a, b] = this.ctx.drafter.sectionCutter.getSegmentAsVector(
+            this.line.index
+        )
+        this.ctx.drafter.updatePatchedNode(this.sectionChild!)
+
+        this.segmentMidPoint.addVectors(a, b).multiplyScalar(0.5)
+        this.ctx.controllers.updateGizmoPosition(this.segmentMidPoint)
+
+        this.prevHit.copy(hit)
+        return true
+    }
+
+    override onPointerUp(): boolean {
+        if (this.finished) return false
+
+        this.finish()
+        this.ctx.controllers.resumeControls()
+        return true
+    }
+
+    override cancel(): void {
+        if (this.finished) return
+
+        this.finish()
+        this.ctx.controllers.resumeControls()
     }
 }
 
 export class SelectTool extends InteractiveTool {
     override onPointerDown(normalized: NormalizedPointerEvent) {
         const e = normalized.event
-        const {
-            drafter,
-            raycastHelper,
-            selection,
-            controllers,
-        } = this.ctx
+        const { drafter, raycastHelper, selection, controllers } = this.ctx
 
         // exit early for multiple touchs on mobile
         if (e.pointerType === "touch" && !e.isPrimary) return
@@ -120,15 +261,17 @@ export class SelectTool extends InteractiveTool {
 
         this.cancel()
 
-        const moveFns = selectedObject.move(startHit) as
-            | MoveHandlers
-            | undefined
-        if (moveFns === undefined) return
-
-        this.startInteraction(
-            new SelectionMoveInteraction(this.ctx, moveFns),
-            normalized
-        )
+        if (selectedObject instanceof NodeSelectionObject) {
+            this.startInteraction(
+                new NodeMoveInteractionMode(this.ctx, selectedObject.target),
+                normalized
+            )
+        } else if (selectedObject instanceof SegmentSelectionObject) {
+            this.startInteraction(
+                new SegmentMoveInteractionMode(this.ctx, selectedObject.target),
+                normalized
+            )
+        }
     }
 
     gizmoClicked(e: PointerEvent): boolean {

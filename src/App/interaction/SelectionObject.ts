@@ -5,7 +5,6 @@ import { getSlotIndex } from "../objects/textures/GlobalTreeTexture"
 import {
     pruneNode,
     detachNode,
-    getNodevalues,
     detachNodeChildren,
 } from "../controls/nodes"
 import { deleteSegment } from "../controls/section"
@@ -17,8 +16,6 @@ import {
 } from "../controls/move"
 
 import { deSelectAll } from "../controls/interaction"
-import { attachNodeMove, attachSegmentMove } from "../events/events"
-import * as levaStore from "../../components/Leva/LevaStore"
 
 export type SectionSegment = {
     object: Mesh
@@ -66,11 +63,8 @@ export class NodeSelectionObject extends SelectionObject<TransformNode> {
         return "leaf"
     }
 
-    move(startHit: THREE.Vector3) {
-        const node = this.target
-        levaStore.syncLevaDisplayStub(getNodevalues(node))
-        levaStore.enableNodeStub(node.parent === node)
-        return attachNodeMove(node, startHit)
+    move(_startHit: THREE.Vector3) {
+        return undefined
     }
 
     gizmoSetup() {
@@ -118,8 +112,8 @@ export class SegmentSelectionObject extends SelectionObject<SectionSegment> {
         return "SectionSegment"
     }
 
-    move(startHit: THREE.Vector3) {
-        return attachSegmentMove(this.target, startHit)
+    move(_startHit: THREE.Vector3) {
+        return undefined
     }
 
     gizmoSetup() {
