@@ -7,6 +7,7 @@ import * as save from "./export.ts"
 import * as section from "./section.ts"
 import * as intersect from "./intersect.ts"
 import * as interaction from "./interaction.ts"
+import * as session from "./session.ts"
 import * as debug from "./debug.ts"
 
 // this file automatically generates a guard on each imput for isAppReady
@@ -20,6 +21,7 @@ type Controls = typeof display &
     typeof section &
     typeof intersect &
     typeof interaction &
+    typeof session &
     typeof debug
 
 const controls = {} as Controls
@@ -27,7 +29,7 @@ const controls = {} as Controls
 function guardImport(incoming: ControlModule) {
     for (const [name, fn] of Object.entries(incoming)) {
         let impl: typeof fn = ((...args: Parameters<typeof fn>) => {
-            if (!isAppReady) return undefined as ReturnType<typeof fn>
+            if (!isAppReady.value) return undefined as ReturnType<typeof fn>
 
             impl = fn
             return fn(...args)
@@ -46,6 +48,7 @@ guardImport(save as ControlModule)
 guardImport(section as ControlModule)
 guardImport(intersect as ControlModule)
 guardImport(interaction as ControlModule)
+guardImport(session as ControlModule)
 guardImport(debug as ControlModule)
 
 export { controls }

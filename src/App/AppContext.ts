@@ -1,42 +1,29 @@
-if (import.meta.env.DEV) {
-    console.log("DEV")
-}
+// context.ts
+import type { AppContext } from "./main"
+export  type { AppContext } from "./main"
 
-export {
-    isAppReady,
-    renderer,
-    scene,
-    camera,
-    orbitControls,
-    drafter,
-    raycastHelper,
-    selection,
-    controllers,
-    statsPanel,
-} from "./main"
+export let isAppReady: AppContext["isAppReady"]
+export let renderer: AppContext["renderer"]
+export let scene: AppContext["scene"]
+export let camera: AppContext["camera"]
+export let orbitControls: AppContext["orbitControls"]
+export let drafter: AppContext["drafter"]
+export let raycastHelper: AppContext["raycastHelper"]
+export let selection: AppContext["selection"]
+export let controllers: AppContext["controllers"]
+export let statsPanel: AppContext["statsPanel"]
+export let eventManager: AppContext["eventManager"]
 
-import {
-    isAppReady,
-    renderer,
-    scene,
-    camera,
-    orbitControls,
-    drafter,
-    raycastHelper,
-    selection,
-    controllers,
-    statsPanel,
-} from "./main"
-
-export type AppContext = {
-    isAppReady: typeof isAppReady
-    renderer: typeof renderer
-    scene: typeof scene
-    camera: typeof camera
-    orbitControls: typeof orbitControls
-    drafter: typeof drafter
-    raycastHelper: typeof raycastHelper
-    selection: typeof selection
-    controllers: typeof controllers
-    statsPanel: typeof statsPanel
+export function linkContext(ctx: AppContext) {
+    isAppReady = ctx.isAppReady
+    renderer = ctx.renderer
+    scene = ctx.scene
+    camera = ctx.camera
+    orbitControls = ctx.orbitControls
+    drafter = ctx.drafter
+    raycastHelper = ctx.raycastHelper
+    selection = ctx.selection
+    controllers = ctx.controllers
+    statsPanel = ctx.statsPanel
+    eventManager = ctx.eventManager
 }

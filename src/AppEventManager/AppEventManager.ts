@@ -1,24 +1,22 @@
 import type { AppContext } from "../App/AppContext"
-import type { Tool, ToolId, NormalizedPointerEvent } from "./ToolRegistry"
-import { ToolRegistry } from "./ToolRegistry"
+import type { Tool, NormalizedPointerEvent } from "./ToolRegistry"
 import { handleKeyboardDown, handleKeyboardUp } from "../App/events/keyboard"
+
+export type ToolId = "select" | "move" | "insert"
 
 export class AppEventManager {
     ctx!: AppContext
-    registry!: ToolRegistry
-    private currentToolId: ToolId
-    private currentTool: Tool
+    private tools = new Map<ToolId, Tool>()
+    private currentToolId!: ToolId
+    private currentTool!: Tool
 
-    constructor(
-        ctx: AppContext,
-        registry: ToolRegistry,
-        initialToolId: ToolId
-    ) {
+    constructor() {}
+
+    setContext(ctx: AppContext, initialToolId: ToolId) {
         this.ctx = ctx
-        this.registry = registry
         this.currentToolId = initialToolId
 
-        this.currentTool = registry.get(initialToolId)
+        this.currentTool = this.get(initialToolId)
         this.currentTool.enter()
 
         const renderElement = this.ctx.renderer.domElement
@@ -31,8 +29,21 @@ export class AppEventManager {
         window.addEventListener("keyup", this.onKeyUp)
 
         window.addEventListener("wheel", this.onWheel, { passive: false })
-
         window.addEventListener("dblclick", this.onDoubleClick)
+    }
+
+    register(id: ToolId, tool: Tool): void {
+        this.tools.set(id, tool)
+    }
+
+    private get(id: ToolId): Tool {
+        const tool = this.tools.get(id)
+
+        if (!tool) {
+            throw new Error(`Tool not registered: ${id}`)
+        }
+
+        return tool
     }
 
     dispose() {
@@ -52,7 +63,7 @@ export class AppEventManager {
         if (id === this.currentToolId) return
         this.currentTool.cancel()
         this.currentToolId = id
-        this.currentTool = this.registry.get(id)
+        this.currentTool = this.get(id)
         this.currentTool.enter()
     }
 

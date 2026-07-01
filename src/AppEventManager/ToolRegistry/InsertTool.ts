@@ -1,25 +1,19 @@
 import * as THREE from "three"
 import { Tool, type NormalizedPointerEvent } from "./Tool"
-import type { AppContext } from "../../App/AppContext"
 import type { TransformNode } from "../../App/draft/TransformNode"
 import { moveNodeToPosition } from "../../App/controls/move"
 import { getNodevalues } from "../../App/controls/nodes"
 import * as levaStore from "../../components/Leva/LevaStore"
-import { setActiveTool } from "../state"
 
 const _hit = new THREE.Vector3()
 
 export class InsertTool extends Tool {
     private node: TransformNode | undefined
 
-    constructor(ctx: AppContext) {
-        super(ctx)
-    }
-
     override enter(): void {
         this.node = this.ctx.selection.firstNode()
         if (!this.node) {
-            setActiveTool("select")
+            this.eventManager.setTool("select")
             return
         }
 
@@ -49,7 +43,7 @@ export class InsertTool extends Tool {
         levaStore.setLevaInsertDefault()
         this.ctx.controllers.resumeControls()
         this.node = undefined
-        setActiveTool("select")
+        this.eventManager.setTool("select")
 
         return true
     }

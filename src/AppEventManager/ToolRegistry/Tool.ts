@@ -1,4 +1,5 @@
 import type { AppContext } from "../../App/AppContext"
+import type { AppEventManager } from "../AppEventManager"
 
 export type NormalizedPointerEvent = {
     event: PointerEvent
@@ -7,30 +8,13 @@ export type NormalizedPointerEvent = {
     alt: boolean
 }
 
-export type ToolId = "select" | "move" | "insert"
-
-export class ToolRegistry {
-    private tools = new Map<ToolId, Tool>()
-
-    register(id: ToolId, tool: Tool): void {
-        this.tools.set(id, tool)
-    }
-
-    get(id: ToolId): Tool {
-        const tool = this.tools.get(id)
-
-        if (!tool) {
-            throw new Error(`Tool not registered: ${id}`)
-        }
-
-        return tool
-    }
-}
 
 export abstract class Tool {
     ctx!: AppContext
-    constructor(ctx: AppContext) {
+    eventManager!: AppEventManager
+    constructor(ctx: AppContext, eventManager: AppEventManager) {
         this.ctx = ctx
+        this.eventManager = eventManager
     }
     enter(): void {}
 

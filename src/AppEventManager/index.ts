@@ -1,25 +1,30 @@
-import * as ctx from "../App/AppContext"
-import { init as initApp } from "../App/main"
-import { AppEventManager } from "./AppEventManager"
-import * as Tools from "./ToolRegistry"
-import { setToolSwitcher } from "./state"
-
-import { controls } from "../App/controls/controls"
+import { init } from "../App/main"
 import { constants, themeOptions } from "../App/constants"
 import { geometryTitles } from "../App/objects/geometries/library"
+import { controls } from "../App/controls/controls"
+import * as ctx from "../App/AppContext"
+import * as Tools from "./ToolRegistry"
 
 export async function linkThreeApp(container: HTMLElement) {
-    const disposeApp = initApp(container)
-    const registry = new Tools.ToolRegistry()
-    registry.register("move", new Tools.MoveTool(ctx))
-    registry.register("select", new Tools.SelectTool(ctx))
-    registry.register("insert", new Tools.InsertTool(ctx))
+    // set up app
+    const disposeApp = init(container)
 
-    const events = new AppEventManager(ctx, registry, "select")
-    setToolSwitcher(events)
+    // link tools to evvent manager
+    const { eventManager } = ctx
+    eventManager.register("select", new Tools.SelectTool(ctx, eventManager))
+    eventManager.register("insert", new Tools.InsertTool(ctx, eventManager))
+    eventManager.register("move", new Tools.MoveTool(ctx, eventManager))
+    eventManager.setContext(ctx, "select")
 
+    // set up the sccene
+    controls.setUpDrafter()
+
+    // add context for logging
     ;(globalThis as any).ctx = ctx
     console.log(ctx)
+    if (import.meta.env.DEV) {
+        console.log("DEV")
+    }
 
     return {
         bridge: {
@@ -29,8 +34,7 @@ export async function linkThreeApp(container: HTMLElement) {
             geometryTitles,
         },
         dispose: () => {
-            setToolSwitcher(undefined)
-            events.dispose()
+            eventManager.dispose()
             disposeApp()
         },
     }
