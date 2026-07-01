@@ -120,4 +120,11 @@ export class SelectionManager {
         }
         return item
     }
+
+    transformCallback() {
+        const object = this.first()
+        if (object) {
+            object.gizmoListener()
+        }
+    }
 }

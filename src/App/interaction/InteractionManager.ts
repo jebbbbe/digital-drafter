@@ -5,8 +5,6 @@ import type { SelectionManager, SelectObject } from "./selectionManager"
 import type { ThreeControllersManager } from "./controllers"
 import { ListenerManager } from "./ListenerManager"
 import * as levaStore from "../../components/Leva/LevaStore"
-import { handleKeyboardDown, handleKeyboardUp } from "../events/keyboard"
-import { selectPointerDown } from "../events/events"
 
 type InteractionManagerArgs = {
     domElement: HTMLCanvasElement
@@ -39,38 +37,19 @@ export class InteractionManager {
 
     addEventListeners(): void {
         // prettier-ignore
-        // this.listeners.addActiveEvent( "pointerDown", "pointerdown", selectPointerDown )
-        // prettier-ignore
         this.listeners.addActiveEvent( "transformDraggingChanged", "dragging-changed", this.controllers.handleTransformDraggingChanged, this.controllers.transformControls )
-        // prettier-ignore
-        // this.listeners.addActiveEvent( "general.keydown", "keydown", handleKeyboardDown, window )
-        // prettier-ignore
-        // this.listeners.addActiveEvent( "general.keyup", "keyup", handleKeyboardUp, window )
+
+        this.listeners.addActiveEvent(
+            "transformObjectChange",
+            "objectChange",
+            () => this.selection.transformCallback(),
+            this.controllers.transformControls
+        )
     }
 
     dispose(): void {
         this.listeners.removeAllActiveEvents()
         this.controllers.dispose()
-    }
-
-    // Transform Controls
-    attachTransformControls(object: SelectObject) {
-        if (!this.controllers.useTransformControls) return
-
-        object.gizmoSetup()
-        this.controllers.attachTransformProxy()
-
-        this.listeners.addActiveEvent(
-            "transformObjectChange",
-            "objectChange",
-            () => object.gizmoListener(),
-            this.controllers.transformControls
-        )
-    }
-
-    detachTransformControls() {
-        this.listeners.removeActiveEvent("transformObjectChange")
-        this.controllers.detachTransformControls()
     }
 
     gizmoCLicked(e: PointerEvent): boolean {
@@ -95,7 +74,7 @@ export class InteractionManager {
 
     deSelectAll() {
         // hide transform controls
-        this.detachTransformControls()
+        this.controllers.detachTransformControls()
         //clear selecction geo
         this.selection.clear()
         // detach leva
@@ -105,9 +84,5 @@ export class InteractionManager {
             scaleValue: 1.0,
         })
         levaStore.disableStub()
-        // detach mouse events
-        this.listeners.activeEvents["pointerup"]?.listener()
-        // this.listeners.removeActiveEvent("pointerup")
-        // this.listeners.removeActiveEvent("pointermove")
     }
 }

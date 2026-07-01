@@ -220,7 +220,8 @@ export function init(container: HTMLElement): () => void {
     orbitControls = initOrbit(camera, renderer)
     const transformControls = new TransformControls(camera, renderer.domElement)
     controllers = new ThreeControllersManager(
-        orbitControls,
+        selection,
+		orbitControls,
         transformControls,
         true
     )
@@ -235,7 +236,6 @@ export function init(container: HTMLElement): () => void {
         controllers,
     })
     interactionManager.addEventListeners()
-
 
     // async
     // const [loadedCubeModel] = await assetsLoader

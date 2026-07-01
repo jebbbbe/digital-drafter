@@ -51,11 +51,15 @@ class SelectionMoveInteraction extends Interaction {
 }
 
 export class SelectTool extends InteractiveTool {
-
     override onPointerDown(normalized: NormalizedPointerEvent) {
         const e = normalized.event
-        const { drafter, raycastHelper, selection, interactionManager } =
-            this.ctx
+        const {
+            drafter,
+            raycastHelper,
+            selection,
+            interactionManager,
+            controllers,
+        } = this.ctx
 
         // exit early for multiple touchs on mobile
         if (e.pointerType === "touch" && !e.isPrimary) return
@@ -84,6 +88,7 @@ export class SelectTool extends InteractiveTool {
             selection.clear()
         }
 
+        // create selectedObject from type
         let selectedObject: NodeSelectionObject | SegmentSelectionObject
         if (first.object === drafter.sectionCutter.mesh) {
             // hit section cutter
@@ -108,11 +113,17 @@ export class SelectTool extends InteractiveTool {
         const seen = selection.push(selectedObject)
         if (seen) return
 
-        interactionManager.attachTransformControls(selectedObject)
+		
+        if (controllers.useTransformControls) {
+            selectedObject.gizmoSetup()
+            controllers.attachTransformProxy()
+        }
 
         this.cancel()
 
-        const moveFns = selectedObject.move(startHit) as MoveHandlers | undefined
+        const moveFns = selectedObject.move(startHit) as
+            | MoveHandlers
+            | undefined
         if (moveFns === undefined) return
 
         this.startInteraction(

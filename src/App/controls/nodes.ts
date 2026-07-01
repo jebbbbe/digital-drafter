@@ -2,13 +2,14 @@ import * as THREE from "three"
 import * as rand from "../utils/random"
 import { drafter, selection, controllers } from "../AppContext"
 import type { TransformNode } from "../draft/TransformNode"
+import { NodeSelectionObject } from "../interaction/selectionManager"
 import {
     enableNodeStub,
     syncLevaInsertOptions,
     syncLevaDisplayStub,
 } from "../../components/Leva/LevaStore"
-import { attachInsertGeometry } from "../events/events" 
 import { geometryLibrary, geometryTitles } from "../objects/geometries/library"
+import { setActiveTool } from "../../AppEventManager/state"
 const PI = Math.PI
 const PIo2 = PI / 2
 const _position = new THREE.Vector3()
@@ -208,7 +209,9 @@ export function insertGeometry(geo: THREE.BufferGeometry) {
     }
     const node = drafter.addRootNode(rootNode)
     if (!node) return
-    attachInsertGeometry(node)
+    selection.clear()
+    selection.push(new NodeSelectionObject(node))
+    setActiveTool("insert")
 }
 
 function addGeometryToLibrary(

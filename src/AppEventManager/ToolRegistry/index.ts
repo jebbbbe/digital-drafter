@@ -3,3 +3,4 @@ export type { Tool, ToolId, NormalizedPointerEvent } from "./Tool"
 
 export { MoveTool } from "./MoveTool"
 export { SelectTool } from "./SelectTool"
+export { InsertTool } from "./InsertTool"

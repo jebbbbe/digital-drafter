@@ -79,8 +79,8 @@ export function attachNodeMove(
 
     const handlePointerUp = () => {
         levaStore.syncLevaDisplayStub(getNodevalues(node))
-        interactionManager.listeners.removeActiveEvent("pointermove")
-        interactionManager.listeners.removeActiveEvent("pointerup")
+        // interactionManager.listeners.removeActiveEvent("pointermove")
+        // interactionManager.listeners.removeActiveEvent("pointerup")
         controllers.resumeControls()
     }
 
@@ -141,8 +141,6 @@ export function attachSegmentMove(
     }
 
     const handlePointerUp = () => {
-        interactionManager.listeners.removeActiveEvent("pointermove")
-        interactionManager.listeners.removeActiveEvent("pointerup")
         controllers.resumeControls()
     }
 
@@ -164,7 +162,6 @@ export function attachInsertGeometry(node: TransformNode) {
     const handlePointerUp = () => {
         levaStore.syncLevaDisplayStub(getNodevalues(node))
         levaStore.setLevaInsertDefault()
-        selection.clear()
         interactionManager.listeners.removeActiveEvent(insertPointerMoveEvent)
         interactionManager.listeners.removeActiveEvent(insertPointerUpEvent)
     }
@@ -189,68 +186,4 @@ export function attachInsertGeometry(node: TransformNode) {
 
     // prettier-ignore
     interactionManager.listeners.addActiveEvent( insertPointerMoveEvent, "pointermove", handlePointerMove, window )
-}
-
-export function selectPointerDown(e: PointerEvent): void {
-    // exit early for multiple touchs on mobile
-    if (e.pointerType === "touch" && !e.isPrimary) return
-
-    // if we clicked the gizmo, exit early so we can use it
-    if (interactionManager.gizmoCLicked(e)) return
-
-    //raycast to interactive objects in the scene
-    const intersects = raycastHelper.castFromEvent(e)
-
-    // nothing hit!
-    if (intersects.length === 0) {
-        if (e.shiftKey === false) {
-            interactionManager.deSelectAll()
-        }
-        return
-    }
-
-    const first = intersects[0]
-    // console.log(first)
-
-    raycastHelper.castFromEventToPlane(e, startHit)
-    if (!startHit) return
-
-    //clear seleciton
-    if (!e.shiftKey) {
-        selection.clear()
-    }
-
-    let selectedObject // select obj ref
-    if (first.object === drafter.sectionCutter.mesh) {
-        // hit section cutter
-        const { index, faceIndex, object }: any = intersects[0]
-        selectedObject = new SegmentSelectionObject({
-            object,
-            // for gl_line or LineMaterial
-            index: index ?? faceIndex * 2,
-        })
-    } else {
-        // find node from raycast
-        const id = first.object.userData.id
-        const index = first.instanceId
-        const location = { id, index } as NodeLocation
-
-        // add node to selection
-        const node = drafter.findNode(location)
-        if (!node) return
-
-        selectedObject = new NodeSelectionObject(node)
-    }
-    const seen = selection.push(selectedObject)
-    if (seen) return
-    interactionManager.attachTransformControls(selectedObject)
-    const moveFns = selectedObject.move(startHit) as MoveListener
-    if (moveFns === undefined) return
-    // prettier-ignore
-    interactionManager.listeners.addActiveEvent("pointermove", "pointermove", moveFns.move)
-    interactionManager.listeners.addActiveEvent(
-        "pointerup",
-        "pointerup",
-        moveFns.up
-    )
 }

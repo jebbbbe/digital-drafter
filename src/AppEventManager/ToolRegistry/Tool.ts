@@ -7,7 +7,7 @@ export type NormalizedPointerEvent = {
     alt: boolean
 }
 
-export type ToolId = "select" | "move"
+export type ToolId = "select" | "move" | "insert"
 
 export class ToolRegistry {
     private tools = new Map<ToolId, Tool>()
