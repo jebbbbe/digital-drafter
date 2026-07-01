@@ -39,55 +39,38 @@ export const panelPaths = {
 
 type DisplayTheme = {
     background: string
-    mesh: {
-        color: string
-        visible: boolean
-    }
-    line: {
-        color: string
-        visible: boolean
-    }
-    dash: {
-        color: string
-        visible: boolean
-        dashSize: number
-        gapSize: number
-    }
-    projection: {
-        color: string
-        visible: boolean
-    }
-    fold: {
-        color: string
-        visible: boolean
-        foldDistance: number
-        foldSize: number
-    }
-    section: {
-        color: string
-    }
+    materials?: Record<string, any>
+    mesh?: Record<string, any>
+    line?: Record<string, any>
+    dash?: Record<string, any>
+    projection?: Record<string, any>
+    fold?: Record<string, any>
+    sectionLine?: Record<string, any>
 }
 
 export function syncLevaDisplayControls(display: DisplayTheme): void {
     console.log({ levaStore })
+    const source = (display.materials ?? display) as Required<
+        NonNullable<DisplayTheme["materials"]>
+    >
     levaStore.set(
         {
             [panelPaths.background]: display.background,
-            [panelPaths.meshColor]: display.mesh.color,
-            [panelPaths.meshVisible]: display.mesh.visible,
-            [panelPaths.lineColor]: display.line.color,
-            [panelPaths.lineVisible]: display.line.visible,
-            [panelPaths.dashColor]: display.dash.color,
-            [panelPaths.dashVisible]: display.dash.visible,
-            [panelPaths.dashSize]: display.dash.dashSize,
-            [panelPaths.gapSize]: display.dash.gapSize,
-            [panelPaths.projectionColor]: display.projection.color,
-            [panelPaths.projectionVisible]: display.projection.visible,
-            [panelPaths.foldColor]: display.fold.color,
-            [panelPaths.foldVisible]: display.fold.visible,
-            [panelPaths.foldDistance]: display.fold.foldDistance,
-            [panelPaths.foldSize]: display.fold.foldSize,
-            [panelPaths.sectionColor]: display.section.color,
+            [panelPaths.meshColor]: source.mesh.color,
+            [panelPaths.meshVisible]: source.mesh.visible,
+            [panelPaths.lineColor]: source.line.color,
+            [panelPaths.lineVisible]: source.line.visible,
+            [panelPaths.dashColor]: source.dash.color,
+            [panelPaths.dashVisible]: source.dash.visible,
+            [panelPaths.dashSize]: source.dash.dashSize,
+            [panelPaths.gapSize]: source.dash.gapSize,
+            [panelPaths.projectionColor]: source.projection.color,
+            [panelPaths.projectionVisible]: source.projection.visible,
+            [panelPaths.foldColor]: source.fold.color,
+            [panelPaths.foldVisible]: source.fold.visible,
+            [panelPaths.foldDistance]: source.fold.foldDistance,
+            [panelPaths.foldSize]: source.fold.foldSize,
+            [panelPaths.sectionColor]: source.sectionLine.color,
         },
         false
     )

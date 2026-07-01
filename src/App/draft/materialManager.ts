@@ -1,5 +1,5 @@
 import * as THREE from "three"
-import { constants } from "../constants"
+import { settings } from "../settings"
 import { InstancedLineMaterial } from "../objects/materials/InstancedLineMaterial"
 import { ProjectionLineMaterial } from "../objects/materials/ProjectionLineMaterial"
 import { ProjectionLineMaterial2 } from "../objects/materials/ProjectionLineMaterial2"
@@ -19,7 +19,8 @@ will revisit when looking more into line aliasing
 type ActiveMaterialLib = "gl_Line" | "linewidth"
 const activeMaterialLib: ActiveMaterialLib = "linewidth"
 
-const display = constants.themes[constants.theme].display as any
+const display = settings.display.materials
+console.log(display)
 
 const matlib = {
     // outline
@@ -96,7 +97,7 @@ if (activeMaterialLib === "gl_Line") {
         opacity: 1,
     })
     matlib.sectionLine = new THREE.LineBasicMaterial({
-        color: display.section.color,
+        color: display.sectionLine.color,
         depthTest: true,
         depthWrite: false,
     })
@@ -112,9 +113,9 @@ if (activeMaterialLib === "gl_Line") {
         color: display.dash.color,
         linewidth: 0.75,
         dashed: true,
-        dashScale: 1,
         dashSize: display.dash.dashSize,
         gapSize: display.dash.gapSize,
+
         depthTest: false,
         depthWrite: false,
         transparent: true,
@@ -155,7 +156,7 @@ if (activeMaterialLib === "gl_Line") {
         opacity: 1,
     })
     matlib.sectionLine = new LineMaterial({
-        color: display.section.color,
+        color: display.sectionLine.color,
         depthTest: true,
         depthWrite: false,
         linewidth: 1.15,

@@ -1,6 +1,6 @@
 import * as THREE from "three"
 import { drafter, scene, controllers } from "../AppContext"
-import { constants } from "../constants"
+import { settings, setTheme } from "../settings"
 import { syncLevaDisplayControls } from "../../components/Leva/LevaStore"
 
 export function setSceneColor(value: string): void {
@@ -110,17 +110,29 @@ export function setSectionColor(value: string): void {
     drafter.materials.sectionLine.color.set(value)
 }
 
-export function setGizmoColors(colors: {
-    xAxis: string
-    yAxis: string
-    zAxis: string
-    active: string
-}): void {
+export function setGizmoColors(
+    colors:
+        | {
+              xAxis: string
+              yAxis: string
+              zAxis: string
+              active: string
+          }
+        | Record<string, string>
+): void {
+    const fallback = {
+        xAxis: "#ff0000",
+        yAxis: "#00ff00",
+        zAxis: "#0000ff",
+        active: "#ffff00",
+    }
+    const next = { ...fallback, ...colors }
+
     controllers.transformControls.setColors(
-        colors.xAxis,
-        colors.yAxis,
-        colors.zAxis,
-        colors.active
+        next.xAxis,
+        next.yAxis,
+        next.zAxis,
+        next.active
     )
 }
 
@@ -134,41 +146,29 @@ export function randomizeMeshColor(): void {
 }
 
 export function themeSelect(theme: string): boolean {
-    const themeObject = constants.themes[theme as keyof typeof constants.themes]
-    if (!themeObject) return false
+    if (!setTheme(theme)) return false
 
-    if ("display" in themeObject) {
-        const newTheme = themeObject.display
+    const display = settings.display
 
-        setSceneColor(newTheme.background)
-        setMeshColor(newTheme.mesh.color)
-        setMeshVisible(newTheme.mesh.visible)
-        setLineColor(newTheme.line.color)
-        setLineVisible(newTheme.line.visible)
-        setDashColor(newTheme.dash.color)
-        setDashVisible(newTheme.dash.visible)
-        setDashDashSize(newTheme.dash.dashSize)
-        setDashGapSize(newTheme.dash.gapSize)
-        setProjectionColor(newTheme.projection.color)
-        setProjectionVisible(newTheme.projection.visible)
-        setFoldColor(newTheme.fold.color)
-        setFoldVisible(newTheme.fold.visible)
-        setFoldDistance(newTheme.fold.foldDistance)
-        setFoldSize(newTheme.fold.foldSize)
-        setSectionColor(newTheme.section.color)
+    setSceneColor(display.background)
+    setMeshColor(display.materials.mesh.color)
+    setMeshVisible(display.objects.mesh.visible)
+    setLineColor(display.materials.line.color)
+    setLineVisible(display.objects.line.visible)
+    setDashColor(display.materials.dash.color)
+    setDashVisible(display.objects.dash.visible)
+    setDashDashSize(display.materials.dash.dashSize)
+    setDashGapSize(display.materials.dash.gapSize)
+    setProjectionColor(display.materials.projection.color)
+    setProjectionVisible(display.objects.projection.visible)
+    setFoldColor(display.materials.fold.color)
+    setFoldVisible(display.objects.fold.visible)
+    setFoldDistance(display.materials.fold.foldDistance)
+    setFoldSize(display.materials.fold.foldSize)
+    setSectionColor(display.materials.sectionLine.color)
 
-        syncLevaDisplayControls(newTheme)
-    }
-    if ("gizmo" in themeObject) {
-        setGizmoColors(themeObject.gizmo)
-    } else {
-        setGizmoColors({
-            xAxis: "#ff0000",
-            yAxis: "#00ff00",
-            zAxis: "#0000ff",
-            active: "#ffff00",
-        })
-    }
+    syncLevaDisplayControls(display)
+    setGizmoColors(display.gizmo)
 
     return true
 }

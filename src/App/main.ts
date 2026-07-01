@@ -1,5 +1,4 @@
 import * as THREE from "three"
-import { constants } from "./constants"
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
 import { AspectLayout } from "./utils/AspectLayout"
 import { loadGlb } from "./utils/loader"
@@ -12,6 +11,7 @@ import { TransformControls } from "three/examples/jsm/Addons.js"
 import { ThreeControllersManager } from "./interaction/controllers"
 import { AppEventManager } from "../AppEventManager/AppEventManager"
 import { linkContext } from "./AppContext"
+import { settings } from "./settings"
 
 let isAppReady = { value: false }
 let renderer!: THREE.WebGLRenderer
@@ -65,14 +65,12 @@ export function init(
 
     // scene
     scene = new THREE.Scene()
-    scene.background = new THREE.Color(
-        constants.themes[constants.theme].display.background
-    )
+    scene.background = new THREE.Color(settings.display.background)
 
     //camera
     camera = new THREE.OrthographicCamera(...layout.getThreeOrthographicArgs())
-    camera.zoom = constants.camera.zoom
-    camera.position.set(...constants.camera.position)
+    camera.zoom = settings.camera.zoom
+    camera.position.set(...settings.camera.position)
     camera.lookAt(0, 0, 0)
 
     // Drafter

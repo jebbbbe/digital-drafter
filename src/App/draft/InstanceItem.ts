@@ -14,7 +14,7 @@ import {
     updateBufferRanges,
 } from "../objects/buffers/buffers"
 import { activeMaterialLib, orders } from "./materialManager"
-import { constants } from "../constants"
+import { settings } from "../settings"
 import type { Brush } from "three-bvh-csg"
 import type { TransformNode } from "./TransformNode"
 
@@ -275,7 +275,7 @@ export class InstanceItem {
         fold.userData = mesh.userData
 
         // set visible
-        const display = constants.themes[constants.theme].display as any
+        const display = settings.display.objects
         mesh.visible = display.mesh.visible
         line.visible = display.line.visible
         outline.visible = display.line.visible

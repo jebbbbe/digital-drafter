@@ -1,9 +1,10 @@
 import { init } from "../App/main"
-import { constants, themeOptions } from "../App/constants"
+import { themeOptions } from "../App/constants"
 import { geometryTitles } from "../App/objects/geometries/library"
 import { controls } from "../App/controls/controls"
 import * as ctx from "../App/AppContext"
 import * as Tools from "./ToolRegistry"
+import { settings } from "../App/settings"
 
 export async function linkThreeApp(container: HTMLElement) {
     // set up app
@@ -29,7 +30,7 @@ export async function linkThreeApp(container: HTMLElement) {
     return {
         bridge: {
             controls,
-            constants,
+            settings,
             themeOptions,
             geometryTitles,
         },

@@ -1,8 +1,16 @@
-export const themes = {
+type Theme = {
+    theme: string
+    background: string
+    materials: Record<string, any>
+    leva?: Record<string, any>
+    gizmo?: Record<string, any>
+}
+
+export const themes: Record<string, Theme> = {
     paper: {
         theme: "paper",
-        display: {
-            background: "#fffcee",
+        background: "#fffcee",
+        materials: {
             mesh: {
                 color: "#f9fff6",
                 visible: true,
@@ -27,15 +35,15 @@ export const themes = {
                 foldDistance: 0.875,
                 foldSize: 1.75,
             },
-            section: {
+            sectionLine: {
                 color: "#000000",
             },
         },
     },
     light: {
         theme: "light",
-        display: {
-            background: "#ffffff",
+        background: "#ffffff",
+        materials: {
             mesh: {
                 color: "#ffffff",
                 visible: true,
@@ -60,7 +68,7 @@ export const themes = {
                 foldDistance: 0.875,
                 foldSize: 1.75,
             },
-            section: {
+            sectionLine: {
                 color: "#000000",
             },
         },
@@ -81,8 +89,8 @@ export const themes = {
     },
     dark: {
         theme: "dark",
-        display: {
-            background: "#000000",
+        background: "#000000",
+        materials: {
             mesh: {
                 color: "#000000",
                 visible: true,
@@ -107,7 +115,7 @@ export const themes = {
                 foldDistance: 0.875,
                 foldSize: 1.75,
             },
-            section: {
+            sectionLine: {
                 color: "#ffffff",
             },
         },
@@ -128,8 +136,8 @@ export const themes = {
     },
     horn: {
         theme: "horn",
-        display: {
-            background: "#B4B4B4",
+        background: "#B4B4B4",
+        materials: {
             mesh: {
                 color: "#646464",
                 visible: true,
@@ -154,15 +162,15 @@ export const themes = {
                 foldDistance: 0.875,
                 foldSize: 1.75,
             },
-            section: {
+            sectionLine: {
                 color: "#ffffff",
             },
         },
     },
     blade: {
         theme: "blade",
-        display: {
-            background: "#363636",
+        background: "#363636",
+        materials: {
             mesh: {
                 color: "#646464",
                 visible: true,
@@ -187,15 +195,15 @@ export const themes = {
                 foldDistance: 0.875,
                 foldSize: 1.75,
             },
-            section: {
+            sectionLine: {
                 color: "#ffffff",
             },
         },
     },
     cab: {
         theme: "cab",
-        display: {
-            background: "#2B2B2B",
+        background: "#2B2B2B",
+        materials: {
             mesh: {
                 color: "#808080",
                 visible: true,
@@ -220,15 +228,15 @@ export const themes = {
                 foldDistance: 0.875,
                 foldSize: 1.75,
             },
-            section: {
+            sectionLine: {
                 color: "#FFFFFF",
             },
         },
     },
     gum: {
         theme: "gum",
-        display: {
-            background: "#ffdcd5",
+        background: "#ffdcd5",
+        materials: {
             mesh: {
                 color: "#ffd1d1",
                 visible: true,
@@ -253,15 +261,15 @@ export const themes = {
                 foldDistance: 0.875,
                 foldSize: 1.75,
             },
-            section: {
+            sectionLine: {
                 color: "#ed4e4e",
             },
         },
     },
     orchid: {
         theme: "orchid",
-        display: {
-            background: "#d0d5b7",
+        background: "#d0d5b7",
+        materials: {
             mesh: {
                 color: "#fcfff0",
                 visible: true,
@@ -286,7 +294,7 @@ export const themes = {
                 foldDistance: 0.875,
                 foldSize: 1.75,
             },
-            section: {
+            sectionLine: {
                 color: "#f9519f",
             },
         },
@@ -305,8 +313,8 @@ export const themes = {
                 yellow E6DB74
                 grey comment 75715E
                 */
-        display: {
-            background: "#272822",
+        background: "#272822",
+        materials: {
             mesh: {
                 color: "#272822",
                 visible: true,
@@ -331,7 +339,7 @@ export const themes = {
                 foldDistance: 0.875,
                 foldSize: 1.75,
             },
-            section: {
+            sectionLine: {
                 color: "#F92672",
             },
         },
@@ -356,4 +364,4 @@ export const themes = {
             },
         },
     },
-} as const
+}

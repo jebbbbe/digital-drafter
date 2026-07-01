@@ -1,10 +1,10 @@
 import * as THREE from "three"
-import { constants } from "../constants"
+import { settings } from "../settings"
 import { camera, orbitControls } from "../AppContext"
 
 export function resetCamera(): void {
-    camera.zoom = constants.camera.zoom
-    camera.position.set(...constants.camera.position)
+    camera.zoom = settings.camera.zoom
+    camera.position.set(...settings.camera.position)
     camera.lookAt(0, 0, 0)
     camera.updateProjectionMatrix()
     orbitControls.target.set(0, 0, 0)

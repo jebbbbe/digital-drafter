@@ -4,19 +4,15 @@ import { button, buttonGroup, folder, Leva, useControls } from "leva"
 const isDev = import.meta.env.DEV
 
 function Controls({ bridge }: any) {
-    const { controls, constants, themeOptions, geometryTitles } = bridge
+    const { controls, settings, themeOptions, geometryTitles } = bridge
 
-    function getLevaTheme(themeKey: string) {
-        const theme = constants.themes[
-            themeKey as keyof typeof constants.themes
-        ] as { leva?: Record<string, unknown> } | undefined
-
-        return theme?.leva ?? {}
-    }
-
-    const [levaTheme, setLevaTheme] = useState(() =>
-        getLevaTheme(constants.theme)
+    const [levaTheme, setLevaTheme] = useState(
+        () => settings.display.leva ?? {}
     )
+
+    useEffect(() => {
+        setLevaTheme(settings.display.leva ?? {})
+    }, [settings.display.leva])
 
     function wrapControls<T extends Record<string, any>>(obj: T): T {
         return Object.fromEntries(
@@ -84,38 +80,38 @@ function Controls({ bridge }: any) {
             {
                 Background: {
                     label: "Background",
-                    value: constants.display.background,
+                    value: settings.display.background,
                     onChange: wControls.setSceneColor,
                 },
                 Mesh: folder(
                     {
                         meshColor: {
                             label: "Color",
-                            value: constants.display.mesh.color,
+                            value: settings.display.materials.mesh.color,
                             onChange: wControls.setMeshColor,
                         },
-                        meshVisible: {
-                            label: "Visible",
-                            value: constants.display.mesh.visible,
-                            onChange: wControls.setMeshVisible,
-                        },
+                        // meshVisible: {
+                        //     label: "Visible",
+                        //     value: settings.display.objects.mesh.visible,
+                        //     onChange: wControls.setMeshVisible,
+                        // },
                     },
                     {}
                 ),
                 Line: folder({
                     lineColor: {
                         label: "Color",
-                        value: constants.display.line.color,
+                        value: settings.display.materials.line.color,
                         onChange: wControls.setLineColor,
                     },
-                    lineVisible: {
-                        label: "Visible",
-                        value: constants.display.line.visible,
-                        onChange: wControls.setLineVisible,
-                    },
+                    // lineVisible: {
+                    //     label: "Visible",
+                    //     value: settings.display.objects.line.visible,
+                    //     onChange: wControls.setLineVisible,
+                    // },
                     lineLinewidth: {
                         label: "Line Width",
-                        value: constants.display.line.lineWidth,
+                        value: settings.display.materials.line.lineWidth,
                         min: 0,
                         max: 10,
                         step: 0.001,
@@ -125,20 +121,20 @@ function Controls({ bridge }: any) {
                 Dash: folder({
                     dashColor: {
                         label: "Color",
-                        value: constants.display.dash.color,
+                        value: settings.display.materials.dash.color,
                         onChange: wControls.setDashColor,
                     },
-                    dashVisible: {
-                        label: "Visible",
-                        value: constants.display.dash.visible,
-                        onChange: wControls.setDashVisible,
-                    },
+                    // dashVisible: {
+                    //     label: "Visible",
+                    //     value: settings.display.objects.dash.visible,
+                    //     onChange: wControls.setDashVisible,
+                    // },
                     dashSize: {
                         label: "Dash",
                         min: 0,
                         max: 0.25,
                         step: 0.001,
-                        value: constants.display.dash.dashSize,
+                        value: settings.display.materials.dash.dashSize,
                         onChange: wControls.setDashDashSize,
                     },
                     gapSize: {
@@ -146,39 +142,39 @@ function Controls({ bridge }: any) {
                         min: 0,
                         max: 0.25,
                         step: 0.001,
-                        value: constants.display.dash.gapSize,
+                        value: settings.display.materials.dash.gapSize,
                         onChange: wControls.setDashGapSize,
                     },
                 }),
                 Projection: folder({
                     projectionColor: {
                         label: "Color",
-                        value: constants.display.projection.color,
+                        value: settings.display.materials.projection.color,
                         onChange: wControls.setProjectionColor,
                     },
-                    projectionVisible: {
-                        label: "Visible",
-                        value: constants.display.projection.visible,
-                        onChange: wControls.setProjectionVisible,
-                    },
+                    // projectionVisible: {
+                    //     label: "Visible",
+                    //     value: settings.display.objects.projection.visible,
+                    //     onChange: wControls.setProjectionVisible,
+                    // },
                 }),
                 Fold: folder({
                     foldColor: {
                         label: "Color",
-                        value: constants.display.fold.color,
+                        value: settings.display.materials.fold.color,
                         onChange: wControls.setFoldColor,
                     },
-                    foldVisible: {
-                        label: "Visible",
-                        value: constants.display.fold.visible,
-                        onChange: wControls.setFoldVisible,
-                    },
+                    // foldVisible: {
+                    //     label: "Visible",
+                    //     value: settings.display.objects.fold.visible,
+                    //     onChange: wControls.setFoldVisible,
+                    // },
                     foldDistance: {
                         label: "Distance",
                         min: 0.5,
                         max: 5,
                         step: 0.01,
-                        value: constants.display.fold.foldDistance,
+                        value: settings.display.materials.fold.foldDistance,
                         onChange: wControls.setFoldDistance,
                     },
                     foldSize: {
@@ -186,14 +182,14 @@ function Controls({ bridge }: any) {
                         min: 0,
                         max: 2,
                         step: 0.01,
-                        value: constants.display.fold.foldSize,
+                        value: settings.display.materials.fold.foldSize,
                         onChange: wControls.setFoldSize,
                     },
                 }),
                 Section: folder({
                     sectionColor: {
                         label: "Color",
-                        value: constants.display.section.color,
+                        value: settings.display.materials.sectionLine.color,
                         onChange: wControls.setSectionColor,
                     },
                 }),
@@ -204,7 +200,7 @@ function Controls({ bridge }: any) {
             {
                 theme: {
                     label: "Theme",
-                    value: constants.theme,
+                    value: settings.theme,
                     options: themeOptions,
                     onChange: (value, path, context) => {
                         const result = (
@@ -212,7 +208,7 @@ function Controls({ bridge }: any) {
                         )(value, path, context)
 
                         if (result) {
-                            setLevaTheme(getLevaTheme(value))
+                            setLevaTheme(settings.display.leva ?? {})
                         }
 
                         return result
