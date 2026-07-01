@@ -10,6 +10,7 @@ import {
 } from "../../App/interaction/SelectionObject"
 import * as THREE from "three"
 import type { NodeLocation } from "../../App/draft/TransformTree"
+import { deSelectAll } from "../../App/controls/interaction"
 
 const startHit = new THREE.Vector3()
 
@@ -57,7 +58,6 @@ export class SelectTool extends InteractiveTool {
             drafter,
             raycastHelper,
             selection,
-            interactionManager,
             controllers,
         } = this.ctx
 
@@ -65,7 +65,7 @@ export class SelectTool extends InteractiveTool {
         if (e.pointerType === "touch" && !e.isPrimary) return
 
         // if we clicked the gizmo, exit early so we can use it
-        if (interactionManager.gizmoCLicked(e)) return
+        if (this.gizmoClicked(e)) return
 
         //raycast to interactive objects in the scene
         const intersects = raycastHelper.castFromEvent(e)
@@ -73,7 +73,7 @@ export class SelectTool extends InteractiveTool {
         // nothing hit!
         if (intersects.length === 0) {
             if (e.shiftKey === false) {
-                interactionManager.deSelectAll()
+                deSelectAll()
             }
             return
         }
@@ -113,7 +113,6 @@ export class SelectTool extends InteractiveTool {
         const seen = selection.push(selectedObject)
         if (seen) return
 
-		
         if (controllers.useTransformControls) {
             selectedObject.gizmoSetup()
             controllers.attachTransformProxy()
@@ -132,11 +131,29 @@ export class SelectTool extends InteractiveTool {
         )
     }
 
+    gizmoClicked(e: PointerEvent): boolean {
+        const { controllers, selection, raycastHelper } = this.ctx
+        if (
+            controllers.useTransformControls &&
+            selection.selection.length > 0
+        ) {
+            const gizmoHits = raycastHelper.castFromEvent(
+                e,
+                [controllers.transformControls.getHelper()],
+                true
+            )
+            if (gizmoHits.length > 0 && controllers.transformControls.axis) {
+                return true
+            }
+        }
+        return false
+    }
+
     override onKeyDown(event: KeyboardEvent): boolean {
         if (event.key !== "Escape" || !this.interaction) return false
 
         this.cancel()
-        this.ctx.interactionManager.deSelectAll()
+        deSelectAll()
         return true
     }
 }

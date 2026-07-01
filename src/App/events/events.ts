@@ -1,11 +1,5 @@
 import * as THREE from "three"
-import {
-    drafter,
-    raycastHelper,
-    selection,
-    controllers,
-    interactionManager,
-} from "../AppContext"
+import { drafter, raycastHelper, selection, controllers } from "../AppContext"
 import { moveNodeToPosition } from "../controls/move"
 import { getNodevalues } from "../controls/nodes"
 import {
@@ -79,8 +73,6 @@ export function attachNodeMove(
 
     const handlePointerUp = () => {
         levaStore.syncLevaDisplayStub(getNodevalues(node))
-        // interactionManager.listeners.removeActiveEvent("pointermove")
-        // interactionManager.listeners.removeActiveEvent("pointerup")
         controllers.resumeControls()
     }
 
@@ -148,42 +140,4 @@ export function attachSegmentMove(
         move: handlePointerMove,
         up: handlePointerUp,
     }
-}
-
-export function attachInsertGeometry(node: TransformNode) {
-    const insertPointerMoveEvent = "insert.pointermove"
-    const insertPointerUpEvent = "insert.pointerup"
-
-    selection.clear()
-    selection.push(new NodeSelectionObject(node))
-
-    let hasStartedInsert = false
-
-    const handlePointerUp = () => {
-        levaStore.syncLevaDisplayStub(getNodevalues(node))
-        levaStore.setLevaInsertDefault()
-        interactionManager.listeners.removeActiveEvent(insertPointerMoveEvent)
-        interactionManager.listeners.removeActiveEvent(insertPointerUpEvent)
-    }
-
-    const handlePointerMove = (moveEvent: PointerEvent) => {
-        const hit = raycastHelper.castFromEventToPlane(moveEvent)
-        if (!hit) return
-
-        if (!hasStartedInsert) {
-            hasStartedInsert = true
-            interactionManager.listeners.addActiveEvent(
-                insertPointerUpEvent,
-                "pointerup",
-                handlePointerUp,
-                window
-            )
-        }
-
-        node.position.copy(hit)
-        drafter.updatePatchedNode(node)
-    }
-
-    // prettier-ignore
-    interactionManager.listeners.addActiveEvent( insertPointerMoveEvent, "pointermove", handlePointerMove, window )
 }

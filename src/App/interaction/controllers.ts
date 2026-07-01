@@ -22,7 +22,6 @@ export class ThreeControllersManager {
         this.transformControls = transformControls
         this.useTransformControls = useTransformControls
         this.setGizmoTranslate()
-		return
         this.transformControls.addEventListener(
             "dragging-changed",
             this.handleTransformDraggingChanged

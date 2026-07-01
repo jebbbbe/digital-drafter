@@ -12,7 +12,6 @@ export {
     raycastHelper,
     selection,
     controllers,
-    interactionManager,
     statsPanel,
 } from "./main"
 
@@ -26,7 +25,6 @@ import {
     raycastHelper,
     selection,
     controllers,
-    interactionManager,
     statsPanel,
 } from "./main"
 
@@ -40,6 +38,5 @@ export type AppContext = {
     raycastHelper: typeof raycastHelper
     selection: typeof selection
     controllers: typeof controllers
-    interactionManager: typeof interactionManager
     statsPanel: typeof statsPanel
 }

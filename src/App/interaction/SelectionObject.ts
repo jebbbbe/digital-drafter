@@ -9,13 +9,14 @@ import {
     detachNodeChildren,
 } from "../controls/nodes"
 import { deleteSegment } from "../controls/section"
-import { drafter, controllers, interactionManager } from "../AppContext"
+import { drafter, controllers } from "../AppContext"
 import {
     setupSegmentGizmo,
     moveNodeToPosition,
     moveSegmentToPosition,
 } from "../controls/move"
 
+import { deSelectAll } from "../controls/interaction"
 import { attachNodeMove, attachSegmentMove } from "../events/events"
 import * as levaStore from "../../components/Leva/LevaStore"
 
@@ -87,7 +88,7 @@ export class NodeSelectionObject extends SelectionObject<TransformNode> {
     }
 
     delete() {
-        interactionManager.deSelectAll()
+        deSelectAll()
         pruneNode(this.target)
     }
 
@@ -130,7 +131,7 @@ export class SegmentSelectionObject extends SelectionObject<SectionSegment> {
     }
 
     delete() {
-        interactionManager.deSelectAll()
+        deSelectAll()
         deleteSegment(this.target)
     }
 

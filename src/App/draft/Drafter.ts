@@ -19,7 +19,7 @@ const _anchoredCenter = new THREE.Vector3()
 export class Drafter {
     tree = new TransformTree()
     instanceItems: FreeList<InstanceItem> = new FreeList()
-    interactivObjects: THREE.Object3D[] = []
+    interactiveObjects: THREE.Object3D[] = []
     scene!: THREE.Scene
     globalTreeTexture = new GlobalTreeTexture({})
     materials = {
@@ -47,7 +47,7 @@ export class Drafter {
         if (debug) this.setUpDebug()
         const mesh = this.sectionCutter.mesh
         this.scene.add(mesh)
-        this.interactivObjects.push(mesh)
+        this.interactiveObjects.push(mesh)
     }
     assignTexture() {
         const text = this.globalTreeTexture.texture
@@ -106,7 +106,7 @@ export class Drafter {
         // push to Freelist, should arrive at id
         this.instanceItems.push(newInstanceItem)
         // push to interactive objects
-        this.interactivObjects.push(newInstanceItem.instances.mesh)
+        this.interactiveObjects.push(newInstanceItem.instances.mesh)
         // create new node freelist bucket, id should match the instanceitems
         const treeId = this.tree.addBucket()
         if (id !== treeId) {
@@ -164,9 +164,9 @@ export class Drafter {
 
         // clean up other refrences
         this.scene.remove(instanceItem.group)
-        const rm = this.interactivObjects.indexOf(instanceItem.instances.mesh)
+        const rm = this.interactiveObjects.indexOf(instanceItem.instances.mesh)
         if (rm !== -1) {
-            this.interactivObjects.splice(rm, 1)
+            this.interactiveObjects.splice(rm, 1)
         }
         // remove from both freelists,
         this.instanceItems.remove(id)

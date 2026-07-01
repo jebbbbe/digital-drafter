@@ -3,7 +3,6 @@ import { constants } from "./constants"
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
 import { AspectLayout } from "./utils/AspectLayout"
 import { loadGlb } from "./utils/loader"
-import { InteractionManager } from "./interaction/InteractionManager"
 import { Drafter } from "./draft/Drafter"
 import * as rand from "./utils/random"
 import type { TransformNode } from "./draft/TransformNode"
@@ -30,7 +29,6 @@ let drafter!: Drafter
 let raycastHelper!: RaycastHelper
 let selection!: SelectionManager
 let controllers!: ThreeControllersManager
-let interactionManager!: InteractionManager
 
 export function init(container: HTMLElement): () => void {
     // const assetsLoader = loadAssets()x
@@ -210,7 +208,7 @@ export function init(container: HTMLElement): () => void {
     // raycaster
     raycastHelper = new RaycastHelper(
         camera,
-        drafter.interactivObjects,
+        drafter.interactiveObjects,
         renderer.domElement
     )
     // selectionManager
@@ -221,21 +219,12 @@ export function init(container: HTMLElement): () => void {
     const transformControls = new TransformControls(camera, renderer.domElement)
     controllers = new ThreeControllersManager(
         selection,
-		orbitControls,
+        orbitControls,
         transformControls,
         true
     )
     scene.add(controllers.transformProxy)
     scene.add(transformControls.getHelper())
-
-    interactionManager = new InteractionManager({
-        domElement: renderer.domElement,
-        drafter,
-        raycastHelper,
-        selection,
-        controllers,
-    })
-    interactionManager.addEventListeners()
 
     // async
     // const [loadedCubeModel] = await assetsLoader
@@ -271,7 +260,7 @@ function dispose(): void {
     }
     globalThis.cancelAnimationFrame(frameId)
     layout.removeResizeListener()
-    interactionManager.dispose()
+    controllers.dispose()
     statsPanel.dispose()
     renderer.dispose()
     renderer.domElement.remove()
@@ -312,7 +301,6 @@ export {
     raycastHelper,
     selection,
     controllers,
-    interactionManager,
     statsPanel,
 }
 

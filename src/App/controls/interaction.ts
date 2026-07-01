@@ -1,6 +1,7 @@
 import * as THREE from "three"
 import type { SelectObject } from "../interaction/selectionManager"
-import { selection } from "../AppContext"
+import { selection, controllers } from "../AppContext"
+import * as levaStore from "../../components/Leva/LevaStore"
 
 function getSelectionObject(object = selection.first()) {
     return object
@@ -33,3 +34,17 @@ export const gizmoListenerFirstObject = (object?: SelectObject) => () =>
 
 export const mirrorFirstObject = (object?: SelectObject) =>
     getSelectionObject(object)?.mirror()
+
+export function deSelectAll() {
+    // hide transform controls
+    controllers.detachTransformControls()
+    //clear selecction geo
+    selection.clear()
+    // detach leva
+    levaStore.syncLevaDisplayStub({
+        positionValue: { x: 0, z: 0 },
+        rotateValue: { x: 0, y: 0 },
+        scaleValue: 1.0,
+    })
+    levaStore.disableStub()
+}
