@@ -1,6 +1,7 @@
 type material = {
     color: string
     opacity: number
+    transparent?: boolean
 }
 
 type LineMaterial = material & {
@@ -84,37 +85,42 @@ export const defaultTheme: SettingsDisplay = {
         dash: {
             color: "#000000",
             opacity: 0.5,
+            transparent: true,
             linewidth: 0.75,
             ...useDashed,
         },
         projection: {
             color: "#000000",
             opacity: 0.1,
+            transparent: true,
             linewidth: 1,
             ...notDashed,
         },
         fold: {
             color: "#000000",
             opacity: 0.4,
+            transparent: true,
             linewidth: 1,
             ...notDashed,
             foldDistance: 0.875,
             foldSize: 1.75,
         },
-
         sectionFace: {
-            color: "#000000",
+            color: "#ffffff", //0xd8abd8x
             opacity: 1.0,
+            transparent: true,
         },
         sectionEdge: {
             color: "#000000",
             opacity: 1.0,
+            transparent: true,
             linewidth: 3.25,
             ...notDashed,
         },
         sectionLine: {
             color: "#000000",
             opacity: 1.0,
+            transparent: false,
             linewidth: 1.15,
             ...notDashed,
         },

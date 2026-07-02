@@ -19,26 +19,22 @@ will revisit when looking more into line aliasing
 type ActiveMaterialLib = "gl_Line" | "linewidth"
 const activeMaterialLib: ActiveMaterialLib = "linewidth"
 
-const display = settings.display.materials
-console.log(display)
+const materialSettings = settings.display.materials
+// console.log(display)
 
 const matlib = {
     // outline
     mesh: patchNodeMatrix(
         new THREE.MeshBasicMaterial({
-            color: display.mesh.color,
+            ...materialSettings.mesh,
             side: THREE.DoubleSide,
             polygonOffset: true,
             polygonOffsetFactor: 1,
             polygonOffsetUnits: 1,
         })
     ),
-    // dash
-    // proj
-    // fold
-    // line
     sectionFace: new THREE.MeshBasicMaterial({
-        color: 0xffffff, //0xd8abd8,
+        ...materialSettings.sectionFace,
         side: THREE.DoubleSide,
         depthWrite: false,
         depthTest: true, // nice result on/off
@@ -46,10 +42,7 @@ const matlib = {
         polygonOffsetFactor: 1,
         polygonOffsetUnits: 1,
         transparent: true,
-        opacity: 1,
     }),
-    //sectionEdge
-    //sectionLine
 } as any
 
 // @ts-ignore
@@ -63,103 +56,80 @@ if (activeMaterialLib === "gl_Line") {
     //mesh
     matlib.dash = patchNodeMatrix(
         new THREE.LineDashedMaterial({
-            color: display.dash.color,
-            dashSize: display.dash.dashSize,
-            gapSize: display.dash.gapSize,
+            color: materialSettings.dash.color,
+            dashSize: materialSettings.dash.dashSize,
+            gapSize: materialSettings.dash.gapSize,
             depthTest: false,
             depthWrite: false,
         })
     )
     matlib.projection = new ProjectionLineMaterial({
-        color: display.projection.color,
+        color: materialSettings.projection.color,
         depthTest: true,
         depthWrite: false,
     })
     matlib.fold = new FoldLineMaterial({
-        color: display.fold.color,
-        foldDistance: display.fold.foldDistance,
-        foldSize: display.fold.foldSize,
+        color: materialSettings.fold.color,
+        foldDistance: materialSettings.fold.foldDistance,
+        foldSize: materialSettings.fold.foldSize,
         depthTest: true,
         depthWrite: false,
     })
     matlib.line = patchNodeMatrix(
         new THREE.LineBasicMaterial({
-            color: display.line.color,
+            color: materialSettings.line.color,
             depthWrite: false,
         })
     )
     //sectionFace
     matlib.sectionEdge = new THREE.LineBasicMaterial({
-        color: 0x000000,
+        color: materialSettings.sectionEdge.color,
         depthTest: false,
         depthWrite: false,
         transparent: true,
         opacity: 1,
     })
     matlib.sectionLine = new THREE.LineBasicMaterial({
-        color: display.sectionLine.color,
+        color: materialSettings.sectionLine.color,
         depthTest: true,
         depthWrite: false,
     })
 } else {
     matlib.outline = new InstancedLineMaterial({
-        color: display.line.color, //0xff0000
-        linewidth: 3,
+        ...materialSettings.outline,
         depthWrite: false,
-        // capStyle: 2,
     })
     //mesh
     matlib.dash = new InstancedLineMaterial({
-        color: display.dash.color,
-        linewidth: 0.75,
-        dashed: true,
-        dashSize: display.dash.dashSize,
-        gapSize: display.dash.gapSize,
-
+        ...materialSettings.dash,
         depthTest: false,
         depthWrite: false,
-        transparent: true,
-        opacity: 0.5,
     })
     matlib.projection = new ProjectionLineMaterial2({
-        color: display.projection.color,
-        linewidth: 1,
+        ...materialSettings.projection,
         depthTest: true,
         depthWrite: false,
-        transparent: true,
-        opacity: 0.1,
-        // alphaToCoverage: true,
+        alphaToCoverage: true,
     })
     matlib.fold = new FoldLineMaterial2({
-        color: display.fold.color,
-        foldDistance: display.fold.foldDistance,
-        foldSize: display.fold.foldSize,
-        linewidth: 1,
+        ...materialSettings.fold,
         depthTest: true,
         depthWrite: false,
-        transparent: true,
-        opacity: 0.4,
     })
     matlib.line = new InstancedLineMaterial({
-        color: display.line.color,
-        linewidth: 1.25,
+        ...materialSettings.line,
         depthWrite: false,
-        // capStyle: 2, // rm from implementation for now
     })
     //sectionFace
     matlib.sectionEdge = new LineMaterial({
-        color: 0x000000,
+        ...materialSettings.sectionEdge,
         depthTest: false,
         depthWrite: false,
-        linewidth: 3.25,
-        transparent: true,
-        opacity: 1,
     })
     matlib.sectionLine = new LineMaterial({
-        color: display.sectionLine.color,
+        ...materialSettings.sectionLine,
         depthTest: true,
         depthWrite: false,
-        linewidth: 1.15,
     })
 }
 
