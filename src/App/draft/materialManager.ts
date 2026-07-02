@@ -109,7 +109,7 @@ if (activeMaterialLib === "gl_Line") {
         ...materialSettings.projection,
         depthTest: true,
         depthWrite: false,
-        alphaToCoverage: true,
+        alphaToCoverage: false, // need to test
     })
     matlib.fold = new FoldLineMaterial2({
         ...materialSettings.fold,
