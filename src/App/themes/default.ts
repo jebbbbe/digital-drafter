@@ -105,6 +105,13 @@ export const defaultTheme: SettingsDisplay = {
             foldDistance: 0.875,
             foldSize: 1.75,
         },
+        sectionLine: {
+            color: "#000000",
+            opacity: 1.0,
+            transparent: false,
+            linewidth: 1.15,
+            ...notDashed,
+        },
         sectionFace: {
             color: "#ffffff", //0xd8abd8x
             opacity: 1.0,
@@ -115,13 +122,6 @@ export const defaultTheme: SettingsDisplay = {
             opacity: 1.0,
             transparent: true,
             linewidth: 3.25,
-            ...notDashed,
-        },
-        sectionLine: {
-            color: "#000000",
-            opacity: 1.0,
-            transparent: false,
-            linewidth: 1.15,
             ...notDashed,
         },
     },

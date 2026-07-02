@@ -42,4 +42,19 @@ export class FreeList<T> extends Array<T | undefined> {
         this[index] = undefined
         return item
     }
+
+    forEach(
+        callbackfn: (
+            value: T,
+            index: number,
+            array: T[]
+        ) => void,
+        thisArg?: any
+    ): void {
+        for (let index = 0; index < this.length; index++) {
+            const instanceItem = this[index]
+            if (!instanceItem) continue
+            callbackfn.call(thisArg, instanceItem, index, this as T[])
+        }
+    }
 }

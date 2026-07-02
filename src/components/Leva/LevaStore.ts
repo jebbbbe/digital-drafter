@@ -1,4 +1,5 @@
 import { levaStore } from "leva"
+import type { SettingsDisplay } from "../../App/themes/default"
 
 export const panelPaths = {
     insert: "Insert",
@@ -6,19 +7,37 @@ export const panelPaths = {
     background: "Settings.Display.Background",
     meshColor: "Settings.Display.Mesh.meshColor",
     meshVisible: "Settings.Display.Mesh.meshVisible",
+    meshOpacity: "Settings.Display.Mesh.meshOpacity",
     lineColor: "Settings.Display.Line.lineColor",
     lineVisible: "Settings.Display.Line.lineVisible",
+    lineOpacity: "Settings.Display.Line.lineOpacity",
+    lineWidth: "Settings.Display.Line.lineWidth",
+    outlineColor: "Settings.Display.Outline.outlineColor",
+    outlineOpacity: "Settings.Display.Outline.outlineOpacity",
+    outlineWidth: "Settings.Display.Outline.outlineWidth",
     dashColor: "Settings.Display.Dash.dashColor",
     dashVisible: "Settings.Display.Dash.dashVisible",
+    dashOpacity: "Settings.Display.Dash.dashOpacity",
     dashSize: "Settings.Display.Dash.dashSize",
     gapSize: "Settings.Display.Dash.gapSize",
     projectionColor: "Settings.Display.Projection.projectionColor",
     projectionVisible: "Settings.Display.Projection.projectionVisible",
+    projectionOpacity: "Settings.Display.Projection.projectionOpacity",
+    projectionWidth: "Settings.Display.Projection.projectionWidth",
     foldColor: "Settings.Display.Fold.foldColor",
     foldVisible: "Settings.Display.Fold.foldVisible",
+    foldOpacity: "Settings.Display.Fold.foldOpacity",
+    foldWidth: "Settings.Display.Fold.foldWidth",
     foldDistance: "Settings.Display.Fold.foldDistance",
     foldSize: "Settings.Display.Fold.foldSize",
-    sectionColor: "Settings.Display.Section.sectionColor",
+    sectionFaceColor: "Settings.Display.Section.sectionFaceColor",
+    sectionFaceOpacity: "Settings.Display.Section.sectionFaceOpacity",
+    sectionEdgeColor: "Settings.Display.Section.sectionEdgeColor",
+    sectionEdgeOpacity: "Settings.Display.Section.sectionEdgeOpacity",
+    sectionEdgeWidth: "Settings.Display.Section.sectionEdgeWidth",
+    sectionLineColor: "Settings.Display.Section.sectionLineColor",
+    sectionLineOpacity: "Settings.Display.Section.sectionLineOpacity",
+    sectionLineWidth: "Settings.Display.Section.sectionLineWidth",
 
     stubPos: "Selection.position",
     stubRot: "Selection.rotate",
@@ -37,40 +56,48 @@ export const panelPaths = {
     stubAddLibrary: "Selection.Add Object to Library",
 }
 
-type DisplayTheme = {
-    background: string
-    materials?: Record<string, any>
-    mesh?: Record<string, any>
-    line?: Record<string, any>
-    dash?: Record<string, any>
-    projection?: Record<string, any>
-    fold?: Record<string, any>
-    sectionLine?: Record<string, any>
-}
+export function syncLevaDisplayControls(display: SettingsDisplay): void {
+    // console.log({ display })
+    // console.log({ levaStore })
+    const materials = display.materials
+    // const objects = display.objects
 
-export function syncLevaDisplayControls(display: DisplayTheme): void {
-    console.log({ levaStore })
-    const source = (display.materials ?? display) as Required<
-        NonNullable<DisplayTheme["materials"]>
-    >
     levaStore.set(
         {
             [panelPaths.background]: display.background,
-            [panelPaths.meshColor]: source.mesh.color,
-            [panelPaths.meshVisible]: source.mesh.visible,
-            [panelPaths.lineColor]: source.line.color,
-            [panelPaths.lineVisible]: source.line.visible,
-            [panelPaths.dashColor]: source.dash.color,
-            [panelPaths.dashVisible]: source.dash.visible,
-            [panelPaths.dashSize]: source.dash.dashSize,
-            [panelPaths.gapSize]: source.dash.gapSize,
-            [panelPaths.projectionColor]: source.projection.color,
-            [panelPaths.projectionVisible]: source.projection.visible,
-            [panelPaths.foldColor]: source.fold.color,
-            [panelPaths.foldVisible]: source.fold.visible,
-            [panelPaths.foldDistance]: source.fold.foldDistance,
-            [panelPaths.foldSize]: source.fold.foldSize,
-            [panelPaths.sectionColor]: source.sectionLine.color,
+            [panelPaths.meshColor]: materials.mesh.color,
+            // [panelPaths.meshVisible]: objects.mesh.visible,
+            // [panelPaths.meshOpacity]: materials.mesh.opacity,
+            [panelPaths.lineColor]: materials.line.color,
+            // [panelPaths.lineVisible]: objects.line.visible,
+            // [panelPaths.lineOpacity]: materials.line.opacity,
+            [panelPaths.lineWidth]: materials.line.linewidth,
+            [panelPaths.outlineColor]: materials.outline.color,
+            // [panelPaths.outlineOpacity]: materials.outline.opacity,
+            [panelPaths.outlineWidth]: materials.outline.linewidth,
+            [panelPaths.dashColor]: materials.dash.color,
+            // [panelPaths.dashVisible]: objects.dash.visible,
+            // [panelPaths.dashOpacity]: materials.dash.opacity,
+            [panelPaths.dashSize]: materials.dash.dashSize,
+            [panelPaths.gapSize]: materials.dash.gapSize,
+            [panelPaths.projectionColor]: materials.projection.color,
+            // [panelPaths.projectionVisible]: objects.projection.visible,
+            // [panelPaths.projectionOpacity]: materials.projection.opacity,
+            [panelPaths.projectionWidth]: materials.projection.linewidth,
+            [panelPaths.foldColor]: materials.fold.color,
+            // [panelPaths.foldVisible]: objects.fold.visible,
+            // [panelPaths.foldOpacity]: materials.fold.opacity,
+            [panelPaths.foldWidth]: materials.fold.linewidth,
+            [panelPaths.foldDistance]: materials.fold.foldDistance,
+            [panelPaths.foldSize]: materials.fold.foldSize,
+            [panelPaths.sectionFaceColor]: materials.sectionFace.color,
+            // [panelPaths.sectionFaceOpacity]: materials.sectionFace.opacity,
+            [panelPaths.sectionEdgeColor]: materials.sectionEdge.color,
+            // [panelPaths.sectionEdgeOpacity]: materials.sectionEdge.opacity,
+            [panelPaths.sectionEdgeWidth]: materials.sectionEdge.linewidth,
+            [panelPaths.sectionLineColor]: materials.sectionLine.color,
+            // [panelPaths.sectionLineOpacity]: materials.sectionLine.opacity,
+            [panelPaths.sectionLineWidth]: materials.sectionLine.linewidth,
         },
         false
     )

@@ -73,6 +73,12 @@ export function setTheme(
     if (!theme) return false
 
     _settings.display.theme = themeTitle
+
+    _settings.display.background = defaultTheme.background
+    if (theme.background) {
+        _settings.display.background = theme.background
+    }
+
     copyObjectProps(_settings.display.materials, defaultTheme.materials)
     copyObjectProps(_settings.display.materials, theme.materials)
 

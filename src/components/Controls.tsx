@@ -90,109 +90,251 @@ function Controls({ bridge }: any) {
                             value: settings.display.materials.mesh.color,
                             onChange: wControls.setMeshColor,
                         },
+                        // meshOpacity: {
+                        //     label: "Opacity",
+                        //     value: settings.display.materials.mesh.opacity,
+                        //     min: 0,
+                        //     max: 1,
+                        //     step: 0.001,
+                        //     onChange: wControls.setMeshOpacity,
+                        // },
                         // meshVisible: {
                         //     label: "Visible",
                         //     value: settings.display.objects.mesh.visible,
                         //     onChange: wControls.setMeshVisible,
                         // },
                     },
-                    {}
+                    { collapsed: true }
                 ),
-                Line: folder({
-                    lineColor: {
-                        label: "Color",
-                        value: settings.display.materials.line.color,
-                        onChange: wControls.setLineColor,
+                Line: folder(
+                    {
+                        lineColor: {
+                            label: "Color",
+                            value: settings.display.materials.line.color,
+                            onChange: wControls.setLineColor,
+                        },
+                        // lineOpacity: {
+                        //     label: "Opacity",
+                        //     value: settings.display.materials.line.opacity,
+                        //     min: 0,
+                        //     max: 1,
+                        //     step: 0.001,
+                        //     onChange: wControls.setLineOpacity,
+                        // },
+                        lineWidth: {
+                            label: "Line Width",
+                            value: settings.display.materials.line.linewidth,
+                            min: 0,
+                            max: 10,
+                            step: 0.001,
+                            onChange: wControls.setLineWidth,
+                        },
                     },
-                    // lineVisible: {
-                    //     label: "Visible",
-                    //     value: settings.display.objects.line.visible,
-                    //     onChange: wControls.setLineVisible,
-                    // },
-                    lineLinewidth: {
-                        label: "Line Width",
-                        value: settings.display.materials.line.lineWidth,
-                        min: 0,
-                        max: 10,
-                        step: 0.001,
-                        onChange: wControls.setLineWidth,
+                    { collapsed: true }
+                ),
+                Outline: folder(
+                    {
+                        outlineColor: {
+                            label: "Color",
+                            value: settings.display.materials.outline.color,
+                            onChange: wControls.setOutlineColor,
+                        },
+                        // outlineOpacity: {
+                        //     label: "Opacity",
+                        //     value: settings.display.materials.outline.opacity,
+                        //     min: 0,
+                        //     max: 1,
+                        //     step: 0.001,
+                        //     onChange: wControls.setOutlineOpacity,
+                        // },
+                        outlineWidth: {
+                            label: "Line Width",
+                            value: settings.display.materials.outline.linewidth,
+                            min: 0,
+                            max: 10,
+                            step: 0.001,
+                            onChange: wControls.setOutlineWidth,
+                        },
                     },
-                }),
-                Dash: folder({
-                    dashColor: {
-                        label: "Color",
-                        value: settings.display.materials.dash.color,
-                        onChange: wControls.setDashColor,
+                    { collapsed: true }
+                ),
+                Dash: folder(
+                    {
+                        dashColor: {
+                            label: "Color",
+                            value: settings.display.materials.dash.color,
+                            onChange: wControls.setDashColor,
+                        },
+                        // dashOpacity: {
+                        //     label: "Opacity",
+                        //     value: settings.display.materials.dash.opacity,
+                        //     min: 0,
+                        //     max: 1,
+                        //     step: 0.001,
+                        //     onChange: wControls.setDashOpacity,
+                        // },
+                        dashWidth: {
+                            label: "Line Width",
+                            value: settings.display.materials.dash.linewidth,
+                            min: 0,
+                            max: 10,
+                            step: 0.001,
+                            onChange: wControls.setDashLineWidth,
+                        },
+                        dashSize: {
+                            label: "Dash",
+                            min: 0,
+                            max: 0.25,
+                            step: 0.001,
+                            value: settings.display.materials.dash.dashSize,
+                            onChange: wControls.setDashDashSize,
+                        },
+                        gapSize: {
+                            label: "Gap",
+                            min: 0,
+                            max: 0.25,
+                            step: 0.001,
+                            value: settings.display.materials.dash.gapSize,
+                            onChange: wControls.setDashGapSize,
+                        },
                     },
-                    // dashVisible: {
-                    //     label: "Visible",
-                    //     value: settings.display.objects.dash.visible,
-                    //     onChange: wControls.setDashVisible,
-                    // },
-                    dashSize: {
-                        label: "Dash",
-                        min: 0,
-                        max: 0.25,
-                        step: 0.001,
-                        value: settings.display.materials.dash.dashSize,
-                        onChange: wControls.setDashDashSize,
+                    { collapsed: true }
+                ),
+                Projection: folder(
+                    {
+                        projectionColor: {
+                            label: "Color",
+                            value: settings.display.materials.projection.color,
+                            onChange: wControls.setProjectionColor,
+                        },
+                        // projectionOpacity: {
+                        //     label: "Opacity",
+                        //     value: settings.display.materials.projection
+                        //         .opacity,
+                        //     min: 0,
+                        //     max: 1,
+                        //     step: 0.001,
+                        //     onChange: wControls.setProjectionOpacity,
+                        // },
+                        projectionWidth: {
+                            label: "Line Width",
+                            value: settings.display.materials.projection
+                                .linewidth,
+                            min: 0,
+                            max: 10,
+                            step: 0.001,
+                            onChange: wControls.setProjectionLineWidth,
+                        },
                     },
-                    gapSize: {
-                        label: "Gap",
-                        min: 0,
-                        max: 0.25,
-                        step: 0.001,
-                        value: settings.display.materials.dash.gapSize,
-                        onChange: wControls.setDashGapSize,
+                    { collapsed: true }
+                ),
+                Fold: folder(
+                    {
+                        foldColor: {
+                            label: "Color",
+                            value: settings.display.materials.fold.color,
+                            onChange: wControls.setFoldColor,
+                        },
+                        // foldOpacity: {
+                        //     label: "Opacity",
+                        //     value: settings.display.materials.fold.opacity,
+                        //     min: 0,
+                        //     max: 1,
+                        //     step: 0.001,
+                        //     onChange: wControls.setFoldOpacity,
+                        // },
+                        foldWidth: {
+                            label: "Line Width",
+                            value: settings.display.materials.fold.linewidth,
+                            min: 0,
+                            max: 10,
+                            step: 0.001,
+                            onChange: wControls.setFoldLineWidth,
+                        },
+                        foldDistance: {
+                            label: "Distance",
+                            min: 0.5,
+                            max: 5,
+                            step: 0.01,
+                            value: settings.display.materials.fold.foldDistance,
+                            onChange: wControls.setFoldDistance,
+                        },
+                        foldSize: {
+                            label: "Size",
+                            min: 0,
+                            max: 2,
+                            step: 0.01,
+                            value: settings.display.materials.fold.foldSize,
+                            onChange: wControls.setFoldSize,
+                        },
                     },
-                }),
-                Projection: folder({
-                    projectionColor: {
-                        label: "Color",
-                        value: settings.display.materials.projection.color,
-                        onChange: wControls.setProjectionColor,
+                    { collapsed: true }
+                ),
+                Section: folder(
+                    {
+                        sectionFaceColor: {
+                            label: "Color",
+                            value: settings.display.materials.sectionFace.color,
+                            onChange: wControls.setSectionFaceColor,
+                        },
+                        // sectionFaceOpacity: {
+                        //     label: "Face Opacity",
+                        //     value: settings.display.materials.sectionFace
+                        //         .opacity,
+                        //     min: 0,
+                        //     max: 1,
+                        //     step: 0.001,
+                        //     onChange: wControls.setSectionFaceOpacity,
+                        // },
+                        sectionEdgeColor: {
+                            label: "Edge Color",
+                            value: settings.display.materials.sectionEdge.color,
+                            onChange: wControls.setSectionEdgeColor,
+                        },
+                        // sectionEdgeOpacity: {
+                        //     label: "Edge Opacity",
+                        //     value: settings.display.materials.sectionEdge
+                        //         .opacity,
+                        //     min: 0,
+                        //     max: 1,
+                        //     step: 0.001,
+                        //     onChange: wControls.setSectionEdgeOpacity,
+                        // },
+                        sectionEdgeWidth: {
+                            label: "Edge Width",
+                            value: settings.display.materials.sectionEdge
+                                .linewidth,
+                            min: 0,
+                            max: 10,
+                            step: 0.001,
+                            onChange: wControls.setSectionEdgeWidth,
+                        },
+                        sectionLineColor: {
+                            label: "Line Color",
+                            value: settings.display.materials.sectionLine.color,
+                            onChange: wControls.setSectionColor,
+                        },
+                        // sectionLineOpacity: {
+                        //     label: "Line Opacity",
+                        //     value: settings.display.materials.sectionLine
+                        //         .opacity,
+                        //     min: 0,
+                        //     max: 1,
+                        //     step: 0.001,
+                        //     onChange: wControls.setSectionLineOpacity,
+                        // },
+                        sectionLineWidth: {
+                            label: "Line Width",
+                            value: settings.display.materials.sectionLine
+                                .linewidth,
+                            min: 0,
+                            max: 10,
+                            step: 0.001,
+                            onChange: wControls.setSectionLineWidth,
+                        },
                     },
-                    // projectionVisible: {
-                    //     label: "Visible",
-                    //     value: settings.display.objects.projection.visible,
-                    //     onChange: wControls.setProjectionVisible,
-                    // },
-                }),
-                Fold: folder({
-                    foldColor: {
-                        label: "Color",
-                        value: settings.display.materials.fold.color,
-                        onChange: wControls.setFoldColor,
-                    },
-                    // foldVisible: {
-                    //     label: "Visible",
-                    //     value: settings.display.objects.fold.visible,
-                    //     onChange: wControls.setFoldVisible,
-                    // },
-                    foldDistance: {
-                        label: "Distance",
-                        min: 0.5,
-                        max: 5,
-                        step: 0.01,
-                        value: settings.display.materials.fold.foldDistance,
-                        onChange: wControls.setFoldDistance,
-                    },
-                    foldSize: {
-                        label: "Size",
-                        min: 0,
-                        max: 2,
-                        step: 0.01,
-                        value: settings.display.materials.fold.foldSize,
-                        onChange: wControls.setFoldSize,
-                    },
-                }),
-                Section: folder({
-                    sectionColor: {
-                        label: "Color",
-                        value: settings.display.materials.sectionLine.color,
-                        onChange: wControls.setSectionColor,
-                    },
-                }),
+                    { collapsed: true }
+                ),
             },
             { collapsed: true }
         )
@@ -200,7 +342,7 @@ function Controls({ bridge }: any) {
             {
                 theme: {
                     label: "Theme",
-                    value: settings.theme,
+                    value: settings.display.theme,
                     options: themeOptions,
                     onChange: (value, path, context) => {
                         const result = (

@@ -13,30 +13,30 @@ export const themes: Record<string, Theme> = {
         materials: {
             mesh: {
                 color: "#f9fff6",
-                visible: true,
             },
             line: {
                 color: "#383b3b",
-                visible: true,
+            },
+            outline: {
+                color: "#383b3b",
             },
             dash: {
                 color: "#a7a7a7",
-                visible: true,
-                dashSize: 0.05,
-                gapSize: 0.01,
             },
             projection: {
                 color: "#a7a7a7",
-                visible: true,
             },
             fold: {
                 color: "#a7a7a7",
-                visible: true,
-                foldDistance: 0.875,
-                foldSize: 1.75,
             },
             sectionLine: {
-                color: "#000000",
+                color: "#383b3b",
+            },
+            sectionFace: {
+                color: "#f9fff6",
+            },
+            sectionEdge: {
+                color: "#383b3b",
             },
         },
     },
@@ -46,29 +46,29 @@ export const themes: Record<string, Theme> = {
         materials: {
             mesh: {
                 color: "#ffffff",
-                visible: true,
             },
             line: {
                 color: "#000000",
-                visible: true,
+            },
+            outline: {
+                color: "#000000",
             },
             dash: {
                 color: "#000000",
-                visible: true,
-                dashSize: 0.05,
-                gapSize: 0.01,
             },
             projection: {
                 color: "#000000",
-                visible: true,
             },
             fold: {
                 color: "#000000",
-                visible: true,
-                foldDistance: 0.875,
-                foldSize: 1.75,
             },
             sectionLine: {
+                color: "#000000",
+            },
+            sectionFace: {
+                color: "#ffffff",
+            },
+            sectionEdge: {
                 color: "#000000",
             },
         },
@@ -93,29 +93,30 @@ export const themes: Record<string, Theme> = {
         materials: {
             mesh: {
                 color: "#000000",
-                visible: true,
             },
             line: {
                 color: "#ffffff",
-                visible: true,
+            },
+            outline: {
+                color: "#ffffff",
             },
             dash: {
                 color: "#bcbcbc",
-                visible: true,
-                dashSize: 0.05,
-                gapSize: 0.01,
             },
             projection: {
-                color: "#272727",
-                visible: true,
+                color: "#ffffff",
+                opacity: 0.35,
             },
             fold: {
-                color: "#272727",
-                visible: true,
-                foldDistance: 0.875,
-                foldSize: 1.75,
+                color: "#ffffff",
             },
             sectionLine: {
+                color: "#ffffff",
+            },
+            sectionFace: {
+                color: "#000000",
+            },
+            sectionEdge: {
                 color: "#ffffff",
             },
         },
@@ -140,29 +141,29 @@ export const themes: Record<string, Theme> = {
         materials: {
             mesh: {
                 color: "#646464",
-                visible: true,
             },
             line: {
                 color: "#000000",
-                visible: true,
+            },
+            outline: {
+                color: "#000000",
             },
             dash: {
                 color: "#000000",
-                visible: true,
-                dashSize: 0.05,
-                gapSize: 0.01,
             },
             projection: {
                 color: "#A0A0A0",
-                visible: true,
             },
             fold: {
                 color: "#000000",
-                visible: true,
-                foldDistance: 0.875,
-                foldSize: 1.75,
             },
             sectionLine: {
+                color: "#ffffff",
+            },
+            sectionFace: {
+                color: "#646464",
+            },
+            sectionEdge: {
                 color: "#ffffff",
             },
         },
@@ -173,29 +174,29 @@ export const themes: Record<string, Theme> = {
         materials: {
             mesh: {
                 color: "#646464",
-                visible: true,
             },
             line: {
                 color: "#000000",
-                visible: true,
+            },
+            outline: {
+                color: "#000000",
             },
             dash: {
                 color: "#5E5E5E",
-                visible: true,
-                dashSize: 0.05,
-                gapSize: 0.01,
             },
             projection: {
                 color: "#787878",
-                visible: true,
             },
             fold: {
                 color: "#787878",
-                visible: true,
-                foldDistance: 0.875,
-                foldSize: 1.75,
             },
             sectionLine: {
+                color: "#ffffff",
+            },
+            sectionFace: {
+                color: "#646464",
+            },
+            sectionEdge: {
                 color: "#ffffff",
             },
         },
@@ -206,30 +207,30 @@ export const themes: Record<string, Theme> = {
         materials: {
             mesh: {
                 color: "#808080",
-                visible: true,
             },
             line: {
                 color: "#FFFFFF",
-                visible: true,
+            },
+            outline: {
+                color: "#FFFFFF",
             },
             dash: {
                 color: "#9A9A9A",
-                visible: true,
-                dashSize: 0.05,
-                gapSize: 0.01,
             },
             projection: {
                 color: "#6E6E6E",
-                visible: true,
             },
             fold: {
                 color: "#6E6E6E",
-                visible: true,
-                foldDistance: 0.875,
-                foldSize: 1.75,
             },
             sectionLine: {
                 color: "#FFFFFF",
+            },
+            sectionFace: {
+                color: "#808080",
+            },
+            sectionEdge: {
+                color: "#ffffff",
             },
         },
     },
@@ -239,29 +240,29 @@ export const themes: Record<string, Theme> = {
         materials: {
             mesh: {
                 color: "#ffd1d1",
-                visible: true,
             },
             line: {
                 color: "#ed4e4e",
-                visible: true,
+            },
+            outline: {
+                color: "#ed4e4e",
             },
             dash: {
                 color: "#f49c9c",
-                visible: true,
-                dashSize: 0.05,
-                gapSize: 0.01,
             },
             projection: {
                 color: "#ffabab",
-                visible: true,
             },
             fold: {
                 color: "#ffabab",
-                visible: true,
-                foldDistance: 0.875,
-                foldSize: 1.75,
             },
             sectionLine: {
+                color: "#ed4e4e",
+            },
+            sectionFace: {
+                color: "#f6b8b8",
+            },
+            sectionEdge: {
                 color: "#ed4e4e",
             },
         },
@@ -272,29 +273,29 @@ export const themes: Record<string, Theme> = {
         materials: {
             mesh: {
                 color: "#fcfff0",
-                visible: true,
             },
             line: {
                 color: "#f9519f",
-                visible: true,
+            },
+            outline: {
+                color: "#f9519f",
             },
             dash: {
                 color: "#f9519f",
-                visible: true,
-                dashSize: 0.05,
-                gapSize: 0.01,
             },
             projection: {
                 color: "#819720",
-                visible: true,
             },
             fold: {
                 color: "#819720",
-                visible: true,
-                foldDistance: 0.875,
-                foldSize: 1.75,
             },
             sectionLine: {
+                color: "#f9519f",
+            },
+            sectionFace: {
+                color: "#fcfff0",
+            },
+            sectionEdge: {
                 color: "#f9519f",
             },
         },
@@ -317,30 +318,33 @@ export const themes: Record<string, Theme> = {
         materials: {
             mesh: {
                 color: "#272822",
-                visible: true,
             },
             line: {
                 color: "#F8F8F2",
-                visible: true,
+                opacity: 1.0,
+            },
+            outline: {
+                color: "#F8F8F2",
             },
             dash: {
                 color: "#FD971F",
-                visible: true,
-                dashSize: 0.05,
-                gapSize: 0.01,
+                opacity: 1.0,
             },
             projection: {
                 color: "#75715E",
-                visible: true,
+                opacity: 1.0,
             },
             fold: {
                 color: "#A6E22E",
-                visible: true,
-                foldDistance: 0.875,
-                foldSize: 1.75,
             },
             sectionLine: {
                 color: "#F92672",
+            },
+            sectionFace: {
+                color: "#272822",
+            },
+            sectionEdge: {
+                color: "#66D9EF",
             },
         },
         gizmo: {
