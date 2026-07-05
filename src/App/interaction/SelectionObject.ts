@@ -2,11 +2,7 @@ import * as THREE from "three"
 import type { Mesh } from "three"
 import type { TransformNode } from "../draft/TransformNode"
 import { getSlotIndex } from "../objects/textures/GlobalTreeTexture"
-import {
-    pruneNode,
-    detachNode,
-    detachNodeChildren,
-} from "../controls/nodes"
+import { pruneNode, detachNode, detachNodeChildren } from "../controls/nodes"
 import { deleteSegment } from "../controls/section"
 import { drafter, controllers } from "../AppContext"
 import {
@@ -14,8 +10,9 @@ import {
     moveNodeToPosition,
     moveSegmentToPosition,
 } from "../controls/move"
-
 import { deSelectAll } from "../controls/interaction"
+import { settings } from "../settings"
+import type { LineMaterial } from "three/addons/lines/LineMaterial.js"
 
 export type SectionSegment = {
     object: Mesh
@@ -90,6 +87,13 @@ export class NodeSelectionObject extends SelectionObject<TransformNode> {
         const slot = getSlotIndex(this.target.location)
         drafter.globalTreeTexture.writeNodeSelected(slot, isSelected)
         drafter.globalTreeTexture.sendUpdate(slot)
+
+        const SectionFaceGroup = this.target.attachments?.section?.object
+        if (SectionFaceGroup) {
+            SectionFaceGroup.edges.material = isSelected
+                ? SectionFaceGroup.selectedMaterial
+                : SectionFaceGroup.defaultMaterial
+        }
     }
 
     detach() {

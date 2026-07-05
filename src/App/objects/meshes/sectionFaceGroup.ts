@@ -2,11 +2,16 @@ import * as THREE from "three"
 import { LineSegments2 } from "three/addons/lines/LineSegments2.js"
 import { LineSegmentsGeometry } from "three/addons/lines/LineSegmentsGeometry.js"
 import { matlib, orders, activeMaterialLib } from "../../draft/materialManager"
+import type { LineMaterial } from "three/addons/lines/LineMaterial.js"
+
+const selectedMaterial = matlib.sectionEdge.clone()
+selectedMaterial.color.set("#e6e600")
 
 export class SectionFaceGroup extends THREE.Group {
     face: THREE.Mesh
     edges: THREE.LineSegments | LineSegments2
-
+    selectedMaterial: THREE.LineBasicMaterial | LineMaterial
+    defaultMaterial: THREE.LineBasicMaterial | LineMaterial
     constructor(
         faceGeometry: THREE.BufferGeometry = new THREE.BufferGeometry()
     ) {
@@ -28,6 +33,9 @@ export class SectionFaceGroup extends THREE.Group {
         }
         this.edges.renderOrder = orders.sectionEdge
 
+        this.defaultMaterial = matlib.sectionEdge
+        this.selectedMaterial = selectedMaterial
+
         this.add(this.face)
         this.add(this.edges)
         this.matrixAutoUpdate = false
@@ -35,7 +43,9 @@ export class SectionFaceGroup extends THREE.Group {
 
     setEdgePositions(positions: number[] | Float32Array) {
         if (this.edges instanceof LineSegments2) {
-            ;(this.edges.geometry as LineSegmentsGeometry).setPositions(positions)
+            ;(this.edges.geometry as LineSegmentsGeometry).setPositions(
+                positions
+            )
             return
         }
 
