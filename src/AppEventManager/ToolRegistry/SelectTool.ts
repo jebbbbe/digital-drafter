@@ -7,11 +7,11 @@ import type { AppContext } from "../../App/AppContext"
 import {
     SegmentSelectionObject,
     NodeSelectionObject,
-} from "../../App/interaction/SelectionObject"
+} from "../../App/interaction"
 import * as THREE from "three"
 import type { TransformNode } from "../../App/draft/TransformNode"
 import type { NodeLocation } from "../../App/draft/TransformTree"
-import type { SectionSegment } from "../../App/interaction/SelectionObject"
+import type { SectionSegment } from "../../App/interaction"
 import { deSelectAll } from "../../App/controls/interaction"
 import { getNodevalues } from "../../App/controls/nodes"
 import { moveNodeToPosition } from "../../App/controls/move"

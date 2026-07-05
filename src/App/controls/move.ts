@@ -1,6 +1,6 @@
 import * as THREE from "three"
 import type { TransformNode } from "../draft/TransformNode"
-import type { SectionSegment } from "../interaction/selectionManager"
+import type { SectionSegment } from "../interaction"
 import { drafter, controllers } from "../AppContext"
 import { getNodevalues } from "./nodes"
 import { rotatePointOnXZPlane, getXZRotationAngle } from "../utils/rotation"

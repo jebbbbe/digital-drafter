@@ -7,7 +7,7 @@ import {
 } from "../draft/TransformNode"
 import * as rand from "../utils/random"
 import { evaluateCSG, boolean, csgEvaluator } from "../utils/csg"
-import type { SectionSegment } from "../interaction/selectionManager"
+import type { SectionSegment } from "../interaction"
 import type { InstanceItem } from "../draft/InstanceItem"
 import { SectionFaceGroup } from "../objects/meshes/sectionFaceGroup"
 

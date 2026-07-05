@@ -1,22 +1,33 @@
 import type { TransformNode } from "../draft/TransformNode"
+// import {
+//     NodeSelectionObject,
+//     SegmentSelectionObject,
+//     type SectionSegment,
+//     type SelectObject,
+//     type SelectType,
+// } from "./SelectionObject"
+
+// export {
+//     NodeSelectionObject,
+//     SegmentSelectionObject,
+//     SelectionObject,
+// } from "./SelectionObject"
+
+// export type {
+//     SectionSegment,
+//     SelectObject,
+//     SelectType,
+// } from "./SelectionObject"
+
+import { NodeSelectionObject } from "./NodeSelectionObject"
 import {
-    NodeSelectionObject,
     SegmentSelectionObject,
     type SectionSegment,
-    type SelectObject,
-    type SelectType,
-} from "./SelectionObject"
+} from "./SegmentSelectionObject"
 
-export {
-    NodeSelectionObject,
-    SegmentSelectionObject,
-    SelectionObject,
-} from "./SelectionObject"
-export type {
-    SectionSegment,
-    SelectObject,
-    SelectType,
-} from "./SelectionObject"
+import type { SelectType } from "./SelectionObject"
+
+export type SelectObject = NodeSelectionObject | SegmentSelectionObject
 
 export class SelectionManager {
     selection: SelectObject[]

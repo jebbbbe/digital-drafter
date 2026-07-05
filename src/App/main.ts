@@ -5,10 +5,13 @@ import { loadGlb } from "./utils/loader"
 import { Drafter } from "./draft/Drafter"
 import * as rand from "./utils/random"
 import { StatsPanel } from "./test/StatsPanel"
-import { RaycastHelper } from "./interaction/RaycastHelper"
-import { SelectionManager } from "./interaction/selectionManager"
+import {
+    RaycastHelper,
+    SelectionManager,
+    ThreeControllersManager,
+} from "./interaction"
+
 import { TransformControls } from "three/examples/jsm/Addons.js"
-import { ThreeControllersManager } from "./interaction/controllers"
 import { AppEventManager } from "../AppEventManager/AppEventManager"
 import { linkContext } from "./AppContext"
 import { settings } from "./settings"

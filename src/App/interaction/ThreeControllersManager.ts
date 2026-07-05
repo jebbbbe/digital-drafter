@@ -1,7 +1,7 @@
 import * as THREE from "three"
 import type { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
 import type { TransformControls } from "three/examples/jsm/controls/TransformControls.js"
-import type { SelectionManager } from "./selectionManager"
+import type { SelectionManager } from "./SelectionManager"
 
 let _prevEnableTransform: boolean = false
 const _nodePosition = new THREE.Vector3()
