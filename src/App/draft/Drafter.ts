@@ -2,7 +2,7 @@ import * as THREE from "three"
 import { TransformTree } from "./TransformTree"
 import { FreeList } from "../objects/FreeList"
 import { GlobalTreeTexture } from "../objects/textures/GlobalTreeTexture"
-import { SectionCutter } from "../objects/meshes/SectionCutter"
+import { SectionCutter } from "../objects/attachments"
 import {
     createTransformNode,
     rebaseDetachedMatrixNodeToRoot,

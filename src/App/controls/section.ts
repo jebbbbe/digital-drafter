@@ -7,9 +7,9 @@ import {
 } from "../draft/TransformNode"
 import * as rand from "../utils/random"
 import { evaluateCSG, boolean, csgEvaluator } from "../utils/csg"
-import type { SectionSegment } from "../interaction"
+import type { SectionSegment } from "../selection"
 import type { InstanceItem } from "../draft/InstanceItem"
-import { SectionFaceGroup } from "../objects/meshes/sectionFaceGroup"
+import { SectionFaceGroup } from "../objects/attachments"
 
 export function createNewCutNodeFromSelection() {
     const node = selection.firstNode()

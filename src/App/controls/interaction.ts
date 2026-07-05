@@ -1,5 +1,5 @@
 import * as THREE from "three"
-import type { SelectObject } from "../interaction"
+import type { SelectObject } from "../selection"
 import { selection, controllers } from "../AppContext"
 import * as levaStore from "../../components/Leva/LevaStore"
 

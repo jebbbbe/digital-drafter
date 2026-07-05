@@ -9,7 +9,7 @@ import {
     RaycastHelper,
     SelectionManager,
     ThreeControllersManager,
-} from "./interaction"
+} from "./selection"
 
 import { TransformControls } from "three/examples/jsm/Addons.js"
 import { AppEventManager } from "../AppEventManager/AppEventManager"

@@ -1,6 +1,5 @@
 import * as THREE from "three"
-import type { SectionCutter } from "../objects/meshes/SectionCutter"
-import type { SectionFaceGroup } from "../objects/meshes/sectionFaceGroup"
+import type { SectionCutter, SectionFaceGroup } from "../objects/attachments"
 import type { Node } from "./TransformTree"
 
 /*
