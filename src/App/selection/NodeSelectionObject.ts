@@ -2,7 +2,7 @@ import { SelectionObject, type SelectType } from "./SelectionObject"
 import * as THREE from "three"
 import type { TransformNode } from "../draft/TransformNode"
 import { getSlotIndex } from "../objects/textures/GlobalTreeTexture"
-import { pruneNode, detachNode, detachNodeChildren } from "../controls/nodes"
+import { pruneNode } from "../controls/nodes"
 import { drafter, controllers } from "../AppContext"
 import { moveNodeToPosition } from "../controls/move"
 import { deSelectAll } from "../controls/interaction"
@@ -49,13 +49,5 @@ export class NodeSelectionObject extends SelectionObject<TransformNode> {
                 ? SectionFaceGroup.selectedMaterial
                 : SectionFaceGroup.defaultMaterial
         }
-    }
-
-    detach() {
-        detachNode(this.target)
-    }
-
-    detachChildren() {
-        detachNodeChildren(this.target)
     }
 }

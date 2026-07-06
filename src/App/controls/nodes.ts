@@ -254,7 +254,7 @@ export function detachNodeFromSelection() {
     detachNode(node)
 }
 
-export function detachNode(node: TransformNode) {
+export function detachNode(node: TransformNode, tmp = true) {
     const segmentAttachment = node.attachments.segment
     if (segmentAttachment !== undefined) {
         node.attachments.segment = undefined
@@ -269,23 +269,24 @@ export function detachNode(node: TransformNode) {
 
     drafter.detachNode(node)
 
-    // update stub panel
-    enableNodeStub(node.parent === node)
-
-    // todo the rotation value derived from this are wong due to how rebaseDetachedMatrixNodeToRoot gets the new matrix..
-    syncLevaDisplayStub(getNodevalues(node))
+    if (tmp) {
+        // update stub panel
+        enableNodeStub(node.parent === node)
+        // todo the rotation value derived from this are wong due to how rebaseDetachedMatrixNodeToRoot gets the new matrix..
+        syncLevaDisplayStub(getNodevalues(node))
+    }
 }
 
-export function detachNodeChildren(node: TransformNode) {
+export function detachNodeChildren(node: TransformNode, tmp = true) {
     const children = [...node.children]
     children.forEach((child) => {
-        detachNode(child)
+        detachNode(child, tmp)
     })
 }
 
-export function detachNodeAll(node: TransformNode) {
-    detachNode(node)
-    detachNodeChildren(node)
+export function detachNodeAll(node: TransformNode, tmp = true) {
+    detachNode(node, tmp)
+    detachNodeChildren(node, tmp)
 }
 
 export function mirrorNode(node: TransformNode, recursive: boolean = true) {

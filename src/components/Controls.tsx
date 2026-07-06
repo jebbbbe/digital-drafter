@@ -425,11 +425,11 @@ function Controls({ bridge }: any) {
             "Mirror View": button(() => controls.mirrorSelectedNodes(), {
                 disabled: true,
             }),
-            "Detach View": button(() => controls.detachFirstObject(), {
+            "Detach View": button(() => controls.detachSelectedNodes(), {
                 disabled: true,
             }),
             "Detach Children": button(
-                () => controls.detachChildrenFirstObject(),
+                () => controls.detachChildrenSelectedNodes(),
                 {
                     disabled: true,
                 }

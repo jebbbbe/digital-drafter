@@ -31,8 +31,4 @@ export abstract class SelectionObject<TTarget> {
     abstract delete(): void
 
     abstract setSelected(isSelected: boolean): void
-
-    detach() {}
-
-    detachChildren() {}
 }

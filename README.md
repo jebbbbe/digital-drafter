@@ -174,8 +174,8 @@ https://blog.fastforwardlabs.com/2017/10/04/first-look-using-three.js-for-2d-dat
 |     | delete          | dfs swap   | gizmo end    |
 |     | section Cut     | dfs leaf   |              |
 | x   | mirror          | dfs tree   |              |
-|     | detach          |            | gizmo update |
-|     | detach children |            |              |
+| x   | detach          |            | gizmo update |
+| x   | detach children |            |              |
 |     | detach all      |            | gizmo update |
 |     | boolOps         | dfs leaf   |              |
 |     | move            | dfs tree   | gizmo update |

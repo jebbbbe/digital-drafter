@@ -25,12 +25,28 @@ export const mirrorSelectedNodes = () => {
     )
 }
 
-export const detachFirstObject = (object?: SelectObject) =>
-    getSelectionObject(object)?.detach()
+export const detachSelectedNodes = () => {
+    selection.run(
+        {
+            apply(node) {
+                detachNode(node, false)
+            },
+            end(nodes) {},
+        },
+        selection.filterTargets("TransformNode")
+    )
+}
 
-export const detachChildrenFirstObject = (object?: SelectObject) => {
-    object = getSelectionObject(object)
-    object?.detachChildren()
+export const detachChildrenSelectedNodes = () => {
+    selection.run(
+        {
+            apply(node) {
+                detachNodeChildren(node, false)
+            },
+            end(nodes) {},
+        },
+        selection.filterTargets("TransformNode")
+    )
 }
 
 export const moveFirstObject = (
