@@ -1,7 +1,8 @@
 import * as THREE from "three"
 import type { SelectObject } from "../selection"
-import { selection, controllers } from "../AppContext"
+import { selection, controllers, drafter } from "../AppContext"
 import * as levaStore from "../../components/Leva/LevaStore"
+import { detachNode, detachNodeChildren, mirrorNode } from "./nodes"
 
 function getSelectionObject(object = selection.first()) {
     return object
@@ -9,6 +10,20 @@ function getSelectionObject(object = selection.first()) {
 
 export const deleteFirstObject = (object?: SelectObject) =>
     getSelectionObject(object)?.delete()
+
+export const mirrorSelectedNodes = () => {
+    selection.run(
+        {
+            apply(node) {
+                mirrorNode(node, false)
+            },
+            end(nodes) {
+                drafter.updatePatchedNodeArray(nodes)
+            },
+        },
+        selection.filterTargets("TransformNode")
+    )
+}
 
 export const detachFirstObject = (object?: SelectObject) =>
     getSelectionObject(object)?.detach()
@@ -31,9 +46,6 @@ export const gizmoSetupFirstObject = (object?: SelectObject) => () =>
 
 export const gizmoListenerFirstObject = (object?: SelectObject) => () =>
     getSelectionObject(object)?.gizmoListener()
-
-export const mirrorFirstObject = (object?: SelectObject) =>
-    getSelectionObject(object)?.mirror()
 
 export function deSelectAll() {
     // hide transform controls

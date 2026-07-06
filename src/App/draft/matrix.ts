@@ -90,10 +90,16 @@ export function calculateBaseMatrixChild(node: TransformNode) {
     const projectionType = node.type
 
     switch (projectionType) {
-        case "root":
+        case "root": {
             node.baseMatrix.decompose(_position, _quaternion, _scale)
             node.baseMatrix.compose(node.position, _quaternion, _scale)
+            // decompose destroys reflected state in the matrix, we must recreate
+            const isReflected = _scale.x * _scale.y * _scale.z < 0
+            if (node.mirror !== isReflected) {
+                node.baseMatrix.premultiply(_mirrorXZ)
+            }
             break
+        }
         case "leaf":
             calculateProjectionMatrix(
                 node.parent.position,
@@ -108,7 +114,7 @@ export function calculateBaseMatrixChild(node: TransformNode) {
                 node.baseMatrix
             )
     }
-    if (node.mirror) {
+    if (node.type !== "root" && node.mirror) {
         node.baseMatrix.premultiply(_mirrorXZ)
     }
 }

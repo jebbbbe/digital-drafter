@@ -1,24 +1,4 @@
 import type { TransformNode } from "../draft/TransformNode"
-// import {
-//     NodeSelectionObject,
-//     SegmentSelectionObject,
-//     type SectionSegment,
-//     type SelectObject,
-//     type SelectType,
-// } from "./SelectionObject"
-
-// export {
-//     NodeSelectionObject,
-//     SegmentSelectionObject,
-//     SelectionObject,
-// } from "./SelectionObject"
-
-// export type {
-//     SectionSegment,
-//     SelectObject,
-//     SelectType,
-// } from "./SelectionObject"
-
 import { NodeSelectionObject } from "./NodeSelectionObject"
 import {
     SegmentSelectionObject,
@@ -29,10 +9,59 @@ import type { SelectType } from "./SelectionObject"
 
 export type SelectObject = NodeSelectionObject | SegmentSelectionObject
 
+type SelectionRunItem = SelectObject | TransformNode | SectionSegment
+type SelectionTargetKind = "TransformNode" | "SectionSegment"
+interface SelectionOperation<TItem = unknown> {
+    begin?(selection: TItem[]): void
+    apply(item: TItem, index: number, selection: TItem[]): void
+    end?(selection: TItem[]): void
+}
+
 export class SelectionManager {
     selection: SelectObject[]
     constructor(array: SelectObject[] = []) {
         this.selection = array
+    }
+
+    filterObjects(kind: "TransformNode"): NodeSelectionObject[]
+    filterObjects(kind: "SectionSegment"): SegmentSelectionObject[]
+    filterObjects(kind: SelectionTargetKind): SelectObject[] {
+        switch (kind) {
+            case "TransformNode":
+                return this.selection.filter(
+                    (item) => item instanceof NodeSelectionObject
+                )
+            case "SectionSegment":
+                return this.selection.filter(
+                    (item) => item instanceof SegmentSelectionObject
+                )
+            default:
+                return []
+        }
+    }
+
+    filterTargets(kind: "TransformNode"): TransformNode[]
+    filterTargets(kind: "SectionSegment"): SectionSegment[]
+    filterTargets(
+        kind: SelectionTargetKind
+    ): TransformNode[] | SectionSegment[] {
+        switch (kind) {
+            case "TransformNode":
+                return this.filterObjects(kind).map((item) => item.target)
+            case "SectionSegment":
+                return this.filterObjects(kind).map((item) => item.target)
+        }
+    }
+    run<TItem extends SelectionRunItem = SelectObject>(
+        operation: SelectionOperation<TItem>,
+        items: TItem[] = this.selection as unknown as TItem[]
+    ) {
+        const selection = [...items]
+        operation.begin?.(selection)
+        for (let i = 0; i < selection.length; i++) {
+            operation.apply(selection[i], i, selection)
+        }
+        operation.end?.(selection)
     }
     setSelectedUpdate(object: SelectObject, isSelected: boolean) {
         /*

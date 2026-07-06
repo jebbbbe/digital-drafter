@@ -58,10 +58,4 @@ export class NodeSelectionObject extends SelectionObject<TransformNode> {
     detachChildren() {
         detachNodeChildren(this.target)
     }
-
-    mirror() {
-        const node = this.target
-        node.mirror = !node.mirror
-        drafter.updatePatchedNode(node)
-    }
 }

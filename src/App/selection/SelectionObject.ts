@@ -35,6 +35,4 @@ export abstract class SelectionObject<TTarget> {
     detach() {}
 
     detachChildren() {}
-
-    mirror() {}
 }

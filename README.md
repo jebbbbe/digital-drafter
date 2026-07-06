@@ -165,3 +165,18 @@ https://github.com/WestLangley
 https://discourse.threejs.org/t/setdrawrange-on-three-line2/2891
 https://stackoverflow.com/questions/31399856/drawing-a-line-with-three-js-dynamically/31411794#31411794
 https://blog.fastforwardlabs.com/2017/10/04/first-look-using-three.js-for-2d-data-visualization.html
+
+# commands
+
+|     | command         | dfs update | gizmo        |
+| --- | --------------- | ---------- | ------------ |
+|     | add             | dfs leaf   |              |
+|     | delete          | dfs swap   | gizmo end    |
+|     | section Cut     | dfs leaf   |              |
+| x   | mirror          | dfs tree   |              |
+|     | detach          |            | gizmo update |
+|     | detach children |            |              |
+|     | detach all      |            | gizmo update |
+|     | boolOps         | dfs leaf   |              |
+|     | move            | dfs tree   | gizmo update |
+|     | transform       | dfs tree   | from gizmo   |
