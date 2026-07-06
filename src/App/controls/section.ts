@@ -1,5 +1,5 @@
 import * as THREE from "three"
-import { drafter, selection } from "../AppContext"
+import { drafter } from "../AppContext"
 import {
     createSectionAttachment,
     createSegmentAttachment,
@@ -10,12 +10,6 @@ import { evaluateCSG, boolean, csgEvaluator } from "../utils/csg"
 import type { SectionSegment } from "../selection"
 import type { InstanceItem } from "../draft/InstanceItem"
 import { SectionFaceGroup } from "../objects/attachments"
-
-export function createNewCutNodeFromSelection() {
-    const node = selection.firstNode()
-    if (!node) return
-    createNewCutNode(node)
-}
 
 const _up = new THREE.Vector3(0, 1, 0)
 const _offset = new THREE.Vector3()

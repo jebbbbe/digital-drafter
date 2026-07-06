@@ -35,13 +35,6 @@ export function addTestNode(x: number = 10, z: number = 5): void {
     )
 }
 
-export function addLeafNearbyRandomlyFromSelection() {
-    const node = selection.firstNode()
-    if (!node) return
-    // addLeafNearbyRandomly(node)
-    addLeafNearbyRandomlyNicely(node)
-}
-
 export function addLeafNearbyRandomly(node: TransformNode) {
     const r = rand.randomItem([2, 4])
     const t = rand.randomItem([

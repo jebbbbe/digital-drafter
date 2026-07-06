@@ -1,5 +1,4 @@
 import { controls } from "../../App/controls/controls"
-import { selection } from "../../App/AppContext"
 
 const spaceHoldMax = 20
 let spaceHoldCurr = 0
@@ -12,9 +11,7 @@ export const handleKeyboardDown = (keyEvent: KeyboardEvent) => {
     } else if (keyEvent.key === " ") {
         if (spaceHoldCurr < spaceHoldMax) {
             spaceHoldCurr++
-            const node = selection.firstNode()
-            if (!node) return
-            controls.addLeafNearbyRandomlyNicely(node)
+            controls.addLeafToSelectedNodes()
         }
     } else if (keyEvent.key === "Escape") {
         if (keyEvent.repeat) return

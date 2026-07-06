@@ -407,21 +407,15 @@ function Controls({ bridge }: any) {
                 disabled: true,
                 onChange: wControls.scaleRootFromSelection,
             },
-            "Add View": button(
-                () => controls.addLeafNearbyRandomlyFromSelection(),
-                {
-                    disabled: true,
-                }
-            ),
+            "Add View": button(() => controls.addLeafToSelectedNodes(), {
+                disabled: true,
+            }),
             "Delete View": button(() => controls.deleteFirstObject(), {
                 disabled: true,
             }),
-            "Section Cut": button(
-                () => controls.createNewCutNodeFromSelection(),
-                {
-                    disabled: true,
-                }
-            ),
+            "Section Cut": button(() => controls.cutSelectedNodes(), {
+                disabled: true,
+            }),
             "Mirror View": button(() => controls.mirrorSelectedNodes(), {
                 disabled: true,
             }),

@@ -170,9 +170,9 @@ https://blog.fastforwardlabs.com/2017/10/04/first-look-using-three.js-for-2d-dat
 
 |     | command         | dfs update | gizmo        |
 | --- | --------------- | ---------- | ------------ |
-|     | add             | dfs leaf   |              |
+| x   | add             | dfs leaf   |              |
 |     | delete          | dfs swap   | gizmo end    |
-|     | section Cut     | dfs leaf   |              |
+| x   | section Cut     | dfs leaf   |              |
 | x   | mirror          | dfs tree   |              |
 | x   | detach          |            | gizmo update |
 | x   | detach children |            |              |

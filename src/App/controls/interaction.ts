@@ -2,14 +2,37 @@ import * as THREE from "three"
 import type { SelectObject } from "../selection"
 import { selection, controllers, drafter } from "../AppContext"
 import * as levaStore from "../../components/Leva/LevaStore"
-import { detachNode, detachNodeChildren, mirrorNode } from "./nodes"
+import {
+    detachNode,
+    detachNodeChildren,
+    mirrorNode,
+    addLeafNearbyRandomlyNicely,
+} from "./nodes"
+import { createNewCutNode } from "./section"
 
-function getSelectionObject(object = selection.first()) {
-    return object
+export const deleteFirstObject = (object = selection.first()) => object.delete()
+
+export const addLeafToSelectedNodes = () => {
+    selection.run(
+        {
+            apply(node) {
+                addLeafNearbyRandomlyNicely(node)
+            },
+        },
+        selection.filterTargets("TransformNode")
+    )
 }
 
-export const deleteFirstObject = (object?: SelectObject) =>
-    getSelectionObject(object)?.delete()
+export const cutSelectedNodes = () => {
+    selection.run(
+        {
+            apply(node) {
+                createNewCutNode(node)
+            },
+        },
+        selection.filterTargets("TransformNode")
+    )
+}
 
 export const mirrorSelectedNodes = () => {
     selection.run(
@@ -50,18 +73,22 @@ export const detachChildrenSelectedNodes = () => {
 }
 
 export const moveFirstObject = (
-    object?: SelectObject,
+    object = selection.first(),
     startHit?: THREE.Vector3
 ) => {
     if (!startHit) return
-    return getSelectionObject(object)?.move(startHit)
+    return object.move(startHit)
 }
 
-export const gizmoSetupFirstObject = (object?: SelectObject) => () =>
-    getSelectionObject(object)?.gizmoSetup()
+export const gizmoSetupFirstObject =
+    (object = selection.first()) =>
+    () =>
+        object.gizmoSetup()
 
-export const gizmoListenerFirstObject = (object?: SelectObject) => () =>
-    getSelectionObject(object)?.gizmoListener()
+export const gizmoListenerFirstObject =
+    (object = selection.first()) =>
+    () =>
+        object.gizmoListener()
 
 export function deSelectAll() {
     // hide transform controls
