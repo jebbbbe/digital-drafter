@@ -86,6 +86,7 @@ export class ThreeControllersManager {
     }
 
     attachTransformProxy() {
+        if (!this.useTransformControls) return
         this.transformControls.attach(this.transformProxy)
     }
 

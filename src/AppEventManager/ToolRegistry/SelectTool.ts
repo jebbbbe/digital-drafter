@@ -1,7 +1,4 @@
-import {
-    Tool,
-    type NormalizedPointerEvent,
-} from "./Tool"
+import { Tool, type NormalizedPointerEvent } from "./Tool"
 import {
     SegmentSelectionObject,
     NodeSelectionObject,
@@ -75,31 +72,32 @@ export class SelectTool extends Tool {
         }
         console.log({ selectedObject })
 
+        let removed = false
         if (e.ctrlKey) {
             selection.remove(selectedObject)
-            return
+            removed = true
         } else {
             selection.add(selectedObject)
         }
 
-        if (controllers.useTransformControls) {
-            const gizmoSettings: Partial<GizmoSettings> = {
-                center: selection.averagePosition,
-            }
-
-            if (selection.map.size > 1) {
-                gizmoSettings.anchor = _zeroVec3
-                gizmoSettings.quaternion = _zeroQuaternion
-                gizmoSettings.preset = "translate"
-            } else {
-                controllers.attachTransformProxy()
-            }
-            selectedObject.gizmoSetup(gizmoSettings)
+        // controllers.attachTransformProxy()
+        // this.linkGizmo()
+        const gizmoSettings: Partial<GizmoSettings> = {
+            center: selection.averagePosition,
         }
+
+        if (selection.map.size > 1) {
+            gizmoSettings.anchor = _zeroVec3
+            gizmoSettings.quaternion = _zeroQuaternion
+            gizmoSettings.preset = "translate"
+        }
+
+        selectedObject.gizmoSetup(gizmoSettings)
+        controllers.attachTransformProxy()
+
         const panelSettings: Partial<PanelSettings> = {
             position: selection.averagePosition,
         }
-
         if (selection.map.size > 1) {
             panelSettings.usePosition = true
             panelSettings.useRotation = false
@@ -108,6 +106,7 @@ export class SelectTool extends Tool {
         }
         selectedObject.panelSetup(panelSettings)
 
+        if (removed) return
         if (selectedObject instanceof NodeSelectionObject) {
             this.eventManager.setTool("moveNode", selectedObject.target, hit)
         } else if (selectedObject instanceof SegmentSelectionObject) {
@@ -129,5 +128,4 @@ export class SelectTool extends Tool {
         }
         return false
     }
-
 }
