@@ -72,24 +72,6 @@ export const detachChildrenSelectedNodes = () => {
     )
 }
 
-export const moveFirstObject = (
-    object = selection.first(),
-    startHit?: THREE.Vector3
-) => {
-    if (!startHit) return
-    return object.move(startHit)
-}
-
-export const gizmoSetupFirstObject =
-    (object = selection.first()) =>
-    () =>
-        object.gizmoSetup()
-
-export const gizmoListenerFirstObject =
-    (object = selection.first()) =>
-    () =>
-        object.gizmoListener()
-
 export function deSelectAll() {
     // hide transform controls
     controllers.detachTransformControls()
