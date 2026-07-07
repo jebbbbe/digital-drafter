@@ -2,7 +2,7 @@ import type { AppContext } from "../App/AppContext"
 import type { Tool, NormalizedPointerEvent } from "./ToolRegistry"
 import { handleKeyboardDown, handleKeyboardUp } from "./ToolRegistry/keyboard"
 
-export type ToolId = "select" | "insert"
+export type ToolId = "select" | "insert" | "moveNode" | "moveSegment"
 
 export class AppEventManager {
     ctx!: AppContext
@@ -59,12 +59,11 @@ export class AppEventManager {
         this.currentTool.cancel()
     }
 
-    setTool(id: ToolId) {
-        if (id === this.currentToolId) return
+    setTool(id: ToolId, ...args: unknown[]) {
         this.currentTool.cancel()
         this.currentToolId = id
         this.currentTool = this.get(id)
-        this.currentTool.enter()
+        this.currentTool.enter(...args)
     }
 
     normalizePointerEvent(e: PointerEvent): NormalizedPointerEvent {

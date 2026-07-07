@@ -16,7 +16,7 @@ export abstract class Tool {
         this.ctx = ctx
         this.eventManager = eventManager
     }
-    enter(): void {}
+    enter(..._args: unknown[]): void {}
 
     exit(): void {
         this.cancel()
@@ -43,102 +43,12 @@ export abstract class Tool {
 
     linkGizmo() {
         const { selection } = this.ctx
-        console.log("Tool")
-        console.log(selection)
+        console.log("linkGizmo")
+        // console.log(selection)
     }
     linkPanel() {
         const { selection } = this.ctx
-        console.log("Tool")
-        console.log(selection)
-    }
-}
-
-export abstract class Interaction {
-    protected readonly ctx: AppContext
-    constructor(ctx: AppContext) {
-        this.ctx = ctx
-    }
-
-    start(_event: NormalizedPointerEvent): void {}
-
-    cancel(): void {}
-
-    onPointerMove(_event: NormalizedPointerEvent): boolean {
-        return false
-    }
-
-    onPointerUp(_event: NormalizedPointerEvent): boolean {
-        return true
-    }
-
-    onPointerCancel(_event: NormalizedPointerEvent): boolean {
-        this.cancel()
-        return true
-    }
-
-    onKeyDown(_event: KeyboardEvent): boolean {
-        return false
-    }
-    onKeyUp(_event: KeyboardEvent): boolean {
-        return false
-    }
-
-    linkGizmo() {
-        const { selection } = this.ctx
-        console.log("Interaction")
-        console.log(selection)
-    }
-    linkPanel() {
-        const { selection } = this.ctx
-        console.log("Interaction")
-        console.log(selection)
-    }
-}
-
-export abstract class InteractiveTool extends Tool {
-    protected interaction: Interaction | null = null
-
-    override cancel(): void {
-        this.interaction?.cancel()
-        this.interaction = null
-    }
-
-    override onPointerMove(event: NormalizedPointerEvent): boolean {
-        return this.interaction?.onPointerMove(event) ?? false
-    }
-
-    override onPointerUp(event: NormalizedPointerEvent): boolean {
-        if (!this.interaction) return false
-
-        const handled = this.interaction.onPointerUp(event)
-        this.interaction = null
-
-        return handled
-    }
-
-    override onPointerCancel(event: NormalizedPointerEvent): boolean {
-        if (!this.interaction) return false
-
-        const handled = this.interaction.onPointerCancel(event)
-        this.interaction = null
-
-        return handled
-    }
-
-    override onKeyDown(event: KeyboardEvent): boolean {
-        return this.interaction?.onKeyDown(event) ?? false
-    }
-
-    override onKeyUp(event: KeyboardEvent): boolean {
-        return this.interaction?.onKeyUp(event) ?? false
-    }
-
-    protected startInteraction(
-        interaction: Interaction,
-        event: NormalizedPointerEvent
-    ): void {
-        this.cancel()
-        this.interaction = interaction
-        this.interaction.start(event)
+        console.log("linkPanel")
+        // console.log(selection)
     }
 }

@@ -14,6 +14,8 @@ export async function linkThreeApp(container: HTMLElement) {
     const { eventManager } = ctx
     eventManager.register("select", new Tools.SelectTool(ctx, eventManager))
     eventManager.register("insert", new Tools.InsertTool(ctx, eventManager))
+    eventManager.register("moveNode", new Tools.MoveNodeTool(ctx, eventManager))
+    eventManager.register("moveSegment", new Tools.MoveSegmentTool(ctx, eventManager))
     eventManager.setContext(ctx, "select")
 
     // set up the sccene

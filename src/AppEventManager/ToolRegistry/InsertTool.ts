@@ -21,7 +21,7 @@ export class InsertTool extends Tool {
 
         const selected = this.ctx.selection.first()
         if (selected && this.ctx.controllers.useTransformControls) {
-            selected.gizmoSetup()
+            selected.gizmoSetup({})
             this.ctx.controllers.attachTransformProxy()
         }
     }
