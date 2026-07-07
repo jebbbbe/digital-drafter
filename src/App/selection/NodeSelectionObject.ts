@@ -1,11 +1,16 @@
 import { SelectionObject, type SelectType } from "./SelectionObject"
 import * as THREE from "three"
 import type { TransformNode } from "../draft/TransformNode"
+import type { GizmoSettings } from "./ThreeControllersManager"
+import type { PanelSettings } from "../../components/Leva/LevaStore"
 import { getSlotIndex } from "../objects/textures/GlobalTreeTexture"
-import { pruneNode } from "../controls/nodes"
+import { pruneNode, getLevaArgs } from "../controls/nodes"
 import { drafter, controllers } from "../AppContext"
 import { moveNodeToPosition } from "../controls/move"
 import { deSelectAll } from "../controls/interaction"
+import { updatePanel } from "../../components/Leva/LevaStore"
+
+const _quaternion = new THREE.Quaternion()
 
 export class NodeSelectionObject extends SelectionObject<TransformNode> {
     get kind(): Exclude<SelectType, "SectionSegment"> {
@@ -15,30 +20,44 @@ export class NodeSelectionObject extends SelectionObject<TransformNode> {
         return "leaf"
     }
 
-    move(_startHit: THREE.Vector3) {
+    override move(_startHit: THREE.Vector3) {
         return undefined
     }
 
-    gizmoSetup() {
-        const node = this.target
-        controllers.setGizmoTranslate()
-        controllers.cachedAnchorOffset.set(0, 0, 0)
-
-        const anchor = drafter.getNodesAnchoredCenter(node)
-        controllers.setAnchorCache(node.position, anchor)
-        controllers.setGizmoPosition(node.position)
+    override getCenter() {
+        return this.target.position
     }
 
-    gizmoListener() {
+    override gizmoSetup(settings: Partial<GizmoSettings>) {
+        const node = this.target
+        const defaultGizmo: GizmoSettings = {
+            anchor: drafter.getNodesAnchoredCenter(node),
+            center: node.position,
+            quaternion: _quaternion,
+            preset: "translate",
+        }
+        settings = { ...defaultGizmo, ...settings }
+        controllers.setGizmoSettings(settings as GizmoSettings)
+    }
+
+    override panelSetup(settings: Partial<PanelSettings>) {
+        const node = this.target
+        const defaultPanel = getLevaArgs(node)
+        settings = { ...defaultPanel, ...settings }
+        updatePanel(settings as PanelSettings)
+    }
+
+    override gizmoListener() {
+        console.log(controllers.getGizmoPosition())
         moveNodeToPosition(this.target, controllers.getGizmoPosition())
     }
 
-    delete() {
+    override delete() {
         deSelectAll()
         pruneNode(this.target)
     }
 
-    setSelected(isSelected: boolean) {
+    override setSelected(isSelected: boolean) {
         const slot = getSlotIndex(this.target.location)
         drafter.globalTreeTexture.writeNodeSelected(slot, isSelected)
         drafter.globalTreeTexture.sendUpdate(slot)

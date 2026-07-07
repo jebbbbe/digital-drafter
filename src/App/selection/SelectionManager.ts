@@ -1,3 +1,4 @@
+import * as THREE from "three"
 import type { TransformNode } from "../draft/TransformNode"
 import { NodeSelectionObject } from "./NodeSelectionObject"
 import {
@@ -7,8 +8,32 @@ import {
 
 import type { SelectType } from "./SelectionObject"
 
-export type SelectObject = NodeSelectionObject | SegmentSelectionObject
+export class AveragePosition extends THREE.Vector3 {
+    count = 0
+    addToAverage(pos: THREE.Vector3) {
+        this.multiplyScalar(this.count)
+        this.add(pos)
+        this.count++
+        this.divideScalar(this.count)
+    }
+    removeFromAverage(pos: THREE.Vector3) {
+        if (this.count === 1) {
+            this.resetAverage()
+            return
+        }
+        this.multiplyScalar(this.count)
+        this.sub(pos)
+        this.count--
+        this.divideScalar(this.count)
+    }
+    resetAverage() {
+        this.set(0, 0, 0)
+        this.count = 0
+    }
+}
 
+export type SelectObject = NodeSelectionObject | SegmentSelectionObject
+type SelectionKey = TransformNode | SectionSegment | number
 type SelectionRunItem = SelectObject | TransformNode | SectionSegment
 type SelectionTargetKind = "TransformNode" | "SectionSegment"
 interface SelectionOperation<TItem = unknown> {
@@ -18,9 +43,13 @@ interface SelectionOperation<TItem = unknown> {
 }
 
 export class SelectionManager {
-    selection: SelectObject[]
+    map: Map<SelectionKey, SelectObject>
+    averagePosition = new AveragePosition()
     constructor(array: SelectObject[] = []) {
-        this.selection = array
+        this.map = new Map()
+    }
+    items() {
+        return [...this.map.values()]
     }
 
     filterObjects(kind: "TransformNode"): NodeSelectionObject[]
@@ -28,11 +57,11 @@ export class SelectionManager {
     filterObjects(kind: SelectionTargetKind): SelectObject[] {
         switch (kind) {
             case "TransformNode":
-                return this.selection.filter(
+                return this.items().filter(
                     (item) => item instanceof NodeSelectionObject
                 )
             case "SectionSegment":
-                return this.selection.filter(
+                return this.items().filter(
                     (item) => item instanceof SegmentSelectionObject
                 )
             default:
@@ -54,7 +83,7 @@ export class SelectionManager {
     }
     run<TItem extends SelectionRunItem = SelectObject>(
         operation: SelectionOperation<TItem>,
-        items: TItem[] = this.selection as unknown as TItem[]
+        items: TItem[] = this.items() as unknown as TItem[]
     ) {
         const selection = [...items]
         operation.begin?.(selection)
@@ -72,69 +101,45 @@ export class SelectionManager {
 		*/
         object.setSelected(isSelected)
     }
-    push(item: SelectObject): boolean {
-        // check if item already in the seleciton
-        const hasSeen = this.selection.some((selected) => {
-            if (
-                selected instanceof NodeSelectionObject &&
-                item instanceof NodeSelectionObject
-            ) {
-                return selected.target === item.target
-            }
-
-            if (
-                selected instanceof SegmentSelectionObject &&
-                item instanceof SegmentSelectionObject
-            ) {
-                return (
-                    selected.target.object === item.target.object &&
-                    selected.target.index === item.target.index
-                )
-            }
-
-            return false
-        })
-
-        if (hasSeen) return true
-
-        this.setSelectedUpdate(item, true)
-        this.selection.push(item)
-        return false
-    }
-    set(array: SelectObject[]) {
-        this.clear()
-        for (let i = 0; i < array.length; i++) {
-            const item = array[i]
-            this.selection[i] = item
+    add(item: SelectObject) {
+        const target = (item.target as any).index ?? item.target
+        if (!this.map.has(target)) {
             this.setSelectedUpdate(item, true)
+            this.averagePosition.addToAverage(item.getCenter())
         }
+        this.map.set(target, item)
+
+        // console.log(this)
+        // console.log(this.averagePosition)
     }
-    pop() {
-        const item = this.selection.pop()
-        if (item !== undefined) this.setSelectedUpdate(item, false)
-        return item
-    }
-    shift() {
-        const item = this.selection.shift()
-        if (item !== undefined) this.setSelectedUpdate(item, false)
-        return item
+    remove(item: SelectObject) {
+        const target = (item.target as any).index ?? item.target
+        if (this.map.has(target)) {
+            this.setSelectedUpdate(item, false)
+            this.averagePosition.removeFromAverage(item.getCenter())
+        }
+        this.map.delete(target)
+
+        // console.log(this)
+        // console.log(this.averagePosition)
     }
     clear() {
-        for (let i = 0; i < this.selection.length; i++) {
-            const item = this.selection[i]
+        for (const item of this.items()) {
             this.setSelectedUpdate(item, false)
         }
-        this.selection.length = 0
+        this.averagePosition.resetAverage()
+        this.map.clear()
     }
+
     first() {
-        return this.selection[0]
+        return this.items()[0]
     }
     firstTarget(search: "SectionSegment"): SectionSegment | undefined
     firstTarget(
         search: Exclude<SelectType, "SectionSegment">
     ): TransformNode | undefined
     firstTarget(search?: SelectType) {
-        const item = this.selection[0]
+        const item = this.first()
         if (!item) return undefined
         if (search === undefined) return item.target
         if (item.kind !== search) return undefined
@@ -142,25 +147,15 @@ export class SelectionManager {
     }
     // get fisrt item if its a node,
     firstNode(): TransformNode | undefined {
-        const item = this.selection[0]
+        const item = this.first()
         if (!item || !(item instanceof NodeSelectionObject)) return
         return item.target
     }
     firstSegment(): SectionSegment | undefined {
-        const item = this.selection[0]
+        const item = this.first()
         if (!item || !(item instanceof SegmentSelectionObject)) return
         return item.target
     }
-    remove(item: SelectObject) {
-        const idx = this.selection.indexOf(item)
-        if (idx !== -1) {
-            const item = this.selection[idx]
-            this.setSelectedUpdate(item, false)
-            this.selection.splice(idx, 1)
-        }
-        return item
-    }
-
     transformCallback() {
         const object = this.first()
         if (object) {

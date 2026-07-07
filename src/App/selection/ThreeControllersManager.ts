@@ -6,6 +6,14 @@ import type { SelectionManager } from "./SelectionManager"
 let _prevEnableTransform: boolean = false
 const _nodePosition = new THREE.Vector3()
 
+export type GizmoPreset = "translate" | "translate1d" | "rotate"
+export type GizmoSettings = {
+    anchor: THREE.Vector3
+    center: THREE.Vector3
+    quaternion: THREE.Quaternion
+    preset: GizmoPreset
+}
+
 export class ThreeControllersManager {
     orbitControls: OrbitControls
     transformControls: TransformControls
@@ -26,13 +34,28 @@ export class ThreeControllersManager {
             "dragging-changed",
             this.handleTransformDraggingChanged
         )
-        this.transformControls.addEventListener(
-			"objectChange", 
-			() =>selection.transformCallback()
+        this.transformControls.addEventListener("objectChange", () =>
+            selection.transformCallback()
         )
+    }
+    setGizmoSettings(settings: GizmoSettings) {
+        const { anchor, center, quaternion, preset } = settings
+        this.setAnchorCache(anchor)
+        this.setGizmoPosition(center)
+        this.setGizmoQuaternion(quaternion)
+        this.setGizmoPreset(preset)
     }
 
     //gizmo
+    setGizmoPreset(preset: GizmoPreset) {
+        if (preset === "translate") {
+            this.setGizmoTranslate()
+        } else if (preset === "translate1d") {
+            this.setGizmoTranslate1d()
+        } else if (preset === "rotate") {
+            this.setGizmoRotate()
+        }
+    }
     setGizmoTranslate() {
         this.transformControls.setMode("translate")
         this.transformControls.setSpace("world")
@@ -83,8 +106,8 @@ export class ThreeControllersManager {
         this.transformProxy.updateMatrixWorld(true)
     }
 
-    setAnchorCache(nodePosition: THREE.Vector3, anchoredCenter: THREE.Vector3) {
-        this.cachedAnchorOffset.subVectors(anchoredCenter, nodePosition)
+    setAnchorCache(anchoredCenter: THREE.Vector3) {
+        this.cachedAnchorOffset.copy(anchoredCenter)
     }
 
     getGizmoPosition(target = _nodePosition) {

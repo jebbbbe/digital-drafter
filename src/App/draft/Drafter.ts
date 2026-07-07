@@ -131,6 +131,7 @@ export class Drafter {
     ) {
         const instanceItem = this.getInstance(node.location.id)
         target.copy(instanceItem.anchor).applyMatrix4(node.compoundMatrix)
+        target.sub(node.position)
         target.y = 0
         return target
     }
@@ -451,14 +452,14 @@ export class Drafter {
             nodePatchArray = [nodePatchArray]
         }
 
-		// out nodes are always unique
+        // out nodes are always unique
         // nodePatchArray = [...new Set(nodePatchArray)]
 
         for (let i = 0; i < nodePatchArray.length; i++) {
             calculateBaseMatrix(nodePatchArray[i])
         }
 
-		// can we keep track of this on each node..?
+        // can we keep track of this on each node..?
         const depth = (node: TransformNode) => {
             let count = 0
             let current = node

@@ -1,3 +1,4 @@
+import * as THREE from "three"
 import { levaStore } from "leva"
 import type { SettingsDisplay } from "../../App/themes/default"
 
@@ -107,7 +108,6 @@ export function syncLevaDisplayStub({
     positionValue,
     rotateValue,
     scaleValue,
-    // }: NodeValues): void {
 }: any): void {
     const sync = {} as any
 
@@ -186,4 +186,77 @@ export function syncLevaInsertOptions(_options: Record<string, unknown>) {
     })
     // console.log(levaStore)
     // console.log(levaStore.getData()["Insert"])
+}
+
+const levaPosition = {
+    x: 0,
+    z: 0,
+}
+const levaRotation = {
+    x: 0,
+    y: 0,
+}
+const levaScale = {
+    x: 1,
+}
+
+export const levaState = {
+    levaPosition,
+    levaRotation,
+    levaScale,
+}
+
+const defaultValues = {
+    levaPosition: { ...levaPosition },
+    levaRotation: { ...levaRotation },
+    levaScale: { ...levaScale },
+}
+
+export type PanelSettings = {
+    position: THREE.Vector3 | { x: number; z: number }
+    rotation: THREE.Vector3 | { x: number; y: number }
+    scale: number
+    usePosition: boolean
+    useRotation: boolean
+    useScale: boolean
+    useButtons: boolean
+}
+
+export function updatePanel({
+    position,
+    rotation,
+    scale,
+    usePosition,
+    useRotation,
+    useScale,
+    useButtons,
+}: PanelSettings) {
+    let positionValue = { ...defaultValues.levaPosition }
+    let rotateValue = { ...defaultValues.levaRotation }
+    let scaleValue = defaultValues.levaScale.x
+
+    if (usePosition) {
+        positionValue.x = position.x
+        positionValue.z = position.z
+    }
+
+    if (useRotation) {
+        rotateValue.x = rotation.x
+        rotateValue.y = rotation.y
+    }
+
+    if (useScale) {
+        scaleValue = scale
+    }
+
+    syncLevaDisplayStub({
+        positionValue,
+        rotateValue,
+        scaleValue,
+    })
+
+    levaStore.disableInputAtPath(panelPaths.stubPos, usePosition)
+    levaStore.disableInputAtPath(panelPaths.stubRot, useRotation)
+    levaStore.disableInputAtPath(panelPaths.stubScale, useScale)
+    setButtonsDisabled(useButtons)
 }

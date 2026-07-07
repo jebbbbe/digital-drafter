@@ -1,5 +1,7 @@
 import * as THREE from "three"
 import type { Mesh } from "three"
+import type { GizmoSettings } from "./ThreeControllersManager"
+import type { PanelSettings } from "../../components/Leva/LevaStore"
 
 export type SectionSegment = {
     object: Mesh
@@ -24,7 +26,11 @@ export abstract class SelectionObject<TTarget> {
 
     abstract move(startHit: THREE.Vector3): unknown
 
-    abstract gizmoSetup(): void
+    abstract getCenter(): THREE.Vector3
+
+    abstract gizmoSetup(override: Partial<GizmoSettings>): void
+
+    abstract panelSetup(override: Partial<PanelSettings>): void
 
     abstract gizmoListener(): void
 

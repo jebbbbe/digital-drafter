@@ -6,12 +6,12 @@ export type NormalizedPointerEvent = {
     screen: { x: number; y: number }
     shift: boolean
     alt: boolean
+    ctrl: boolean
 }
 
-
 export abstract class Tool {
-    ctx!: AppContext
-    eventManager!: AppEventManager
+    protected ctx: AppContext
+    protected eventManager: AppEventManager
     constructor(ctx: AppContext, eventManager: AppEventManager) {
         this.ctx = ctx
         this.eventManager = eventManager
@@ -40,10 +40,24 @@ export abstract class Tool {
     onKeyUp(event: KeyboardEvent): boolean {
         return false
     }
+
+    linkGizmo() {
+        const { selection } = this.ctx
+        console.log("Tool")
+        console.log(selection)
+    }
+    linkPanel() {
+        const { selection } = this.ctx
+        console.log("Tool")
+        console.log(selection)
+    }
 }
 
 export abstract class Interaction {
-    constructor(ctx: AppContext) {}
+    protected readonly ctx: AppContext
+    constructor(ctx: AppContext) {
+        this.ctx = ctx
+    }
 
     start(_event: NormalizedPointerEvent): void {}
 
@@ -67,6 +81,17 @@ export abstract class Interaction {
     }
     onKeyUp(_event: KeyboardEvent): boolean {
         return false
+    }
+
+    linkGizmo() {
+        const { selection } = this.ctx
+        console.log("Interaction")
+        console.log(selection)
+    }
+    linkPanel() {
+        const { selection } = this.ctx
+        console.log("Interaction")
+        console.log(selection)
     }
 }
 

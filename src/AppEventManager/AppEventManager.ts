@@ -2,7 +2,7 @@ import type { AppContext } from "../App/AppContext"
 import type { Tool, NormalizedPointerEvent } from "./ToolRegistry"
 import { handleKeyboardDown, handleKeyboardUp } from "./ToolRegistry/keyboard"
 
-export type ToolId = "select" | "move" | "insert"
+export type ToolId = "select" | "insert"
 
 export class AppEventManager {
     ctx!: AppContext
@@ -84,6 +84,7 @@ export class AppEventManager {
             screen: pointer,
             shift: e.shiftKey,
             alt: e.altKey,
+            ctrl: e.ctrlKey,
         }
     }
 

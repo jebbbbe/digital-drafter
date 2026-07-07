@@ -17,7 +17,13 @@ import { getNodevalues } from "../../App/controls/nodes"
 import { moveNodeToPosition } from "../../App/controls/move"
 import * as levaStore from "../../components/Leva/LevaStore"
 
+import type { GizmoSettings } from "../../App/selection/ThreeControllersManager"
+import type { PanelSettings } from "../../components/Leva/LevaStore"
+
 const startHit = new THREE.Vector3()
+
+const _zeroVec3 = new THREE.Vector3()
+const _zeroQuaternion = new THREE.Quaternion()
 
 abstract class InteractionMode extends Interaction {
     protected finished = false
@@ -28,7 +34,6 @@ abstract class InteractionMode extends Interaction {
 }
 
 class NodeMoveInteractionMode extends InteractionMode {
-    private readonly ctx: AppContext
     private readonly node: TransformNode
     private readonly prevHit = new THREE.Vector3().copy(startHit)
     private readonly candidatePosition = new THREE.Vector3()
@@ -40,11 +45,10 @@ class NodeMoveInteractionMode extends InteractionMode {
 
     constructor(ctx: AppContext, node: TransformNode) {
         super(ctx)
-        this.ctx = ctx
         this.node = node
 
-        levaStore.syncLevaDisplayStub(getNodevalues(node))
-        levaStore.enableNodeStub(node.parent === node)
+        // levaStore.syncLevaDisplayStub(getNodevalues(node))
+        // levaStore.enableNodeStub(node.parent === node)
 
         const hasParentConstraint = this.node.parent !== this.node
         this.parentPosition = hasParentConstraint
@@ -86,8 +90,12 @@ class NodeMoveInteractionMode extends InteractionMode {
         this.prevHit.copy(hit)
 
         const anchor = this.ctx.drafter.getNodesAnchoredCenter(this.node)
-        this.ctx.controllers.setAnchorCache(this.node.position, anchor)
+        this.ctx.controllers.setAnchorCache(anchor)
+
         moveNodeToPosition(this.node, this.candidatePosition)
+
+        this.linkGizmo()
+        this.linkPanel()
 
         return true
     }
@@ -110,7 +118,6 @@ class NodeMoveInteractionMode extends InteractionMode {
 }
 
 class SegmentMoveInteractionMode extends InteractionMode {
-    private readonly ctx: AppContext
     private readonly line: SectionSegment
     private readonly prevHit = new THREE.Vector3().copy(startHit)
     private readonly delta = new THREE.Vector3()
@@ -123,7 +130,6 @@ class SegmentMoveInteractionMode extends InteractionMode {
 
     constructor(ctx: AppContext, line: SectionSegment) {
         super(ctx)
-        this.ctx = ctx
         this.line = line
         this.sectionCutter = this.ctx.drafter.sectionCutter
 
@@ -213,9 +219,10 @@ export class SelectTool extends InteractiveTool {
 
         // nothing hit!
         if (intersects.length === 0) {
-            if (e.shiftKey === false) {
+            if (!e.shiftKey && !e.ctrlKey) {
                 deSelectAll()
             }
+
             return
         }
 
@@ -225,7 +232,7 @@ export class SelectTool extends InteractiveTool {
         if (!hit) return
 
         //clear seleciton
-        if (!e.shiftKey) {
+        if (!e.shiftKey && !e.ctrlKey) {
             selection.clear()
         }
 
@@ -251,13 +258,40 @@ export class SelectTool extends InteractiveTool {
 
             selectedObject = new NodeSelectionObject(node)
         }
-        const seen = selection.push(selectedObject)
-        if (seen) return
+        console.log({ selectedObject })
+
+        if (e.ctrlKey) {
+            selection.remove(selectedObject)
+            return
+        } else {
+            selection.add(selectedObject)
+        }
 
         if (controllers.useTransformControls) {
-            selectedObject.gizmoSetup()
-            controllers.attachTransformProxy()
+            const gizmoSettings: Partial<GizmoSettings> = {
+                center: selection.averagePosition,
+            }
+
+            if (selection.map.size > 1) {
+                gizmoSettings.anchor = _zeroVec3
+                gizmoSettings.quaternion = _zeroQuaternion
+                gizmoSettings.preset = "translate"
+            } else {
+                controllers.attachTransformProxy()
+            }
+            selectedObject.gizmoSetup(gizmoSettings)
         }
+        const panelSettings: Partial<PanelSettings> = {
+            position: selection.averagePosition,
+        }
+
+        if (selection.map.size > 1) {
+            panelSettings.usePosition = true
+            panelSettings.useRotation = false
+            panelSettings.useScale = false
+            panelSettings.useButtons = true
+        }
+        selectedObject.panelSetup(panelSettings)
 
         this.cancel()
 
@@ -276,10 +310,7 @@ export class SelectTool extends InteractiveTool {
 
     gizmoClicked(e: PointerEvent): boolean {
         const { controllers, selection, raycastHelper } = this.ctx
-        if (
-            controllers.useTransformControls &&
-            selection.selection.length > 0
-        ) {
+        if (controllers.useTransformControls && selection.map.size > 0) {
             const gizmoHits = raycastHelper.castFromEvent(
                 e,
                 [controllers.transformControls.getHelper()],

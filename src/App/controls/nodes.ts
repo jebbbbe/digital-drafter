@@ -125,7 +125,7 @@ export function moveNodeFromSelection(pos: { x: number; z: number }) {
     drafter.updatePatchedNode(node)
 
     const anchor = drafter.getNodesAnchoredCenter(node)
-    controllers.setAnchorCache(node.position, anchor)
+    controllers.setAnchorCache(anchor)
     controllers.setGizmoPosition(node.position)
 }
 
@@ -162,15 +162,15 @@ export function scaleRootFromSelection(n: number) {
 
 // manager -> leva
 export type NodeMatrixValues = {
-    positionValue?: { x: number; z: number } | undefined
-    rotateValue?: { x: number; y: number } | undefined
-    scaleValue?: number | undefined
+    positionValue: { x: number; z: number }
+    rotateValue: { x: number; y: number }
+    scaleValue: number
 }
 
 export function getNodevalues(node: TransformNode): NodeMatrixValues {
     const isRoot = node === node.parent
 
-    const values = {} as NodeMatrixValues
+    const values = {} as Partial<NodeMatrixValues>
 
     const matrix = node.baseMatrix
     matrix.decompose(_position, _quaternion, _scale)
@@ -188,7 +188,22 @@ export function getNodevalues(node: TransformNode): NodeMatrixValues {
         values.rotateValue = { x: 0, y: 0 }
         values.scaleValue = 1.0
     }
-    return values
+    const result = values as Required<NodeMatrixValues>
+    return result
+}
+
+export function getLevaArgs(node: TransformNode) {
+    const isRoot = node === node.parent
+    const values = getNodevalues(node)
+    return {
+        position: values.positionValue,
+        rotation: values.rotateValue,
+        scale: values.scaleValue,
+        usePosition: true,
+        useRotation: isRoot,
+        useScale: isRoot,
+        useButtons: true,
+    }
 }
 
 export function insertGeometry(geo: THREE.BufferGeometry) {
@@ -203,7 +218,7 @@ export function insertGeometry(geo: THREE.BufferGeometry) {
     const node = drafter.addRootNode(rootNode)
     if (!node) return
     selection.clear()
-    selection.push(new NodeSelectionObject(node))
+    selection.add(new NodeSelectionObject(node))
     eventManager.setTool("insert")
 }
 
