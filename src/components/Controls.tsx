@@ -4,7 +4,8 @@ import { button, buttonGroup, folder, Leva, useControls } from "leva"
 const isDev = import.meta.env.DEV
 
 function Controls({ bridge }: any) {
-    const { controls, settings, themeOptions, geometryTitles } = bridge
+    const { controls, settings, themeOptions, geometryTitles, panelTool } =
+        bridge
 
     const [levaTheme, setLevaTheme] = useState(
         () => settings.display.leva ?? {}
@@ -31,6 +32,7 @@ function Controls({ bridge }: any) {
                         if (context?.disabled) return
                         if (!context?.fromPanel) return
                         // console.log({ value, path, context })
+                        // console.log(fn)
                         return fn(value)
                     },
                 ]
@@ -38,6 +40,15 @@ function Controls({ bridge }: any) {
         ) as T
     }
     const wControls = wrapControls(controls)
+    const panelUpdates = {
+        onMoveStart: (...args: any[]) => {
+            panelTool.onMoveStart(args[0])
+        },
+        onMove: (...args: any[]) => {
+            panelTool.onMove(args[0])
+        },
+    }
+    const wPanelTool = wrapControls(panelUpdates)
 
     const schema = useMemo(() => {
         const Export = folder(
@@ -384,10 +395,24 @@ function Controls({ bridge }: any) {
                 min: -100,
                 max: 100,
                 step: 0.01,
-                disabled: true,
                 // lock: true,
                 joystick: false,
-                onChange: wControls.moveNodeFromSelection,
+                onEditStart(value, path, context) {
+                    console.log(context)
+                    // wPanelTool.onMoveStart(value, path, context)
+                    if (context?.disabled) return
+                    if (!context?.fromPanel) return
+                    panelTool.onMoveStart(value)
+                },
+                // onChange: wControls.moveNodeFromSelection,
+                onChange(value, path, context) {
+                    // console.log(value)
+                    // wPanelTool.onMove(value)
+                    wPanelTool.onMove(value, path, context)
+                    // if (context?.disabled) return
+                    // if (!context?.fromPanel) return
+                    // console.log("onChange")
+                },
             },
             rotate: {
                 value: {

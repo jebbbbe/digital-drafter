@@ -79,8 +79,8 @@ export class SegmentSelectionObject extends SelectionObject<SectionSegment> {
         updatePanel(settings as PanelSettings)
     }
 
-    override gizmoListener() {
-        moveSegmentToPosition(this.target, controllers.getGizmoPosition())
+    override gizmoListener(position = controllers.getGizmoPosition()) {
+        moveSegmentToPosition(this.target, position)
     }
 
     override delete() {

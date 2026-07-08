@@ -35,6 +35,9 @@ export async function linkThreeApp(container: HTMLElement) {
         transform.onTransform()
     )
 
+    //Panel Tool
+    const panelTool = new Tools.PanelTool(ctx, eventManager)
+
     // set up the sccene
     controls.setUpDrafter()
 
@@ -51,6 +54,7 @@ export async function linkThreeApp(container: HTMLElement) {
             settings,
             themeOptions,
             geometryTitles,
+            panelTool,
         },
         dispose: () => {
             eventManager.dispose()

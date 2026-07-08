@@ -47,8 +47,8 @@ export class NodeSelectionObject extends SelectionObject<TransformNode> {
         updatePanel(settings as PanelSettings)
     }
 
-    override gizmoListener() {
-        moveNodeToPosition(this.target, controllers.getGizmoPosition())
+    override gizmoListener(position = controllers.getGizmoPosition()) {
+        moveNodeToPosition(this.target, position)
     }
 
     override delete() {
