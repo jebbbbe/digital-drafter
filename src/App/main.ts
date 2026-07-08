@@ -92,7 +92,6 @@ export function init(
     orbitControls = initOrbit(camera, renderer)
     const transformControls = new TransformControls(camera, renderer.domElement)
     controllers = new ThreeControllersManager(
-        selection,
         orbitControls,
         transformControls,
         true

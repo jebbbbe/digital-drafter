@@ -9,6 +9,7 @@ import {
     addLeafNearbyRandomlyNicely,
 } from "./nodes"
 import { createNewCutNode } from "./section"
+import { moveNodeDelta } from "./move"
 
 export const deleteFirstObject = (object = selection.first()) => object.delete()
 
@@ -67,6 +68,20 @@ export const detachChildrenSelectedNodes = () => {
                 detachNodeChildren(node, false)
             },
             end(nodes) {},
+        },
+        selection.filterTargets("TransformNode")
+    )
+}
+
+export const moveDeltaSelectedNodes = (delta: THREE.Vector3) => {
+    selection.run(
+        {
+            apply(node) {
+                moveNodeDelta(node, delta, false)
+            },
+            end(nodes) {
+                drafter.updatePatchedNodeArray(nodes)
+            },
         },
         selection.filterTargets("TransformNode")
     )

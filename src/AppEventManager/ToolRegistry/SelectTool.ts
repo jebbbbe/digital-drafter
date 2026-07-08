@@ -88,9 +88,13 @@ export class SelectTool extends Tool {
 
         this.linkPanel()
         this.linkGizmo()
-        if (removed) return
 
-        if (selectedObject instanceof NodeSelectionObject) {
+        if (removed) {
+            return
+        } else if (selection.map.size > 1) {
+            console.log(hit)
+            this.eventManager.setTool("moveSelection", hit)
+        } else if (selectedObject instanceof NodeSelectionObject) {
             this.eventManager.setTool("moveNode", selectedObject.target, hit)
         } else if (selectedObject instanceof SegmentSelectionObject) {
             this.eventManager.setTool("moveSegment", selectedObject.target, hit)

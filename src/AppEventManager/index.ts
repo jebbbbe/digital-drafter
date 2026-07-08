@@ -15,8 +15,25 @@ export async function linkThreeApp(container: HTMLElement) {
     eventManager.register("select", new Tools.SelectTool(ctx, eventManager))
     eventManager.register("insert", new Tools.InsertTool(ctx, eventManager))
     eventManager.register("moveNode", new Tools.MoveNodeTool(ctx, eventManager))
-    eventManager.register("moveSegment", new Tools.MoveSegmentTool(ctx, eventManager))
+    eventManager.register(
+        "moveSegment",
+        new Tools.MoveSegmentTool(ctx, eventManager)
+    )
+    eventManager.register(
+        "moveSelection",
+        new Tools.MoveSelectionTool(ctx, eventManager)
+    )
     eventManager.setContext(ctx, "select")
+
+    // link transform controls events
+    const transform = new Tools.TransformTool(ctx, eventManager)
+    const transformControls = ctx.controllers.transformControls
+    transformControls.addEventListener("mouseDown", () =>
+        transform.onTransfromStart()
+    )
+    transformControls.addEventListener("objectChange", () =>
+        transform.onTransform()
+    )
 
     // set up the sccene
     controls.setUpDrafter()

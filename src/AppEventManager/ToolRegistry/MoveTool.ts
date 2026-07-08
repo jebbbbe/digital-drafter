@@ -6,6 +6,7 @@ import type { TransformNode } from "../../App/draft/TransformNode"
 import type { SectionSegment } from "../../App/selection"
 import type { AppEventManager } from "../AppEventManager"
 import { Tool, type NormalizedPointerEvent } from "./Tool"
+import { moveDeltaSelectedNodes } from "../../App/controls/interaction"
 
 export class MoveNodeTool extends Tool {
     private node?: TransformNode
@@ -66,9 +67,6 @@ export class MoveNodeTool extends Tool {
         }
 
         this.prevHit.copy(hit)
-
-        const anchor = this.ctx.drafter.getNodesAnchoredCenter(this.node)
-        this.ctx.controllers.setAnchorCache(anchor)
 
         moveNodeToPosition(this.node, this.candidatePosition)
 
@@ -202,5 +200,46 @@ export class MoveSegmentTool extends Tool {
     override cancel(): void {
         this.ctx.controllers.resumeControls()
         this.line = undefined
+    }
+}
+
+export class MoveSelectionTool extends Tool {
+    private delta = new THREE.Vector3()
+    private prevHit = new THREE.Vector3()
+
+    constructor(ctx: AppContext, eventManager: AppEventManager) {
+        super(ctx, eventManager)
+    }
+
+    override enter(startHit: THREE.Vector3) {
+        this.prevHit.copy(startHit)
+        this.ctx.controllers.pauseControls()
+    }
+
+    override onPointerMove(e: NormalizedPointerEvent) {
+        const hit = this.ctx.raycastHelper.castFromEventToPlane(e.event)
+        if (!hit) return
+        this.delta.subVectors(hit, this.prevHit)
+
+        moveDeltaSelectedNodes(this.delta)
+
+        this.prevHit.copy(hit)
+        this.ctx.selection.averagePosition.add(this.delta)
+        this.linkGizmo()
+        this.linkPanel()
+    }
+
+    override onPointerUp() {
+        this.cancel()
+        this.eventManager.setTool("select")
+    }
+
+    override onPointerCancel() {
+        this.cancel()
+        this.eventManager.setTool("select")
+    }
+
+    override cancel(): void {
+        this.ctx.controllers.resumeControls()
     }
 }

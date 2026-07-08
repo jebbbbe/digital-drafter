@@ -1,7 +1,6 @@
 import * as THREE from "three"
 import type { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
 import type { TransformControls } from "three/examples/jsm/controls/TransformControls.js"
-import type { SelectionManager } from "./SelectionManager"
 
 let _prevEnableTransform: boolean = false
 const _nodePosition = new THREE.Vector3()
@@ -21,7 +20,6 @@ export class ThreeControllersManager {
     cachedAnchorOffset = new THREE.Vector3()
     useTransformControls: boolean
     constructor(
-        selection: SelectionManager,
         orbitControls: OrbitControls,
         transformControls: TransformControls,
         useTransformControls: boolean = true // enable/ disable gizmo
@@ -33,9 +31,6 @@ export class ThreeControllersManager {
         this.transformControls.addEventListener(
             "dragging-changed",
             this.handleTransformDraggingChanged
-        )
-        this.transformControls.addEventListener("objectChange", () =>
-            selection.transformCallback()
         )
     }
     setGizmoSettings(settings: GizmoSettings) {

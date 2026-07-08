@@ -16,7 +16,7 @@ const _segmentQuaternion = new THREE.Quaternion()
 const _segmentZAxis = new THREE.Vector3(0, 0, -1)
 const _sectionChildPosition = new THREE.Vector3()
 
-function updateSectionParentAttachments(node: TransformNode) {
+function updateSectionParentAttachments(node: TransformNode, delta = _delta) {
     //  move all children nodes
     const children = node.children
     for (let i = 0; i < children.length; i++) {
@@ -27,7 +27,7 @@ function updateSectionParentAttachments(node: TransformNode) {
         if (attachment === undefined) continue
 
         const index = attachment.index
-        drafter.sectionCutter.moveSegmentVector(_delta, _delta, index)
+        drafter.sectionCutter.moveSegmentVector(delta, delta, index)
     }
 }
 
@@ -44,6 +44,16 @@ export function moveNodeToPosition(
     drafter.updatePatchedNode(node)
 
     return true
+}
+
+export function moveNodeDelta(
+    node: TransformNode,
+    delta: THREE.Vector3,
+    recusrive = true
+) {
+    node.position.add(delta)
+    if (node.sectionParent) updateSectionParentAttachments(node, delta)
+    if (recusrive) drafter.updatePatchedNode(node)
 }
 
 export function updateSectionChildAttachments(node: TransformNode) {
