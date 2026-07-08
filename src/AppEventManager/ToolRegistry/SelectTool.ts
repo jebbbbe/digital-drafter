@@ -34,7 +34,6 @@ export class SelectTool extends Tool {
             if (!e.shiftKey && !e.ctrlKey) {
                 deSelectAll()
             }
-
             return
         }
 
@@ -42,11 +41,6 @@ export class SelectTool extends Tool {
 
         const hit = raycastHelper.castFromEventToPlane(e, startHit)
         if (!hit) return
-
-        //clear seleciton
-        if (!e.shiftKey && !e.ctrlKey) {
-            selection.clear()
-        }
 
         // create selectedObject from type
         let selectedObject: NodeSelectionObject | SegmentSelectionObject
@@ -70,43 +64,32 @@ export class SelectTool extends Tool {
 
             selectedObject = new NodeSelectionObject(node)
         }
-        console.log({ selectedObject })
 
         let removed = false
+        let added = false
+        let has = selection.has(selectedObject)
+
+        //clear selction
+        if (!has) {
+            if (!e.shiftKey && !e.ctrlKey) {
+                selection.clear()
+            }
+        }
+
         if (e.ctrlKey) {
-            selection.remove(selectedObject)
-            removed = true
+            removed = selection.remove(selectedObject)
         } else {
-            selection.add(selectedObject)
+            added = selection.add(selectedObject)
         }
 
-        // controllers.attachTransformProxy()
-        // this.linkGizmo()
-        const gizmoSettings: Partial<GizmoSettings> = {
-            center: selection.averagePosition,
+        if (added) {
+            controllers.attachTransformProxy()
         }
 
-        if (selection.map.size > 1) {
-            gizmoSettings.anchor = _zeroVec3
-            gizmoSettings.quaternion = _zeroQuaternion
-            gizmoSettings.preset = "translate"
-        }
-
-        selectedObject.gizmoSetup(gizmoSettings)
-        controllers.attachTransformProxy()
-
-        const panelSettings: Partial<PanelSettings> = {
-            position: selection.averagePosition,
-        }
-        if (selection.map.size > 1) {
-            panelSettings.usePosition = true
-            panelSettings.useRotation = false
-            panelSettings.useScale = false
-            panelSettings.useButtons = true
-        }
-        selectedObject.panelSetup(panelSettings)
-
+        this.linkPanel()
+        this.linkGizmo()
         if (removed) return
+
         if (selectedObject instanceof NodeSelectionObject) {
             this.eventManager.setTool("moveNode", selectedObject.target, hit)
         } else if (selectedObject instanceof SegmentSelectionObject) {

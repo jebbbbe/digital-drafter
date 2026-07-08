@@ -48,7 +48,6 @@ export class NodeSelectionObject extends SelectionObject<TransformNode> {
     }
 
     override gizmoListener() {
-        console.log(controllers.getGizmoPosition())
         moveNodeToPosition(this.target, controllers.getGizmoPosition())
     }
 

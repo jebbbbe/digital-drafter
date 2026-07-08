@@ -101,27 +101,29 @@ export class SelectionManager {
 		*/
         object.setSelected(isSelected)
     }
-    add(item: SelectObject) {
+    add(item: SelectObject): boolean {
         const target = (item.target as any).index ?? item.target
         if (!this.map.has(target)) {
             this.setSelectedUpdate(item, true)
             this.averagePosition.addToAverage(item.getCenter())
+            this.map.set(target, item)
+            return true
         }
-        this.map.set(target, item)
-
-        // console.log(this)
-        // console.log(this.averagePosition)
+        return false
     }
-    remove(item: SelectObject) {
+    remove(item: SelectObject): boolean {
         const target = (item.target as any).index ?? item.target
         if (this.map.has(target)) {
             this.setSelectedUpdate(item, false)
             this.averagePosition.removeFromAverage(item.getCenter())
+            this.map.delete(target)
+            return true
         }
-        this.map.delete(target)
-
-        // console.log(this)
-        // console.log(this.averagePosition)
+        return false
+    }
+    has(item: SelectObject): boolean {
+        const target = (item.target as any).index ?? item.target
+        return this.map.has(target)
     }
     clear() {
         for (const item of this.items()) {

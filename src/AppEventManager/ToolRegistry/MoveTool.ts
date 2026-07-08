@@ -2,10 +2,8 @@ import * as THREE from "three"
 import type { AppContext } from "../../App/AppContext"
 import { deSelectAll } from "../../App/controls/interaction"
 import { moveNodeToPosition } from "../../App/controls/move"
-import { getNodevalues } from "../../App/controls/nodes"
 import type { TransformNode } from "../../App/draft/TransformNode"
 import type { SectionSegment } from "../../App/selection"
-import * as levaStore from "../../components/Leva/LevaStore"
 import type { AppEventManager } from "../AppEventManager"
 import { Tool, type NormalizedPointerEvent } from "./Tool"
 
@@ -18,7 +16,6 @@ export class MoveNodeTool extends Tool {
     private readonly parentToCandidate = new THREE.Vector3()
     private parentPosition?: THREE.Vector3
     private lineLengthSq = 0
-    private finished = false
 
     constructor(ctx: AppContext, eventManager: AppEventManager) {
         super(ctx, eventManager)
@@ -26,7 +23,6 @@ export class MoveNodeTool extends Tool {
 
     override enter(node: TransformNode, startHit: THREE.Vector3): void {
         this.node = node
-        this.finished = false
         this.prevHit.copy(startHit)
         this.lineDirection.set(0, 0, 0)
         this.parentToCandidate.set(0, 0, 0)
@@ -44,14 +40,14 @@ export class MoveNodeTool extends Tool {
         this.ctx.controllers.pauseControls()
     }
 
-    override onPointerMove(event: NormalizedPointerEvent): boolean {
-        if (this.finished || !this.node) return false
+    override onPointerMove(event: NormalizedPointerEvent) {
+        if (!this.node) return
 
         const hit = this.ctx.raycastHelper.castFromEventToPlane(event.event)
-        if (!hit) return false
+        if (!hit) return
 
         this.delta.subVectors(hit, this.prevHit)
-        if (this.delta.lengthSq() === 0) return false
+        if (this.delta.lengthSq() === 0) return
 
         this.candidatePosition.copy(this.node.position).add(this.delta)
 
@@ -75,45 +71,32 @@ export class MoveNodeTool extends Tool {
         this.ctx.controllers.setAnchorCache(anchor)
 
         moveNodeToPosition(this.node, this.candidatePosition)
+
+        this.ctx.selection.averagePosition.add(this.delta)
         this.linkGizmo()
         this.linkPanel()
-
-        return true
     }
 
-    override onPointerUp(): boolean {
-        if (this.finished) return false
-
-        const node = this.node
+    override onPointerUp() {
         this.cancel()
-        if (node) {
-            levaStore.syncLevaDisplayStub(getNodevalues(node))
-        }
         this.eventManager.setTool("select")
-        return true
     }
 
-    override onPointerCancel(): boolean {
-        if (this.finished) return false
-
+    override onPointerCancel() {
         this.cancel()
         this.eventManager.setTool("select")
-        return true
     }
 
     override onKeyDown(event: KeyboardEvent): boolean {
-        if (event.key !== "Escape" || this.finished) return false
+        if (event.key !== "Escape") return false
 
-        this.cancel()
         deSelectAll()
+        this.cancel()
         this.eventManager.setTool("select")
         return true
     }
 
     override cancel(): void {
-        if (this.finished) return
-
-        this.finished = true
         this.ctx.controllers.resumeControls()
         this.node = undefined
         this.parentPosition = undefined
@@ -130,7 +113,6 @@ export class MoveSegmentTool extends Tool {
     private sectionChild?: TransformNode
     private sectionParent?: TransformNode
     private lineLengthSq = 0
-    private finished = false
 
     constructor(ctx: AppContext, eventManager: AppEventManager) {
         super(ctx, eventManager)
@@ -139,7 +121,6 @@ export class MoveSegmentTool extends Tool {
 
     override enter(line: SectionSegment, startHit: THREE.Vector3): void {
         this.line = line
-        this.finished = false
         this.prevHit.copy(startHit)
         this.sectionChild = undefined
         this.sectionParent = undefined
@@ -164,21 +145,21 @@ export class MoveSegmentTool extends Tool {
         this.ctx.controllers.pauseControls()
     }
 
-    override onPointerMove(event: NormalizedPointerEvent): boolean {
-        if (this.finished || this.lineLengthSq === 0 || !this.line) return false
+    override onPointerMove(event: NormalizedPointerEvent) {
+        if (this.lineLengthSq === 0 || !this.line) return
 
         const hit = this.ctx.raycastHelper.castFromEventToPlane(event.event)
-        if (!hit) return false
+        if (!hit) return
 
         this.delta.subVectors(hit, this.prevHit)
-        if (this.delta.lengthSq() === 0) return false
+        if (this.delta.lengthSq() === 0) return
 
         const deltaAlongLine =
             this.delta.dot(this.segmentLineDirection) / this.lineLengthSq
         this.delta
             .copy(this.segmentLineDirection)
             .multiplyScalar(deltaAlongLine)
-        if (this.delta.lengthSq() === 0) return false
+        if (this.delta.lengthSq() === 0) return
 
         this.sectionCutter.moveSegmentVector(
             this.delta,
@@ -190,47 +171,35 @@ export class MoveSegmentTool extends Tool {
             this.line.index
         )
         this.ctx.drafter.updatePatchedNode(this.sectionChild!)
-
         this.segmentMidPoint.addVectors(a, b).multiplyScalar(0.5)
-        this.ctx.controllers.updateGizmoPosition(this.segmentMidPoint)
-
         this.prevHit.copy(hit)
 
+        this.ctx.selection.averagePosition.add(this.delta)
         this.linkGizmo()
         this.linkPanel()
-
-        return true
     }
 
-    override onPointerUp(): boolean {
-        if (this.finished) return false
-
+    override onPointerUp() {
         this.cancel()
         this.eventManager.setTool("select")
-        return true
     }
 
-    override onPointerCancel(): boolean {
-        if (this.finished) return false
-
+    override onPointerCancel() {
         this.cancel()
         this.eventManager.setTool("select")
-        return true
     }
 
     override onKeyDown(event: KeyboardEvent): boolean {
-        if (event.key !== "Escape" || this.finished) return false
+        if (event.key !== "Escape") return false
+
+        deSelectAll()
 
         this.cancel()
-        deSelectAll()
         this.eventManager.setTool("select")
         return true
     }
 
     override cancel(): void {
-        if (this.finished) return
-
-        this.finished = true
         this.ctx.controllers.resumeControls()
         this.line = undefined
     }

@@ -255,8 +255,8 @@ export function updatePanel({
         scaleValue,
     })
 
-    levaStore.disableInputAtPath(panelPaths.stubPos, usePosition)
-    levaStore.disableInputAtPath(panelPaths.stubRot, useRotation)
-    levaStore.disableInputAtPath(panelPaths.stubScale, useScale)
-    setButtonsDisabled(useButtons)
+    levaStore.disableInputAtPath(panelPaths.stubPos, !usePosition)
+    levaStore.disableInputAtPath(panelPaths.stubRot, !useRotation)
+    levaStore.disableInputAtPath(panelPaths.stubScale, !useScale)
+    setButtonsDisabled(!useButtons)
 }

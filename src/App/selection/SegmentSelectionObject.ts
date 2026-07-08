@@ -69,12 +69,13 @@ export class SegmentSelectionObject extends SelectionObject<SectionSegment> {
             position: _segmentMidPoint,
             rotation: { x: 0, y: 0 },
             scale: 1.0,
-            usePosition: false,
+            usePosition: true, //should update vals but be unusable...
             useRotation: false,
             useScale: false,
             useButtons: false,
         }
         settings = { ...defaultPanel, ...settings }
+        console.log(settings)
         updatePanel(settings as PanelSettings)
     }
 

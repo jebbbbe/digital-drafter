@@ -42,8 +42,6 @@ export function moveNodeToPosition(
 
     if (node.sectionParent) updateSectionParentAttachments(node)
     drafter.updatePatchedNode(node)
-    controllers.updateGizmoPosition(node.position)
-    levaStore.syncLevaDisplayStub(getNodevalues(node))
 
     return true
 }

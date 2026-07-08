@@ -1,5 +1,9 @@
+import * as THREE from "three"
 import type { AppContext } from "../../App/AppContext"
 import type { AppEventManager } from "../AppEventManager"
+import type { GizmoSettings } from "../../App/selection/ThreeControllersManager"
+import type { PanelSettings } from "../../components/Leva/LevaStore"
+import { updatePanel } from "../../components/Leva/LevaStore"
 
 export type NormalizedPointerEvent = {
     event: PointerEvent
@@ -8,6 +12,9 @@ export type NormalizedPointerEvent = {
     alt: boolean
     ctrl: boolean
 }
+
+const _zeroVec3 = new THREE.Vector3()
+const _zeroQuaternion = new THREE.Quaternion()
 
 export abstract class Tool {
     protected ctx: AppContext
@@ -42,13 +49,37 @@ export abstract class Tool {
     }
 
     linkGizmo() {
-        const { selection } = this.ctx
-        console.log("linkGizmo")
-        // console.log(selection)
+        const { selection, controllers } = this.ctx
+
+        const gizmoSettings: Partial<GizmoSettings> = {
+            center: selection.averagePosition,
+        }
+
+        if (selection.map.size <= 1) {
+            const selectedObject = selection.first()
+            selectedObject.gizmoSetup(gizmoSettings)
+        } else {
+            gizmoSettings.anchor = _zeroVec3
+            gizmoSettings.quaternion = _zeroQuaternion
+            gizmoSettings.preset = "translate"
+            controllers.setGizmoSettings(gizmoSettings as GizmoSettings)
+        }
     }
-    linkPanel() {
+    linkPanel() {	
         const { selection } = this.ctx
-        console.log("linkPanel")
-        // console.log(selection)
+
+        const panelSettings: Partial<PanelSettings> = {
+            position: selection.averagePosition,
+        }
+        if (selection.map.size <= 1) {
+            const selectedObject = selection.first()
+            selectedObject.panelSetup(panelSettings)
+        } else {
+            panelSettings.usePosition = true
+            panelSettings.useRotation = false
+            panelSettings.useScale = false
+            panelSettings.useButtons = true
+            updatePanel(panelSettings as PanelSettings)
+        }
     }
 }
