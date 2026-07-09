@@ -394,7 +394,7 @@ function Controls({ bridge }: any) {
                 },
                 min: -100,
                 max: 100,
-                step: 0.01,
+                step: 0.25, //step changes onChange call amount
                 // lock: true,
                 joystick: false,
                 onEditStart(value, path, context) {
