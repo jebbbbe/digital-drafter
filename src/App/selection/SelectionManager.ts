@@ -48,6 +48,9 @@ export class SelectionManager {
     constructor(array: SelectObject[] = []) {
         this.map = new Map()
     }
+    get size(): number {
+        return this.map.size
+    }
     items() {
         return [...this.map.values()]
     }

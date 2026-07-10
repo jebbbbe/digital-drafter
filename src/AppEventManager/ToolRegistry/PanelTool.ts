@@ -28,7 +28,7 @@ export class PanelTool extends Tool {
         this.delta.subVectors(this.hit, this.prevHit)
         console.log("delta")
         console.log(this.delta)
-        if (this.ctx.selection.map.size > 1) {
+        if (this.ctx.selection.size > 1) {
             moveDeltaSelectedNodes(this.delta)
             this.ctx.selection.averagePosition.add(this.delta)
         } else {

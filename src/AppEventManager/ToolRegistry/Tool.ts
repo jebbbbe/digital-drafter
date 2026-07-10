@@ -55,7 +55,7 @@ export abstract class Tool {
             center: selection.averagePosition,
         }
 
-        if (selection.map.size <= 1) {
+        if (selection.size <= 1) {
             const selectedObject = selection.first()
             selectedObject.gizmoSetup(gizmoSettings)
         } else {
@@ -71,7 +71,7 @@ export abstract class Tool {
         const panelSettings: Partial<PanelSettings> = {
             position: selection.averagePosition,
         }
-        if (selection.map.size <= 1) {
+        if (selection.size <= 1) {
             const selectedObject = selection.first()
             selectedObject.panelSetup(panelSettings)
         } else {

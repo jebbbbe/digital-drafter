@@ -103,19 +103,19 @@ export function startIntersection(
     drafter.updatePatchedNode(startNode)
 }
 
-export function startIntersectionFromSelection() {
+export function startIntersectionFromFirst() {
     const node = selection.firstNode()
     if (!node) return
     startIntersection(node, boolean.intersection)
 }
 
-export function startUnionFromSelection() {
+export function startUnionFromFirst() {
     const node = selection.firstNode()
     if (!node) return
     startIntersection(node, boolean.union)
 }
 
-export function startDifferenceFromSelection() {
+export function startDifferenceFromFirst() {
     const node = selection.firstNode()
     if (!node) return
     startIntersection(node, boolean.difference)

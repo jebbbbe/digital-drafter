@@ -453,15 +453,15 @@ function Controls({ bridge }: any) {
                     disabled: true,
                 }
             ),
-            "Union View": button(() => controls.startUnionFromSelection(), {
+            "Union View": button(() => controls.startUnionFromFirst(), {
                 disabled: true,
             }),
             "Difference View": button(
-                () => controls.startDifferenceFromSelection(),
+                () => controls.startDifferenceFromFirst(),
                 { disabled: true }
             ),
             "Intersect View": button(
-                () => controls.startIntersectionFromSelection(),
+                () => controls.startIntersectionFromFirst(),
                 { disabled: true }
             ),
             "Save Object": button(

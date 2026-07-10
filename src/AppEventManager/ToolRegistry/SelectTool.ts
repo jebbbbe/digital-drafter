@@ -91,7 +91,7 @@ export class SelectTool extends Tool {
 
         if (removed) {
             return
-        } else if (selection.map.size > 1) {
+        } else if (selection.size > 1) {
             console.log(hit)
             this.eventManager.setTool("moveSelection", hit)
         } else if (selectedObject instanceof NodeSelectionObject) {
@@ -103,7 +103,7 @@ export class SelectTool extends Tool {
 
     gizmoClicked(e: PointerEvent): boolean {
         const { controllers, selection, raycastHelper } = this.ctx
-        if (controllers.useTransformControls && selection.map.size > 0) {
+        if (controllers.useTransformControls && selection.size > 0) {
             const gizmoHits = raycastHelper.castFromEvent(
                 e,
                 [controllers.transformControls.getHelper()],

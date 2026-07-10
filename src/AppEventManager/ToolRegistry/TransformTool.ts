@@ -13,7 +13,7 @@ export class TransformTool extends Tool {
         let hit = this.ctx.controllers.getGizmoPosition()
         this.delta.subVectors(hit, this.prevHit)
 
-        if (this.ctx.selection.map.size > 1) {
+        if (this.ctx.selection.size > 1) {
             moveDeltaSelectedNodes(this.delta)
         } else {
             const selectedObject = this.ctx.selection.first()
