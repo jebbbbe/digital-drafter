@@ -2,9 +2,10 @@ import * as THREE from "three"
 import { Brush } from "three-bvh-csg"
 import type { CSGOperation } from "three-bvh-csg"
 
-import { drafter, selection } from "../AppContext"
+import { drafter, eventManager, selection } from "../AppContext"
 import type { TransformNode } from "../draft/TransformNode"
 import { evaluateCSG, boolean } from "../utils/csg"
+import { deSelectAll } from "./interaction"
 
 const _brushOffset = new THREE.Matrix4()
 
@@ -119,4 +120,27 @@ export function startDifferenceFromFirst() {
     const node = selection.firstNode()
     if (!node) return
     startIntersection(node, boolean.difference)
+}
+
+function startIntersectionFromSelection(operation = boolean.union) {
+    console.log(operation)
+    if (selection.size > 2) {
+        deSelectAll()
+    }
+
+    if (selection.size < 2) {
+        console.log("select more nodes")
+    }
+
+    const items = selection.items()
+    const [nodeA, nodeB] = items
+    console.log(nodeA)
+    console.log(nodeB.target)
+    // eventManager.setTool("moveNode", nodeA.target, new THREE.Vector3())
+}
+
+export function startIntersectionFromSeleciton() {
+    const node = selection.firstNode()
+    if (!node) return
+    startIntersectionFromSelection(boolean.intersection)
 }

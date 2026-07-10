@@ -453,7 +453,8 @@ function Controls({ bridge }: any) {
                     disabled: true,
                 }
             ),
-            "Union View": button(() => controls.startUnionFromFirst(), {
+            // "Union View": button(() => controls.startUnionFromFirst(), {
+            "Union View": button(() => controls.startIntersectionFromSeleciton(), {
                 disabled: true,
             }),
             "Difference View": button(
