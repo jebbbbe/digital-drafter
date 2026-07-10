@@ -12,56 +12,69 @@
 - [ ] CDN
 - [ ] auth
 - [ ] payment?
+- [ ] cli?
+- [ ] materials
+    - [ ] Profile Edge Depthmap Read..?
 
 ### v0.5.0
 
-- [s] perf compare batched mesh? update geo...?
-- [ ] circular arc
-- [ ] model import
-- [ ] session data
-- [ ] control z
-- [ ] control c + v
-- [ ] cli?
-- [ ]
+- [ ] features
+    - [ ] circular arc
+    - [ ] model import
+    - [ ] aniamtion control.
+    - [ ] session data
+    - [ ] kbm
+        - [ ] control a , select all
+        - [ ] control c + v, copy paste selection
+        - [ ] control z + y, redo, undo
+- [ ] materials
+    - [ ] remove gl_lines, why would we use them?
+    - [ ] custom dashes in frag
+    - [ ] fix issues written in MaterialManagers
+    - [ ] materail aliasing / transparency for super thin lw
+    - [ ] line thickness for printing, global v screen
+    - [ ] tile renderer for export?
+- [ ] refactor
+    - [ ] main as class
+    - [ ] abstract - [ ] attachment abstract class
+        - [ ] selectObject v attachment as similar objects
+        - [ ] better event patterns for abstract classes.
+
+- [ ] issues
+    - [ ] delete section grandchildren should detach
+    - [ ] delte section grandchildren leaves gizmo in view
+    - [ ] drafter instance item map for duplicates
+    - [ ] drafter error pass
+    - [ ] tie interaciton events in with renderer timing.
 
 ### v0.4.0
 
 - [x] rm nodeSlot
 - [x] scale fix in nodeData
 - [x] node anchors
-- [ ] select multiple
-- [ ] multi update node
-- [ ] interaction class
-- [ ] main exports
-- [ ] drafter error pass
-- [ ] remaning material + issues
+- [x] select multiple
+- [x] multi update node
+- [x] interaction class
+- [x] main exports
+- [x] remaning material + issues
 
-- [ ] issues
-    - [ ] delete section grandchildren should detach
-    - [ ] delte section grandchildren leaves gizmo in view
-    - [ ] drafter instance item map for duplicates
+- [ ] features
+    - [ ] fix intersecitons with new tool
+
+- [x] issues
     - [x] lwinstance merge
     - [x] gl line working with nodeSlot
     - [x] FoldLine2 issues
 
-- [] materials
+- [x] materials
     - [x] rm nodeslot and use just ID uniform
     - [x] glsl snippets for nodeslot
     - [x] glsl snippets for projection
     - [x] reorg constants for materials
     - [x] gline for attachments
     - [x] select Line in Shader
-    - [ ] UI for all materials
-    - [ ] redo material settings
-    - [ ] for next pass
-        - [ ] remove gl_lines, why would we use them?
-        - [ ] custom dashes in frag
-        - [ ] fix issues written in MaterialManagers
-        - [ ] uniform group & multiple materials
-        - [ ] materail aliasing / transparency for super thin lw
-        - [ ] line thickness for printing
-        - [ ] tile renderer for export?
-        - [ ] Profile Edge Depthmap Read..?
+    - [x] UI for all materials
+    - [x] redo material settings
 
 - INTERFACE
     - [x] InstancedLineMaterial
@@ -70,24 +83,18 @@
     - [x] materail resolution tracker, use world space size for lw..?
     - [/] gl lines -> normal materail with wireframe?
 
-- [ ] organize
-    - [ ] more classes, import structure
-    - [ ] attachment update lyfecycle
-    - [ ] scale prop on node for datatexture
-    - [ ] class for interaciotn modes to easily add more
-    - [ ] select multiple, gizmo + position ref
-    - [ ] gizmo offset
-    - [ ] interseciton logic
+- [x] organize
+    - [x] more classes, import structure
+    - [?] scale prop on node for datatexture
+    - [x] select multiple, gizmo + position ref
+    - [x] gizmo offset
+    - [x] interseciton logic
 
-- [ ] select multiple
-    - [ ] window select multiple
-    - [ ] transform controls - gizmo origin from multiple selects
-
-- [ ] Interface
+- [x] Interface
     - [x] rm react dynamic import, use module splitting
-    - [ ] transform controls- leva proxy link
-    - [ ] better theme loader, with functions
-    - [ ] three/react - import/returns?
+    - [/] transform controls- leva proxy link
+    - [x] better theme loader, with functions
+    - [x] three/react - import/returns?
 
 - [x] section cut
     - [x] transform controls- fix scale
