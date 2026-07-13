@@ -2,7 +2,6 @@ import * as THREE from "three"
 import * as rand from "../utils/random"
 import { drafter, selection, controllers, eventManager } from "../AppContext"
 import type { TransformNode } from "../objects/attachments"
-import { NodeSelectionObject } from "../selection"
 import {
     enableNodeStub,
     syncLevaInsertOptions,
@@ -218,7 +217,7 @@ export function insertGeometry(geo: THREE.BufferGeometry) {
     const node = drafter.addRootNode(rootNode)
     if (!node) return
     selection.clear()
-    selection.add(new NodeSelectionObject(node))
+    selection.add(node)
     eventManager.setTool("insert")
 }
 

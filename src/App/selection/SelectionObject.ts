@@ -1,12 +1,6 @@
 import * as THREE from "three"
-import type { Mesh } from "three"
 import type { GizmoSettings } from "./ThreeControllersManager"
 import type { PanelSettings } from "../../components/Leva/LevaStore"
-
-export type SectionSegment = {
-    object: Mesh
-    index: number
-}
 
 export type SelectType =
     | "SectionSegment"
@@ -15,7 +9,7 @@ export type SelectType =
     | "sectionChild"
     | "sectionParent"
 
-abstract class tmpBridge {
+export abstract class InteractiveObject {
     abstract get kind(): SelectType
 
     abstract move(startHit: THREE.Vector3): unknown
@@ -31,19 +25,4 @@ abstract class tmpBridge {
     abstract delete(): void
 
     abstract setSelected(isSelected: boolean): void
-}
-
-export abstract class SelectionObject<TTarget> extends tmpBridge {
-    target: TTarget
-
-    constructor(target: TTarget) {
-        super()
-        this.target = target
-    }
-}
-
-export abstract class InteractiveObject extends tmpBridge {
-    constructor() {
-        super()
-    }
 }

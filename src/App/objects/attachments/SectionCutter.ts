@@ -5,6 +5,7 @@ import { LineSegments2 } from "three/addons/lines/LineSegments2.js"
 import { LineSegmentsGeometry } from "three/addons/lines/LineSegmentsGeometry.js"
 import { orders } from "../../draft/materialManager"
 import type { TransformNode } from "./TransformNode"
+import type { SegmentAttachment } from "./SegmentAttachment"
 
 export class SectionCutter {
     mesh!: THREE.LineSegments | LineSegments2
@@ -14,10 +15,10 @@ export class SectionCutter {
     count = 0
     // to get Nodes
     nodeMap = new Map<number, TransformNode>()
-
     // for csg
     box = new THREE.BoxGeometry()
     brush = new Brush(this.box)
+    attachments: (SegmentAttachment | undefined)[] = []
 
     constructor(material: THREE.Material) {
         if (material instanceof LineMaterial) {
@@ -40,6 +41,8 @@ export class SectionCutter {
         this.mesh.frustumCulled = false
         this.mesh.renderOrder = orders.sectionLine
         this.brush.matrixAutoUpdate = false
+
+        this.mesh.userData.attachments = this.attachments
     }
 
     resize(minSize = this.array.length * 2) {
@@ -222,5 +225,7 @@ export class SectionCutter {
             this.mesh.geometry.setDrawRange(0, this.count)
         }
         if (mark) this.markUpdate()
+
+        this.attachments[index] = undefined
     }
 }

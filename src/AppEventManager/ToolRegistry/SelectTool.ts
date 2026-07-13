@@ -1,17 +1,10 @@
 import { Tool, type NormalizedPointerEvent } from "./Tool"
-import {
-    SegmentSelectionObject,
-    NodeSelectionObject,
-} from "../../App/selection"
 import * as THREE from "three"
 import type { NodeLocation } from "../../App/draft/TransformTree"
 import { deSelectAll } from "../../App/controls/interaction"
-
-import type { GizmoSettings } from "../../App/selection/ThreeControllersManager"
-import type { PanelSettings } from "../../components/Leva/LevaStore"
+import { SegmentAttachment, TransformNode } from "../../App/objects/attachments"
 
 const startHit = new THREE.Vector3()
-
 const _zeroVec3 = new THREE.Vector3()
 const _zeroQuaternion = new THREE.Quaternion()
 
@@ -42,16 +35,20 @@ export class SelectTool extends Tool {
         const hit = raycastHelper.castFromEventToPlane(e, startHit)
         if (!hit) return
 
-        // create selectedObject from type
-        let selectedObject: NodeSelectionObject | SegmentSelectionObject
+        let selectedObject: TransformNode | SegmentAttachment
         if (first.object === drafter.sectionCutter.mesh) {
             // hit section cutter
             const { index, faceIndex, object }: any = intersects[0]
-            selectedObject = new SegmentSelectionObject({
-                object,
-                // for gl_line or LineMaterial
-                index: index ?? faceIndex * 2,
-            })
+            console.log({ index, faceIndex, object })
+
+            // selectedObject = new SegmentSelectionObject({
+            //     object,
+            //     // for gl_line or LineMaterial
+            //     index: index ?? faceIndex * 2,
+            // })
+            console.log(object.userData.attachments)
+            console.log(faceIndex * 2)
+            selectedObject = object.userData.attachments[faceIndex * 2]
         } else {
             // find node from raycast
             const id = first.object.userData.id
@@ -61,10 +58,10 @@ export class SelectTool extends Tool {
             // add node to selection
             const node = drafter.findNode(location as NodeLocation)
             if (!node) return
-
-            selectedObject = new NodeSelectionObject(node)
+            selectedObject = node
+            // console.log(selectedObject)
         }
-		
+
         console.log(selectedObject)
 
         let removed = false
@@ -96,10 +93,10 @@ export class SelectTool extends Tool {
         } else if (selection.size > 1) {
             console.log(hit)
             this.eventManager.setTool("moveSelection", hit)
-        } else if (selectedObject instanceof NodeSelectionObject) {
-            this.eventManager.setTool("moveNode", selectedObject.target, hit)
-        } else if (selectedObject instanceof SegmentSelectionObject) {
-            this.eventManager.setTool("moveSegment", selectedObject.target, hit)
+        } else if (selectedObject instanceof TransformNode) {
+            this.eventManager.setTool("moveNode", selectedObject, hit)
+        } else if (selectedObject instanceof SegmentAttachment) {
+            this.eventManager.setTool("moveSegment", selectedObject, hit)
         }
     }
 

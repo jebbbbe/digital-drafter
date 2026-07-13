@@ -1,12 +1,7 @@
 import * as THREE from "three"
-import type { TransformNode } from "../objects/attachments"
-import { NodeSelectionObject } from "./NodeSelectionObject"
-import {
-    SegmentSelectionObject,
-    type SectionSegment,
-} from "./SegmentSelectionObject"
-
-import type { SelectType } from "./SelectionObject"
+import { TransformNode } from "../objects/attachments"
+import { SegmentAttachment } from "../objects/attachments"
+import type { InteractiveObject, SelectType } from "./SelectionObject"
 
 export class AveragePosition extends THREE.Vector3 {
     count = 0
@@ -32,9 +27,7 @@ export class AveragePosition extends THREE.Vector3 {
     }
 }
 
-export type SelectObject = NodeSelectionObject | SegmentSelectionObject
-type SelectionKey = TransformNode | SectionSegment | number
-type SelectionRunItem = SelectObject | TransformNode | SectionSegment
+type SelectionRunItem = InteractiveObject | TransformNode | SegmentAttachment
 type SelectionTargetKind = "TransformNode" | "SectionSegment"
 interface SelectionOperation<TItem = unknown> {
     begin?(selection: TItem[]): void
@@ -43,9 +36,9 @@ interface SelectionOperation<TItem = unknown> {
 }
 
 export class SelectionManager {
-    map: Map<SelectionKey, SelectObject>
+    map: Map<InteractiveObject, InteractiveObject>
     averagePosition = new AveragePosition()
-    constructor(array: SelectObject[] = []) {
+    constructor(array: InteractiveObject[] = []) {
         this.map = new Map()
     }
     get size(): number {
@@ -55,17 +48,17 @@ export class SelectionManager {
         return [...this.map.values()]
     }
 
-    filterObjects(kind: "TransformNode"): NodeSelectionObject[]
-    filterObjects(kind: "SectionSegment"): SegmentSelectionObject[]
-    filterObjects(kind: SelectionTargetKind): SelectObject[] {
+    filterObjects(kind: "TransformNode"): TransformNode[]
+    filterObjects(kind: "SectionSegment"): SegmentAttachment[]
+    filterObjects(kind: SelectionTargetKind): InteractiveObject[] {
         switch (kind) {
             case "TransformNode":
                 return this.items().filter(
-                    (item) => item instanceof NodeSelectionObject
+                    (item) => item instanceof TransformNode
                 )
             case "SectionSegment":
                 return this.items().filter(
-                    (item) => item instanceof SegmentSelectionObject
+                    (item) => item instanceof SegmentAttachment
                 )
             default:
                 return []
@@ -73,18 +66,18 @@ export class SelectionManager {
     }
 
     filterTargets(kind: "TransformNode"): TransformNode[]
-    filterTargets(kind: "SectionSegment"): SectionSegment[]
+    filterTargets(kind: "SectionSegment"): SegmentAttachment[]
     filterTargets(
         kind: SelectionTargetKind
-    ): TransformNode[] | SectionSegment[] {
+    ): TransformNode[] | SegmentAttachment[] {
         switch (kind) {
             case "TransformNode":
-                return this.filterObjects(kind).map((item) => item.target)
+                return this.filterObjects(kind).map((item) => item)
             case "SectionSegment":
-                return this.filterObjects(kind).map((item) => item.target)
+                return this.filterObjects(kind).map((item) => item)
         }
     }
-    run<TItem extends SelectionRunItem = SelectObject>(
+    run<TItem extends SelectionRunItem = InteractiveObject>(
         operation: SelectionOperation<TItem>,
         items: TItem[] = this.items() as unknown as TItem[]
     ) {
@@ -95,7 +88,7 @@ export class SelectionManager {
         }
         operation.end?.(selection)
     }
-    setSelectedUpdate(object: SelectObject, isSelected: boolean) {
+    setSelectedUpdate(object: InteractiveObject, isSelected: boolean) {
         /*
 		if we are hiding a SectionSegment, need to check if its parent is in selection and leep it active.
 		if(){
@@ -104,8 +97,8 @@ export class SelectionManager {
 		*/
         object.setSelected(isSelected)
     }
-    add(item: SelectObject): boolean {
-        const target = (item.target as any).index ?? item.target
+    add(item: InteractiveObject): boolean {
+        const target = item
         if (!this.map.has(target)) {
             this.setSelectedUpdate(item, true)
             this.averagePosition.addToAverage(item.getCenter())
@@ -114,8 +107,8 @@ export class SelectionManager {
         }
         return false
     }
-    remove(item: SelectObject): boolean {
-        const target = (item.target as any).index ?? item.target
+    remove(item: InteractiveObject): boolean {
+        const target = item
         if (this.map.has(target)) {
             this.setSelectedUpdate(item, false)
             this.averagePosition.removeFromAverage(item.getCenter())
@@ -124,9 +117,8 @@ export class SelectionManager {
         }
         return false
     }
-    has(item: SelectObject): boolean {
-        const target = (item.target as any).index ?? item.target
-        return this.map.has(target)
+    has(item: InteractiveObject): boolean {
+        return this.map.has(item)
     }
     clear() {
         for (const item of this.items()) {
@@ -139,27 +131,27 @@ export class SelectionManager {
     first() {
         return this.items()[0]
     }
-    firstTarget(search: "SectionSegment"): SectionSegment | undefined
+    firstTarget(search: "SectionSegment"): SegmentAttachment | undefined
     firstTarget(
         search: Exclude<SelectType, "SectionSegment">
     ): TransformNode | undefined
     firstTarget(search?: SelectType) {
         const item = this.first()
         if (!item) return undefined
-        if (search === undefined) return item.target
+        if (search === undefined) return item
         if (item.kind !== search) return undefined
-        return item.target
+        return item
     }
     // get fisrt item if its a node,
     firstNode(): TransformNode | undefined {
         const item = this.first()
-        if (!item || !(item instanceof NodeSelectionObject)) return
-        return item.target
+        if (!item || !(item instanceof TransformNode)) return
+        return item
     }
-    firstSegment(): SectionSegment | undefined {
+    firstSegment(): SegmentAttachment | undefined {
         const item = this.first()
-        if (!item || !(item instanceof SegmentSelectionObject)) return
-        return item.target
+        if (!item || !(item instanceof SegmentAttachment)) return
+        return item
     }
     transformCallback() {
         const object = this.first()

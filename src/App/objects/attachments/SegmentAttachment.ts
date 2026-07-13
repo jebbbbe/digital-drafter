@@ -1,6 +1,6 @@
 import * as THREE from "three"
-import { SectionCutter } from "./SectionCutter"
-import { InteractiveObject } from "../../selection/SelectionObject"
+import type { SectionCutter } from "./SectionCutter"
+import { InteractiveObject } from "../../selection"
 import { drafter, controllers } from "../../AppContext"
 import type { GizmoSettings } from "../../selection/ThreeControllersManager"
 import type { PanelSettings } from "../../../components/Leva/LevaStore"
@@ -16,11 +16,6 @@ const _segmentQuaternion = new THREE.Quaternion()
 const _segmentZAxis = new THREE.Vector3(0, 0, -1)
 const _zeroVec3 = new THREE.Vector3()
 
-// export type SegmentAttachment = {
-//     object: SectionCutter
-//     index: number
-// }
-
 export class SegmentAttachment extends InteractiveObject {
     object: SectionCutter
     index: number
@@ -28,6 +23,9 @@ export class SegmentAttachment extends InteractiveObject {
         super()
         this.object = object
         this.index = index
+
+		// push here for
+        this.object.attachments[index] = this
     }
     get kind(): "SectionSegment" {
         return "SectionSegment"
