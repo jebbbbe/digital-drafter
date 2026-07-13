@@ -1,7 +1,7 @@
 import * as THREE from "three"
-import type { SectionCutter, SectionFaceGroup } from "../objects/attachments"
-import type { Node } from "./TransformTree"
-import { InteractiveObject } from "../selection/SelectionObject"
+import type { SectionCutter, SectionFaceGroup } from "."
+import type { Node } from "../../draft/TransformTree"
+import { InteractiveObject } from "../../selection/SelectionObject"
 
 /*
 relationship between parent and child nodes,

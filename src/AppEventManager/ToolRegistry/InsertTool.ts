@@ -1,6 +1,6 @@
 import * as THREE from "three"
 import { Tool, type NormalizedPointerEvent } from "./Tool"
-import type { TransformNode } from "../../App/draft/TransformNode"
+import type { TransformNode } from "../../App/objects/attachments"
 import { moveNodeToPosition } from "../../App/controls/move"
 import { getNodevalues } from "../../App/controls/nodes"
 import * as levaStore from "../../components/Leva/LevaStore"

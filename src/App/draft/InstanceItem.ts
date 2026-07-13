@@ -16,7 +16,7 @@ import {
 import { activeMaterialLib, orders } from "./materialManager"
 import { settings } from "../settings"
 import type { Brush } from "three-bvh-csg"
-import type { TransformNode } from "./TransformNode"
+import type { TransformNode } from "../objects/attachments"
 
 export class InstanceItem {
     brush: Brush

@@ -1,5 +1,5 @@
 import type { NodeLocation } from "./TransformTree"
-import type { TransformNode } from "./TransformNode"
+import type { TransformNode } from "../objects/attachments"
 
 export function walkSubtree(
     root: TransformNode,

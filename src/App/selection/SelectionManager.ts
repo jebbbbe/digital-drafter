@@ -1,5 +1,5 @@
 import * as THREE from "three"
-import type { TransformNode } from "../draft/TransformNode"
+import type { TransformNode } from "../objects/attachments"
 import { NodeSelectionObject } from "./NodeSelectionObject"
 import {
     SegmentSelectionObject,

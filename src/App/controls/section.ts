@@ -4,7 +4,7 @@ import {
     createSectionAttachment,
     createSegmentAttachment,
     type TransformNode,
-} from "../draft/TransformNode"
+} from "../objects/attachments"
 import * as rand from "../utils/random"
 import { evaluateCSG, boolean, csgEvaluator } from "../utils/csg"
 import type { SectionSegment } from "../selection"

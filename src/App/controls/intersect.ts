@@ -3,7 +3,7 @@ import { Brush } from "three-bvh-csg"
 import type { CSGOperation } from "three-bvh-csg"
 
 import { drafter, eventManager, selection } from "../AppContext"
-import type { TransformNode } from "../draft/TransformNode"
+import type { TransformNode } from "../objects/attachments"
 import { evaluateCSG, boolean } from "../utils/csg"
 import { deSelectAll } from "./interaction"
 

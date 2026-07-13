@@ -1,6 +1,6 @@
 import { SelectionObject, type SelectType } from "./SelectionObject"
 import * as THREE from "three"
-import type { TransformNode } from "../draft/TransformNode"
+import type { TransformNode } from "../objects/attachments"
 import type { GizmoSettings } from "./ThreeControllersManager"
 import type { PanelSettings } from "../../components/Leva/LevaStore"
 import { getSlotIndex } from "../objects/textures/GlobalTreeTexture"

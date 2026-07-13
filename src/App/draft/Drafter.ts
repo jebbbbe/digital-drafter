@@ -3,7 +3,7 @@ import { TransformTree } from "./TransformTree"
 import { FreeList } from "../objects/FreeList"
 import { GlobalTreeTexture } from "../objects/textures/GlobalTreeTexture"
 import { SectionCutter } from "../objects/attachments"
-import { createTransformNode } from "./TransformNode"
+import { createTransformNode } from "../objects/attachments"
 import {
     calculateBaseMatrix,
     calculateCompoundMatrix,
@@ -12,7 +12,7 @@ import {
 import { InstanceItem } from "./InstanceItem"
 import { walkSubtree, walkSeenSubtree } from "./recursive"
 import { matlib } from "./materialManager"
-import type { TransformNode } from "./TransformNode"
+import type { TransformNode } from "../objects/attachments"
 import type { NodeLocation } from "./TransformTree"
 
 const _anchoredCenter = new THREE.Vector3()

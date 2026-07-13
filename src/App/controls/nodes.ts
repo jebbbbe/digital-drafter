@@ -1,7 +1,7 @@
 import * as THREE from "three"
 import * as rand from "../utils/random"
 import { drafter, selection, controllers, eventManager } from "../AppContext"
-import type { TransformNode } from "../draft/TransformNode"
+import type { TransformNode } from "../objects/attachments"
 import { NodeSelectionObject } from "../selection"
 import {
     enableNodeStub,

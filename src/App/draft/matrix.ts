@@ -1,6 +1,6 @@
 import * as THREE from "three"
 import { updateSectionChildAttachments } from "../controls/move"
-import type { TransformNode } from "./TransformNode"
+import type { TransformNode } from "../objects/attachments"
 
 const angle = -Math.PI / 2
 const subtract = new THREE.Vector3()

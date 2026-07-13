@@ -44,18 +44,20 @@ export abstract class InteractiveObject {
     constructor() {}
 
     /*
-    abstract move(): void
+	abstract get kind(): SelectType
 
-    abstract getCenter(): void
+    abstract move(startHit: THREE.Vector3): unknown
 
-    abstract gizmoSetup(): void
+    abstract getCenter(): THREE.Vector3
 
-    abstract panelSetup(): void
+    abstract gizmoSetup(override: Partial<GizmoSettings>): void
+
+    abstract panelSetup(override: Partial<PanelSettings>): void
 
     abstract gizmoListener(): void
 
     abstract delete(): void
 
-    abstract setSelected(): void
+    abstract setSelected(isSelected: boolean): void
 	*/
 }

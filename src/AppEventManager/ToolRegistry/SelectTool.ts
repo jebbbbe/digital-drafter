@@ -64,6 +64,8 @@ export class SelectTool extends Tool {
 
             selectedObject = new NodeSelectionObject(node)
         }
+		
+        console.log(selectedObject)
 
         let removed = false
         let added = false

@@ -1,5 +1,5 @@
 import * as THREE from "three"
-import type { TransformNode } from "../draft/TransformNode"
+import type { TransformNode } from "../objects/attachments"
 import type { SectionSegment } from "../selection"
 import { drafter, controllers } from "../AppContext"
 import { getNodevalues } from "./nodes"
