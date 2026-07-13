@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url"
 import { defineConfig, type HmrContext, type PluginOption } from "vite"
 import react from "@vitejs/plugin-react"
 
@@ -14,6 +15,11 @@ function fullReloadOnChange(): PluginOption {
 // https://vite.dev/config/
 export default defineConfig({
     plugins: [react(), fullReloadOnChange()],
+    resolve: {
+        alias: {
+            "@types": fileURLToPath(new URL("./src/types.ts", import.meta.url)),
+        },
+    },
     build: {
         rolldownOptions: {
             output: {
