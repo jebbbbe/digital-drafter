@@ -38,17 +38,13 @@ export class SelectTool extends Tool {
         let selectedObject: TransformNode | SegmentAttachment
         if (first.object === drafter.sectionCutter.mesh) {
             // hit section cutter
-            const { index, faceIndex, object }: any = intersects[0]
-            console.log({ index, faceIndex, object })
+            const { index, faceIndex, object }: any = first
+            const segmentIndex =
+                index ?? (faceIndex !== undefined ? faceIndex * 2 : undefined)
+            if (segmentIndex === undefined) return
 
-            // selectedObject = new SegmentSelectionObject({
-            //     object,
-            //     // for gl_line or LineMaterial
-            //     index: index ?? faceIndex * 2,
-            // })
-            console.log(object.userData.attachments)
-            console.log(faceIndex * 2)
-            selectedObject = object.userData.attachments[faceIndex * 2]
+            selectedObject = object.userData.attachments[segmentIndex]
+            if (!selectedObject) return
         } else {
             // find node from raycast
             const id = first.object.userData.id
@@ -59,10 +55,7 @@ export class SelectTool extends Tool {
             const node = drafter.findNode(location as NodeLocation)
             if (!node) return
             selectedObject = node
-            // console.log(selectedObject)
         }
-
-        console.log(selectedObject)
 
         let removed = false
         let added = false

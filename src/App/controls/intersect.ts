@@ -135,8 +135,8 @@ function startIntersectionFromSelection(operation = boolean.union) {
     const items = selection.items()
     const [nodeA, nodeB] = items
     console.log(nodeA)
-    console.log(nodeB.target)
-    // eventManager.setTool("moveNode", nodeA.target, new THREE.Vector3())
+    console.log(nodeB)
+    // eventManager.setTool("moveNode", nodeA, new THREE.Vector3())
 }
 
 export function startIntersectionFromSeleciton() {

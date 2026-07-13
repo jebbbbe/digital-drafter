@@ -206,6 +206,7 @@ export class SectionCutter {
         const lastIndex = this.count - 2
         const lastOffset = lastIndex * this.itemSize
         const movedNode = this.nodeMap.get(lastIndex)
+        const movedAttachment = this.attachments[lastIndex]
         if (index !== lastIndex) {
             this.array.copyWithin(offset, lastOffset, lastOffset + this.stride)
             if (movedNode !== undefined) {
@@ -217,6 +218,14 @@ export class SectionCutter {
             } else {
                 this.nodeMap.delete(index)
             }
+
+            this.attachments[index] = movedAttachment
+            if (movedAttachment !== undefined) {
+                movedAttachment.index = index
+            }
+            this.attachments[lastIndex] = undefined
+        } else {
+            this.attachments[lastIndex] = undefined
         }
         this.array.fill(0, lastOffset, lastOffset + this.stride)
         this.nodeMap.delete(lastIndex)
@@ -225,7 +234,5 @@ export class SectionCutter {
             this.mesh.geometry.setDrawRange(0, this.count)
         }
         if (mark) this.markUpdate()
-
-        this.attachments[index] = undefined
     }
 }
