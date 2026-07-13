@@ -12,7 +12,7 @@ import { moveNodeToPosition } from "../../controls/move"
 import { deSelectAll } from "../../controls/interaction"
 import { pruneNode } from "../../controls/nodes"
 import { getSlotIndex } from "../textures/GlobalTreeTexture"
-
+import type { SegmentAttachment } from "./SegmentAttachment"
 const _quaternion = new THREE.Quaternion()
 
 /*
@@ -144,27 +144,12 @@ export class TransformNode
     }
 }
 
-export type SegmentAttachment = {
-    object: SectionCutter
-    index: number
-}
-
 export type SectionAttachment = {
     object: SectionFaceGroup
 }
 
 export type IntersectionAttachment = {
     intersections: TransformNode[]
-}
-
-export function createSegmentAttachment(
-    object: SectionCutter,
-    index: number
-): SegmentAttachment {
-    return {
-        object,
-        index,
-    }
 }
 
 export function createSectionAttachment(

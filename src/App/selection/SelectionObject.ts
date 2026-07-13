@@ -15,13 +15,7 @@ export type SelectType =
     | "sectionChild"
     | "sectionParent"
 
-export abstract class SelectionObject<TTarget> {
-    target: TTarget
-
-    constructor(target: TTarget) {
-        this.target = target
-    }
-
+abstract class tmpBridge {
     abstract get kind(): SelectType
 
     abstract move(startHit: THREE.Vector3): unknown
@@ -39,22 +33,17 @@ export abstract class SelectionObject<TTarget> {
     abstract setSelected(isSelected: boolean): void
 }
 
-export abstract class InteractiveObject {
-    constructor() {}
+export abstract class SelectionObject<TTarget> extends tmpBridge {
+    target: TTarget
 
-    abstract get kind(): SelectType
+    constructor(target: TTarget) {
+        super()
+        this.target = target
+    }
+}
 
-    abstract move(startHit: THREE.Vector3): unknown
-
-    abstract getCenter(): THREE.Vector3
-
-    abstract gizmoSetup(override: Partial<GizmoSettings>): void
-
-    abstract panelSetup(override: Partial<PanelSettings>): void
-
-    abstract gizmoListener(): void
-
-    abstract delete(): void
-
-    abstract setSelected(isSelected: boolean): void
+export abstract class InteractiveObject extends tmpBridge {
+    constructor() {
+        super()
+    }
 }
