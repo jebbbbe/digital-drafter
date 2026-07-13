@@ -1,5 +1,4 @@
 import * as THREE from "three"
-import type { SectionCutter, SectionFaceGroup } from "../objects/attachments"
 import type { Node } from "../draft/TransformTree"
 import { InteractiveObject } from "./InteractiveObject"
 import { drafter, controllers } from "../AppContext"
@@ -12,31 +11,15 @@ import { deSelectAll } from "../controls/interaction"
 import { pruneNode } from "../controls/nodes"
 import { getSlotIndex } from "../objects/textures/GlobalTreeTexture"
 import type { SegmentAttachment } from "./SegmentAttachment"
+import type { SectionAttachment } from "./SectionAttachment"
+
 const _quaternion = new THREE.Quaternion()
 
-/*
-relationship between parent and child nodes,
-which update fns to use
-*/
-export type TransformType =
-    | "root" // no relationship, root node
-    | "leaf" // standard
-    //
-    // | "mirror" // mirrored output
-    // | "slide" // pos constrained
-    // requires pos offset matrix
-    | "intersect" // boolean logic
-// low priotiy  requires aditonal args
-// | "arc" // rotated on page
-// | "scale" // scale object larger.
-// | "perspecctive" // do a perspecctive camera transform on node?
-
-// / refrences to extranal geometries for specific nodes
-export type NodeAttachments = {
+type TransformType = "root" | "leaf"
+type NodeAttachments = {
     segment?: SegmentAttachment
     section?: SectionAttachment
 }
-
 type TransformData = {
     position: THREE.Vector3
     baseMatrix: THREE.Matrix4
@@ -133,22 +116,6 @@ export class TransformNode
                 ? SectionFaceGroup.selectedMaterial
                 : SectionFaceGroup.defaultMaterial
         }
-    }
-}
-
-export type SectionAttachment = {
-    object: SectionFaceGroup
-}
-
-export type IntersectionAttachment = {
-    intersections: TransformNode[]
-}
-
-export function createSectionAttachment(
-    object: SectionFaceGroup
-): SectionAttachment {
-    return {
-        object,
     }
 }
 
