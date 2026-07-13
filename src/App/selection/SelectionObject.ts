@@ -40,11 +40,9 @@ export abstract class SelectionObject<TTarget> {
 }
 
 export abstract class InteractiveObject {
-    // abstract kind: string
     constructor() {}
 
-    /*
-	abstract get kind(): SelectType
+    abstract get kind(): SelectType
 
     abstract move(startHit: THREE.Vector3): unknown
 
@@ -59,5 +57,4 @@ export abstract class InteractiveObject {
     abstract delete(): void
 
     abstract setSelected(isSelected: boolean): void
-	*/
 }
