@@ -1,11 +1,11 @@
 import * as THREE from "three"
 import type { TransformNode } from "../objects/attachments"
-import type { SectionSegment } from "../selection"
 import { drafter, controllers } from "../AppContext"
 import { getNodevalues } from "./nodes"
 import { rotatePointOnXZPlane, getXZRotationAngle } from "../utils/rotation"
 import * as levaStore from "../../components/Leva/LevaStore"
 import { updateCutNode } from "./section"
+import type { SegmentAttachment } from "../objects/attachments"
 
 const _prevPosition = new THREE.Vector3()
 const _delta = new THREE.Vector3()
@@ -91,7 +91,7 @@ export function updateSectionChildAttachments(node: TransformNode) {
     return
 }
 
-export function setupSegmentGizmo(line: SectionSegment) {
+export function setupSegmentGizmo(line: SegmentAttachment) {
     const [a, b] = drafter.sectionCutter.getSegmentAsVector(line.index)
 
     _segmentMidPoint.addVectors(a, b).multiplyScalar(0.5)
@@ -114,7 +114,7 @@ export function setupSegmentGizmo(line: SectionSegment) {
 }
 
 export function moveSegmentToPosition(
-    line: SectionSegment,
+    line: SegmentAttachment,
     nextPosition: THREE.Vector3
 ) {
     const index = line.index

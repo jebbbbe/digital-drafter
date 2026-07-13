@@ -3,7 +3,7 @@ import type { AppContext } from "../../App/AppContext"
 import { deSelectAll } from "../../App/controls/interaction"
 import { moveNodeToPosition } from "../../App/controls/move"
 import type { TransformNode } from "../../App/objects/attachments"
-import type { SectionSegment } from "../../App/selection"
+import type { SegmentAttachment } from "../../App/objects/attachments"
 import type { AppEventManager } from "../AppEventManager"
 import { Tool, type NormalizedPointerEvent } from "./Tool"
 import { moveDeltaSelectedNodes } from "../../App/controls/interaction"
@@ -102,7 +102,7 @@ export class MoveNodeTool extends Tool {
 }
 
 export class MoveSegmentTool extends Tool {
-    private line?: SectionSegment
+    private line?: SegmentAttachment
     private readonly prevHit = new THREE.Vector3()
     private readonly delta = new THREE.Vector3()
     private readonly segmentLineDirection = new THREE.Vector3()
@@ -117,7 +117,7 @@ export class MoveSegmentTool extends Tool {
         this.sectionCutter = this.ctx.drafter.sectionCutter
     }
 
-    override enter(line: SectionSegment, startHit: THREE.Vector3): void {
+    override enter(line: SegmentAttachment, startHit: THREE.Vector3): void {
         this.line = line
         this.prevHit.copy(startHit)
         this.sectionChild = undefined

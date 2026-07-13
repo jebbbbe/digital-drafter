@@ -1,6 +1,6 @@
 import * as THREE from "three"
 import type { SectionCutter } from "./SectionCutter"
-import { InteractiveObject } from "../../selection"
+import { InteractiveObject } from "./InteractiveObject"
 import { drafter, controllers } from "../../AppContext"
 import type { GizmoSettings } from "../../selection/ThreeControllersManager"
 import type { PanelSettings } from "../../../components/Leva/LevaStore"
@@ -8,7 +8,6 @@ import { updatePanel } from "../../../components/Leva/LevaStore"
 import { moveSegmentToPosition } from "../../controls/move"
 import { deSelectAll } from "../../controls/interaction"
 import { deleteSegment } from "../../controls/section"
-import type { SectionSegment } from "../../selection"
 
 const _segmentMidPoint = new THREE.Vector3()
 const _segmentDirection = new THREE.Vector3()
@@ -24,11 +23,7 @@ export class SegmentAttachment extends InteractiveObject {
         this.object = object
         this.index = index
 
-		// push here for
         this.object.attachments[index] = this
-    }
-    get kind(): "SectionSegment" {
-        return "SectionSegment"
     }
 
     override move(_startHit: THREE.Vector3) {
@@ -86,12 +81,12 @@ export class SegmentAttachment extends InteractiveObject {
     }
 
     override gizmoListener(position = controllers.getGizmoPosition()) {
-        moveSegmentToPosition(this as unknown as SectionSegment, position)
+        moveSegmentToPosition(this, position)
     }
 
     override delete() {
         deSelectAll()
-        deleteSegment(this as unknown as SectionSegment)
+        deleteSegment(this)
     }
 
     override setSelected(isSelected: boolean) {

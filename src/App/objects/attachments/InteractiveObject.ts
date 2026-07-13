@@ -1,17 +1,8 @@
 import * as THREE from "three"
-import type { GizmoSettings } from "./ThreeControllersManager"
-import type { PanelSettings } from "../../components/Leva/LevaStore"
-
-export type SelectType =
-    | "SectionSegment"
-    | "leaf"
-    | "root"
-    | "sectionChild"
-    | "sectionParent"
+import type { GizmoSettings } from "../../selection/ThreeControllersManager"
+import type { PanelSettings } from "../../../components/Leva/LevaStore"
 
 export abstract class InteractiveObject {
-    abstract get kind(): SelectType
-
     abstract move(startHit: THREE.Vector3): unknown
 
     abstract getCenter(): THREE.Vector3
@@ -20,7 +11,7 @@ export abstract class InteractiveObject {
 
     abstract panelSetup(override: Partial<PanelSettings>): void
 
-    abstract gizmoListener(): void
+    abstract gizmoListener(position?: THREE.Vector3): void
 
     abstract delete(): void
 

@@ -147,7 +147,7 @@ export function rotateRootFromSelection(rot: { x: number; y: number }) {
 }
 
 export function scaleRootFromSelection(n: number) {
-    const rootNode = selection.firstTarget("root")
+    const rootNode = selection.firstNode()
     if (!rootNode) return
     if (rootNode !== rootNode.parent) return
 

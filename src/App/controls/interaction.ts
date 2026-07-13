@@ -19,7 +19,7 @@ export const addLeafToSelectedNodes = () => {
                 addLeafNearbyRandomlyNicely(node)
             },
         },
-        selection.filterTargets("TransformNode")
+        selection.filter("TransformNode")
     )
 }
 
@@ -30,7 +30,7 @@ export const cutSelectedNodes = () => {
                 createNewCutNode(node)
             },
         },
-        selection.filterTargets("TransformNode")
+        selection.filter("TransformNode")
     )
 }
 
@@ -44,7 +44,7 @@ export const mirrorSelectedNodes = () => {
                 drafter.updatePatchedNodeArray(nodes)
             },
         },
-        selection.filterTargets("TransformNode")
+        selection.filter("TransformNode")
     )
 }
 
@@ -56,7 +56,7 @@ export const detachSelectedNodes = () => {
             },
             end(nodes) {},
         },
-        selection.filterTargets("TransformNode")
+        selection.filter("TransformNode")
     )
 }
 
@@ -68,7 +68,7 @@ export const detachChildrenSelectedNodes = () => {
             },
             end(nodes) {},
         },
-        selection.filterTargets("TransformNode")
+        selection.filter("TransformNode")
     )
 }
 
@@ -82,7 +82,7 @@ export const moveDeltaSelectedNodes = (delta: THREE.Vector3) => {
                 drafter.updatePatchedNodeArray(nodes)
             },
         },
-        selection.filterTargets("TransformNode")
+        selection.filter("TransformNode")
     )
 }
 

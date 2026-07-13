@@ -1,8 +1,7 @@
 import * as THREE from "three"
 import type { SectionCutter, SectionFaceGroup } from "."
 import type { Node } from "../../draft/TransformTree"
-import { InteractiveObject } from "../../selection"
-import type { SelectType } from "../../selection"
+import { InteractiveObject } from "./InteractiveObject"
 import { drafter, controllers } from "../../AppContext"
 import type { GizmoSettings } from "../../selection/ThreeControllersManager"
 import type { PanelSettings } from "../../../components/Leva/LevaStore"
@@ -87,13 +86,6 @@ export class TransformNode
         if (node.parent !== undefined && node.parent !== this) {
             node.parent.children.push(this)
         }
-    }
-
-    get kind(): Exclude<SelectType, "SectionSegment"> {
-        if (this.sectionChild) return "sectionChild"
-        if (this.sectionParent) return "sectionParent"
-        if (this.type === "root") return "root"
-        return "leaf"
     }
 
     override move(_startHit: THREE.Vector3) {

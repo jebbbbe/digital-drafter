@@ -7,7 +7,7 @@ import {
 } from "../objects/attachments"
 import * as rand from "../utils/random"
 import { evaluateCSG, boolean, csgEvaluator } from "../utils/csg"
-import type { SectionSegment } from "../selection"
+import type { SegmentAttachment } from "../objects/attachments"
 import type { InstanceItem } from "../draft/InstanceItem"
 import { SectionFaceGroup } from "../objects/attachments"
 
@@ -275,7 +275,7 @@ export function updateCutNode(
     group.setMatrix(faceMatrix)
 }
 
-export function deleteSegment(line: SectionSegment) {
+export function deleteSegment(line: SegmentAttachment) {
     const index = line.index
     const sectionCutter = drafter.sectionCutter
     const node = sectionCutter.nodeMap.get(index)

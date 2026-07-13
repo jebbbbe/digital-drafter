@@ -1,7 +1,6 @@
 import * as THREE from "three"
-import { TransformNode } from "../objects/attachments"
-import { SegmentAttachment } from "../objects/attachments"
-import type { InteractiveObject, SelectType } from "./SelectionObject"
+import { TransformNode, SegmentAttachment } from "../objects/attachments"
+import type { InteractiveObject } from "../objects/attachments"
 
 export class AveragePosition extends THREE.Vector3 {
     count = 0
@@ -27,8 +26,7 @@ export class AveragePosition extends THREE.Vector3 {
     }
 }
 
-type SelectionRunItem = InteractiveObject | TransformNode | SegmentAttachment
-type SelectionTargetKind = "TransformNode" | "SectionSegment"
+type SelectionTargetKind = "TransformNode" | "SegmentAttachment"
 interface SelectionOperation<TItem = unknown> {
     begin?(selection: TItem[]): void
     apply(item: TItem, index: number, selection: TItem[]): void
@@ -36,27 +34,29 @@ interface SelectionOperation<TItem = unknown> {
 }
 
 export class SelectionManager {
-    map: Map<InteractiveObject, InteractiveObject>
+    set: Set<InteractiveObject>
     averagePosition = new AveragePosition()
     constructor(array: InteractiveObject[] = []) {
-        this.map = new Map()
-    }
-    get size(): number {
-        return this.map.size
-    }
-    items() {
-        return [...this.map.values()]
+        this.set = new Set()
     }
 
-    filterObjects(kind: "TransformNode"): TransformNode[]
-    filterObjects(kind: "SectionSegment"): SegmentAttachment[]
-    filterObjects(kind: SelectionTargetKind): InteractiveObject[] {
+    get size(): number {
+        return this.set.size
+    }
+
+    items() {
+        return [...this.set.values()]
+    }
+
+    filter(kind: "TransformNode"): TransformNode[]
+    filter(kind: "SegmentAttachment"): SegmentAttachment[]
+    filter(kind: SelectionTargetKind): InteractiveObject[] {
         switch (kind) {
             case "TransformNode":
                 return this.items().filter(
                     (item) => item instanceof TransformNode
                 )
-            case "SectionSegment":
+            case "SegmentAttachment":
                 return this.items().filter(
                     (item) => item instanceof SegmentAttachment
                 )
@@ -65,19 +65,7 @@ export class SelectionManager {
         }
     }
 
-    filterTargets(kind: "TransformNode"): TransformNode[]
-    filterTargets(kind: "SectionSegment"): SegmentAttachment[]
-    filterTargets(
-        kind: SelectionTargetKind
-    ): TransformNode[] | SegmentAttachment[] {
-        switch (kind) {
-            case "TransformNode":
-                return this.filterObjects(kind).map((item) => item)
-            case "SectionSegment":
-                return this.filterObjects(kind).map((item) => item)
-        }
-    }
-    run<TItem extends SelectionRunItem = InteractiveObject>(
+    run<TItem extends InteractiveObject>(
         operation: SelectionOperation<TItem>,
         items: TItem[] = this.items() as unknown as TItem[]
     ) {
@@ -88,75 +76,56 @@ export class SelectionManager {
         }
         operation.end?.(selection)
     }
+
     setSelectedUpdate(object: InteractiveObject, isSelected: boolean) {
-        /*
-		if we are hiding a SectionSegment, need to check if its parent is in selection and leep it active.
-		if(){
-			return	
-		}
-		*/
         object.setSelected(isSelected)
     }
+
     add(item: InteractiveObject): boolean {
-        const target = item
-        if (!this.map.has(target)) {
+        if (!this.set.has(item)) {
             this.setSelectedUpdate(item, true)
             this.averagePosition.addToAverage(item.getCenter())
-            this.map.set(target, item)
+            this.set.add(item)
             return true
         }
         return false
     }
+
     remove(item: InteractiveObject): boolean {
-        const target = item
-        if (this.map.has(target)) {
+        if (this.set.has(item)) {
             this.setSelectedUpdate(item, false)
             this.averagePosition.removeFromAverage(item.getCenter())
-            this.map.delete(target)
+            this.set.delete(item)
             return true
         }
         return false
     }
+
     has(item: InteractiveObject): boolean {
-        return this.map.has(item)
+        return this.set.has(item)
     }
+
     clear() {
         for (const item of this.items()) {
             this.setSelectedUpdate(item, false)
         }
         this.averagePosition.resetAverage()
-        this.map.clear()
+        this.set.clear()
     }
 
     first() {
         return this.items()[0]
     }
-    firstTarget(search: "SectionSegment"): SegmentAttachment | undefined
-    firstTarget(
-        search: Exclude<SelectType, "SectionSegment">
-    ): TransformNode | undefined
-    firstTarget(search?: SelectType) {
-        const item = this.first()
-        if (!item) return undefined
-        if (search === undefined) return item
-        if (item.kind !== search) return undefined
-        return item
-    }
-    // get fisrt item if its a node,
+
     firstNode(): TransformNode | undefined {
         const item = this.first()
         if (!item || !(item instanceof TransformNode)) return
         return item
     }
+
     firstSegment(): SegmentAttachment | undefined {
         const item = this.first()
         if (!item || !(item instanceof SegmentAttachment)) return
         return item
-    }
-    transformCallback() {
-        const object = this.first()
-        if (object) {
-            object.gizmoListener()
-        }
     }
 }

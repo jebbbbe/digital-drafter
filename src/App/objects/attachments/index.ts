@@ -6,3 +6,4 @@ export {
 export { SectionCutter } from "./SectionCutter"
 export { SectionFaceGroup } from "./SectionFaceGroup"
 export { SegmentAttachment, createSegmentAttachment } from "./SegmentAttachment"
+export type { InteractiveObject } from "./InteractiveObject"
