@@ -3,7 +3,7 @@ import { drafter, controllers } from "../AppContext"
 import { createNewCutNode } from "./section"
 import { geometryLibrary } from "../objects/geometries/library"
 import * as rand from "../utils/random"
-import type { TransformNode } from "../objects/attachments"
+import type { TransformNode } from "../interactive"
 import type { NodeLocation } from "../draft/TransformTree"
 import type { Drafter } from "../draft/Drafter"
 

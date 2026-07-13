@@ -1,11 +1,11 @@
 import * as THREE from "three"
-import type { TransformNode } from "../objects/attachments"
+import type { TransformNode } from "../interactive"
 import { drafter, controllers } from "../AppContext"
 import { getNodevalues } from "./nodes"
 import { rotatePointOnXZPlane, getXZRotationAngle } from "../utils/rotation"
 import * as levaStore from "../../components/Leva/LevaStore"
 import { updateCutNode } from "./section"
-import type { SegmentAttachment } from "../objects/attachments"
+import type { SegmentAttachment } from "../interactive"
 
 const _prevPosition = new THREE.Vector3()
 const _delta = new THREE.Vector3()

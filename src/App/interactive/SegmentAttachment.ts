@@ -1,13 +1,13 @@
 import * as THREE from "three"
-import type { SectionCutter } from "./SectionCutter"
+import type { SectionCutter } from "../objects/attachments/SectionCutter"
 import { InteractiveObject } from "./InteractiveObject"
-import { drafter, controllers } from "../../AppContext"
-import type { GizmoSettings } from "../../selection/ThreeControllersManager"
-import type { PanelSettings } from "../../../components/Leva/LevaStore"
-import { updatePanel } from "../../../components/Leva/LevaStore"
-import { moveSegmentToPosition } from "../../controls/move"
-import { deSelectAll } from "../../controls/interaction"
-import { deleteSegment } from "../../controls/section"
+import { drafter, controllers } from "../AppContext"
+import type { GizmoSettings } from "../selection/ThreeControllersManager"
+import type { PanelSettings } from "../../components/Leva/LevaStore"
+import { updatePanel } from "../../components/Leva/LevaStore"
+import { moveSegmentToPosition } from "../controls/move"
+import { deSelectAll } from "../controls/interaction"
+import { deleteSegment } from "../controls/section"
 
 const _segmentMidPoint = new THREE.Vector3()
 const _segmentDirection = new THREE.Vector3()

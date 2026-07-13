@@ -1,7 +1,7 @@
 import * as THREE from "three"
 import * as rand from "../utils/random"
 import { drafter, selection, controllers, eventManager } from "../AppContext"
-import type { TransformNode } from "../objects/attachments"
+import type { TransformNode } from "../interactive"
 import {
     enableNodeStub,
     syncLevaInsertOptions,

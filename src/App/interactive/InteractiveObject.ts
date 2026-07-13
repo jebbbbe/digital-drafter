@@ -1,6 +1,6 @@
 import * as THREE from "three"
-import type { GizmoSettings } from "../../selection/ThreeControllersManager"
-import type { PanelSettings } from "../../../components/Leva/LevaStore"
+import type { GizmoSettings } from "../selection/ThreeControllersManager"
+import type { PanelSettings } from "../../components/Leva/LevaStore"
 
 export abstract class InteractiveObject {
     abstract move(startHit: THREE.Vector3): unknown

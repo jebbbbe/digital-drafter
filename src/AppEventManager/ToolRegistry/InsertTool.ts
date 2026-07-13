@@ -1,8 +1,7 @@
 import * as THREE from "three"
 import { Tool, type NormalizedPointerEvent } from "./Tool"
-import type { TransformNode } from "../../App/objects/attachments"
+import type { TransformNode } from "../../App/interactive"
 import { moveNodeToPosition } from "../../App/controls/move"
-import { getNodevalues } from "../../App/controls/nodes"
 import * as levaStore from "../../components/Leva/LevaStore"
 
 const _hit = new THREE.Vector3()

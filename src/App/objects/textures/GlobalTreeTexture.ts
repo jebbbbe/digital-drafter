@@ -1,7 +1,7 @@
 import * as THREE from "three"
 import { InstanceCount } from "../../constants"
 import type { NodeLocation } from "../../draft/TransformTree"
-import type { TransformNode } from "../attachments"
+import type { TransformNode } from "../../interactive"
 
 type Pow2 =
     | 1

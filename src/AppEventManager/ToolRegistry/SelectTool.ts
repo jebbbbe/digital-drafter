@@ -2,7 +2,7 @@ import { Tool, type NormalizedPointerEvent } from "./Tool"
 import * as THREE from "three"
 import type { NodeLocation } from "../../App/draft/TransformTree"
 import { deSelectAll } from "../../App/controls/interaction"
-import { SegmentAttachment, TransformNode } from "../../App/objects/attachments"
+import { SegmentAttachment, TransformNode } from "../../App/interactive"
 
 const startHit = new THREE.Vector3()
 const _zeroVec3 = new THREE.Vector3()

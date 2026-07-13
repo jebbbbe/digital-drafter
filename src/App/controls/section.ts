@@ -4,10 +4,10 @@ import {
     createSectionAttachment,
     createSegmentAttachment,
     type TransformNode,
-} from "../objects/attachments"
+    type SegmentAttachment,
+} from "../interactive"
 import * as rand from "../utils/random"
 import { evaluateCSG, boolean, csgEvaluator } from "../utils/csg"
-import type { SegmentAttachment } from "../objects/attachments"
 import type { InstanceItem } from "../draft/InstanceItem"
 import { SectionFaceGroup } from "../objects/attachments"
 
