@@ -1,6 +1,7 @@
 import * as THREE from "three"
 import type { SectionCutter, SectionFaceGroup } from "../objects/attachments"
 import type { Node } from "./TransformTree"
+import { InteractiveObject } from "../selection/SelectionObject"
 
 /*
 relationship between parent and child nodes,
@@ -36,7 +37,46 @@ type TransformData = {
     attachments: NodeAttachments
 }
 
-export type TransformNode = Node<TransformData>
+export class TransformNode
+    extends InteractiveObject
+    implements Node<TransformData>
+{
+    position: THREE.Vector3
+    baseMatrix: THREE.Matrix4
+    compoundMatrix: THREE.Matrix4
+    location: Node<TransformData>["location"]
+    parent: TransformNode
+    children: TransformNode[]
+    type: TransformType
+    mirror: boolean
+    sectionChild: boolean
+    sectionParent: boolean
+    attachments: NodeAttachments
+
+    constructor(node: Partial<TransformNode> = {}) {
+        super()
+
+		this.parent = node.parent ?? this
+		this.type = node.parent === this ? "root" : (node.type ?? "leaf")
+        this.position = node.position ?? new THREE.Vector3()
+        this.baseMatrix = node.baseMatrix ?? new THREE.Matrix4()
+        this.compoundMatrix = node.compoundMatrix ?? new THREE.Matrix4()
+        this.location = {
+            id: -1,
+            index: -1,
+            ...node.location,
+        }
+        this.children = node.children ?? []
+        this.mirror = node.mirror ?? false
+        this.sectionChild = node.sectionChild ?? false
+        this.sectionParent = node.sectionParent ?? false
+        this.attachments = node.attachments ?? {}
+
+        if (node.parent !== undefined && node.parent !== this) {
+            node.parent.children.push(this)
+        }
+    }
+}
 export type SegmentAttachment = {
     object: SectionCutter
     index: number
@@ -71,51 +111,5 @@ export function createSectionAttachment(
 export function createTransformNode(
     node: Partial<TransformNode> = {}
 ): TransformNode {
-    const newNode = {} as TransformNode
-    const parent = node.parent ?? newNode
-    const type = node.parent === newNode ? "root" : (node.type ?? "leaf")
-
-    Object.assign(newNode, {
-        position: node.position ?? new THREE.Vector3(),
-        baseMatrix: node.baseMatrix ?? new THREE.Matrix4(),
-        compoundMatrix: node.compoundMatrix ?? new THREE.Matrix4(),
-        location: {
-            id: -1,
-            index: -1,
-            ...node.location,
-        },
-        parent,
-        children: node.children ?? [],
-        type,
-        mirror: node.mirror ?? false,
-        sectionChild: node.sectionChild ?? false,
-        sectionParent: node.sectionParent ?? false,
-        attachments: node.attachments ?? {},
-    })
-
-    if (node.parent !== undefined && node.parent !== newNode) {
-        node.parent.children.push(newNode)
-    }
-
-    return newNode
-}
-
-const _detachWorldBase = new THREE.Matrix4()
-const _detachInverseLocal = new THREE.Matrix4()
-const _detachRotation = new THREE.Quaternion()
-const _detachScale = new THREE.Vector3()
-const _detachUnusedPosition = new THREE.Vector3()
-
-export function rebaseDetachedMatrixNodeToRoot(
-    node: TransformNode,
-    localTransform: THREE.Matrix4
-) {
-    _detachInverseLocal.copy(localTransform).invert()
-    _detachWorldBase.copy(node.compoundMatrix).multiply(_detachInverseLocal)
-    _detachWorldBase.decompose(
-        _detachUnusedPosition,
-        _detachRotation,
-        _detachScale
-    )
-    node.baseMatrix.compose(node.position, _detachRotation, _detachScale)
+	return new TransformNode(node)
 }

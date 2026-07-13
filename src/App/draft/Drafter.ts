@@ -3,11 +3,12 @@ import { TransformTree } from "./TransformTree"
 import { FreeList } from "../objects/FreeList"
 import { GlobalTreeTexture } from "../objects/textures/GlobalTreeTexture"
 import { SectionCutter } from "../objects/attachments"
+import { createTransformNode } from "./TransformNode"
 import {
-    createTransformNode,
+    calculateBaseMatrix,
+    calculateCompoundMatrix,
     rebaseDetachedMatrixNodeToRoot,
-} from "./TransformNode"
-import { calculateBaseMatrix, calculateCompoundMatrix } from "./matrix"
+} from "./matrix"
 import { InstanceItem } from "./InstanceItem"
 import { walkSubtree, walkSeenSubtree } from "./recursive"
 import { matlib } from "./materialManager"

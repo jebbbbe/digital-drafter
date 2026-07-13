@@ -38,3 +38,24 @@ export abstract class SelectionObject<TTarget> {
 
     abstract setSelected(isSelected: boolean): void
 }
+
+export abstract class InteractiveObject {
+    // abstract kind: string
+    constructor() {}
+
+    /*
+    abstract move(): void
+
+    abstract getCenter(): void
+
+    abstract gizmoSetup(): void
+
+    abstract panelSetup(): void
+
+    abstract gizmoListener(): void
+
+    abstract delete(): void
+
+    abstract setSelected(): void
+	*/
+}
