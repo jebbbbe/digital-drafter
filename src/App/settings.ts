@@ -1,15 +1,6 @@
 import { themes } from "./constants"
 import { defaultTheme } from "./themes/default"
-import type { SettingsDisplay } from "./themes/default"
-
-export type Settings = {
-    camera: {
-        rotationEnabled: boolean
-        zoom: number
-        position: [number, number, number]
-    }
-    display: SettingsDisplay
-}
+import type { Settings } from "@types"
 
 const settings = {
     camera: {

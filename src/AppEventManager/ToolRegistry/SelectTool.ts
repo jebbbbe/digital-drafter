@@ -1,6 +1,6 @@
 import { Tool, type NormalizedPointerEvent } from "./Tool"
 import * as THREE from "three"
-import type { NodeLocation } from "../../App/draft/TransformTree"
+import type { NodeLocation } from "@types"
 import { deSelectAll } from "../../App/controls/interaction"
 import { SegmentAttachment, TransformNode } from "../../App/interactive"
 

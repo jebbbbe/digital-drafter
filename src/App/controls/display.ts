@@ -2,7 +2,7 @@ import * as THREE from "three"
 import { drafter, scene, controllers } from "../AppContext"
 import { settings, setTheme } from "../settings"
 import { syncLevaDisplayControls } from "../../components/Leva/LevaStore"
-import type { SettingsMaterials } from "../themes/default"
+import type { SettingsMaterials } from "@types"
 
 type DisplayMaterials = {
     mesh: SettingsMaterials["mesh"]

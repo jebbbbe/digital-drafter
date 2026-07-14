@@ -1,4 +1,4 @@
-import type { SectionFaceGroup } from "../objects/attachments"
+import type { SectionFaceGroup } from "@types"
 
 export type SectionAttachment = {
     object: SectionFaceGroup

@@ -2,16 +2,18 @@ import * as THREE from "three"
 import type { Node } from "../draft/TransformTree"
 import { InteractiveObject } from "./InteractiveObject"
 import { drafter, controllers } from "../AppContext"
-import type { GizmoSettings } from "../selection/ThreeControllersManager"
-import type { PanelSettings } from "../../components/Leva/LevaStore"
+import type {
+    GizmoSettings,
+    PanelSettings,
+    SectionAttachment,
+    SegmentAttachment,
+} from "@types"
 import { getLevaArgs } from "../controls/nodes"
 import { updatePanel } from "../../components/Leva/LevaStore"
 import { moveNodeToPosition } from "../controls/move"
 import { deSelectAll } from "../controls/interaction"
 import { pruneNode } from "../controls/nodes"
 import { getSlotIndex } from "../objects/textures/GlobalTreeTexture"
-import type { SegmentAttachment } from "./SegmentAttachment"
-import type { SectionAttachment } from "./SectionAttachment"
 
 const _quaternion = new THREE.Quaternion()
 

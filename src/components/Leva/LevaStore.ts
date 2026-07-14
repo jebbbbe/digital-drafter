@@ -1,6 +1,6 @@
 import * as THREE from "three"
 import { levaStore } from "leva"
-import type { SettingsDisplay } from "../../App/themes/default"
+import type { SettingsDisplay } from "@types"
 
 export const panelPaths = {
     insert: "Insert",

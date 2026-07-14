@@ -2,8 +2,8 @@ import * as THREE from "three"
 import {
     TransformNode,
     SegmentAttachment,
-    type InteractiveObject,
 } from "../interactive"
+import type { InteractiveObject } from "@types"
 
 export class AveragePosition extends THREE.Vector3 {
     count = 0

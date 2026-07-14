@@ -1,11 +1,7 @@
 import { InstanceCount } from "../constants"
 import { FreeList } from "../objects/FreeList"
 import { PackedArray } from "../objects/PackedArray"
-
-export type NodeLocation = {
-    id: number
-    index: number
-}
+import type { NodeLocation } from "@types"
 
 export type Node<T = object> = T & {
     location: NodeLocation

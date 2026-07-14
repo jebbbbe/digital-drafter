@@ -12,8 +12,7 @@ import {
 import { InstanceItem } from "./InstanceItem"
 import { walkSubtree, walkSeenSubtree } from "./recursive"
 import { matlib } from "./materialManager"
-import type { TransformNode } from "../interactive"
-import type { NodeLocation } from "./TransformTree"
+import type { NodeLocation, TransformNode } from "@types"
 
 const _anchoredCenter = new THREE.Vector3()
 

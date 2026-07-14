@@ -4,8 +4,7 @@ import { LineMaterial } from "three/addons/lines/LineMaterial.js"
 import { LineSegments2 } from "three/addons/lines/LineSegments2.js"
 import { LineSegmentsGeometry } from "three/addons/lines/LineSegmentsGeometry.js"
 import { orders } from "../../draft/materialManager"
-import type { TransformNode } from "../../interactive/TransformNode"
-import type { SegmentAttachment } from "../../interactive/SegmentAttachment"
+import type { SegmentAttachment, TransformNode } from "@types"
 
 export class SectionCutter {
     mesh!: THREE.LineSegments | LineSegments2

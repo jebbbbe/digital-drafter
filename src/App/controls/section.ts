@@ -3,9 +3,8 @@ import { drafter } from "../AppContext"
 import {
     createSectionAttachment,
     createSegmentAttachment,
-    type TransformNode,
-    type SegmentAttachment,
 } from "../interactive"
+import type { SegmentAttachment, TransformNode } from "@types"
 import * as rand from "../utils/random"
 import { evaluateCSG, boolean, csgEvaluator } from "../utils/csg"
 import type { InstanceItem } from "../draft/InstanceItem"

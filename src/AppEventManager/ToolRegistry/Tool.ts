@@ -1,8 +1,7 @@
 import * as THREE from "three"
 import type { AppContext } from "../../App/AppContext"
 import type { AppEventManager } from "../AppEventManager"
-import type { GizmoSettings } from "../../App/selection/ThreeControllersManager"
-import type { PanelSettings } from "../../components/Leva/LevaStore"
+import type { GizmoSettings, PanelSettings } from "@types"
 import { updatePanel } from "../../components/Leva/LevaStore"
 
 export type NormalizedPointerEvent = {
@@ -65,7 +64,7 @@ export abstract class Tool {
             controllers.setGizmoSettings(gizmoSettings as GizmoSettings)
         }
     }
-    linkPanel() {	
+    linkPanel() {
         const { selection } = this.ctx
 
         const panelSettings: Partial<PanelSettings> = {
