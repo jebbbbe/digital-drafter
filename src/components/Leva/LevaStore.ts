@@ -50,9 +50,9 @@ export const panelPaths = {
     stubMirror: "Selection.Mirror View",
     stubDetach: "Selection.Detach View",
     stubDetachChildren: "Selection.Detach Children",
-    stubUnion: "Selection.Union View",
-    stubDifference: "Selection.Difference View",
-    stubIntersect: "Selection.Intersect View",
+    stubUnion: "Selection.Boolean Union",
+    stubDifference: "Selection.Boolean Difference",
+    stubIntersect: "Selection.Boolean Intersect",
     stubSaveObject: "Selection.Save Object",
     stubAddLibrary: "Selection.Add Object to Library",
 }

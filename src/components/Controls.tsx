@@ -453,18 +453,19 @@ function Controls({ bridge }: any) {
                     disabled: true,
                 }
             ),
-            // "Union View": button(() => controls.startUnionFromFirst(), {
-            "Union View": button(() => controls.startIntersectionFromSeleciton(), {
+
+            "Boolean Union": button(() => controls.bUnionFromSeleciton(), {
                 disabled: true,
             }),
-            "Difference View": button(
-                () => controls.startDifferenceFromFirst(),
+            "Boolean Difference": button(
+                () => controls.bDifferenceFromSeleciton(),
                 { disabled: true }
             ),
-            "Intersect View": button(
-                () => controls.startIntersectionFromFirst(),
+            "Boolean Intersect": button(
+                () => controls.bIntersectionFromSeleciton(),
                 { disabled: true }
             ),
+
             "Save Object": button(
                 () => controls.downloadSelectedObjectAsObj(),
                 { disabled: true }

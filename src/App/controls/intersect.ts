@@ -80,78 +80,6 @@ function intersectTwoNodes(
 }
 
 const _offset = new THREE.Vector3(0, 0, -2)
-export function startIntersection(
-    startNode: TransformNode,
-    operation = boolean.union
-) {
-    let squaredDist = Infinity
-    let closestNode: TransformNode | undefined
-
-    // find clsoest node and intersect it
-    for (
-        let bucketId = 0;
-        bucketId < drafter.tree.freelist.length;
-        bucketId++
-    ) {
-        const bucket = drafter.tree.freelist[bucketId]
-        if (!bucket) continue
-
-        for (let nodeIndex = 0; nodeIndex < bucket.count; nodeIndex++) {
-            const candidate = bucket[nodeIndex] as TransformNode | undefined
-            if (!candidate || candidate === startNode) continue
-
-            const candidateDist = startNode.position.distanceToSquared(
-                candidate.position
-            )
-            if (candidateDist < squaredDist) {
-                squaredDist = candidateDist
-                closestNode = candidate
-            }
-        }
-    }
-    console.log(closestNode)
-    console.log(squaredDist)
-    if (!closestNode) return
-    if (squaredDist > 2) return
-    const yOffset = startNode.position.z - closestNode.position.z
-    const brushResult = intersectTwoNodes(
-        startNode,
-        closestNode,
-        yOffset,
-        operation
-    )
-    if (!brushResult) return
-
-    const id = drafter.instanceItems.nextIndex()
-    drafter.newInstance(brushResult.geometry)
-
-    // add new root!
-    const newNode = drafter.addLeafNode({
-        position: startNode.position.clone().add(_offset),
-        location: { id, index: -1 },
-        parent: startNode,
-    })
-
-    drafter.updatePatchedNode(startNode)
-}
-
-export function startIntersectionFromFirst() {
-    const node = selection.firstNode()
-    if (!node) return
-    startIntersection(node, boolean.intersection)
-}
-
-export function startUnionFromFirst() {
-    const node = selection.firstNode()
-    if (!node) return
-    startIntersection(node, boolean.union)
-}
-
-export function startDifferenceFromFirst() {
-    const node = selection.firstNode()
-    if (!node) return
-    startIntersection(node, boolean.difference)
-}
 
 function createUserToolPromise(tool: ToolId, ...args: unknown[]) {
     return new Promise<void>((resolve, reject) => {
@@ -161,7 +89,7 @@ function createUserToolPromise(tool: ToolId, ...args: unknown[]) {
     })
 }
 
-async function _startIntersectionFromSelection(operation = boolean.union) {
+async function startOperationFromSelection(operation = boolean.union) {
     if (selection.size > 2) {
         deSelectAll()
     }
@@ -178,17 +106,13 @@ async function _startIntersectionFromSelection(operation = boolean.union) {
         items = selection.filter("TransformNode")
     }
     /*
-
 		A,B
 		c,D
-
 		A is first seleccted that gets the oepration appied to it.
 		A -> C
 		B -> D
-
 		any move will recalc the intersection in recusive call.
-		
-
+		how t odeal with nodes part of multiple ABCD...?
 	*/
 
     const [nodeA, nodeB] = items
@@ -257,6 +181,9 @@ function exitIntersectionClean() {
     eventManager.setTool("select")
 }
 
-export function startIntersectionFromSeleciton() {
-    _startIntersectionFromSelection(boolean.union)
-}
+export const bUnionFromSeleciton = () =>
+    startOperationFromSelection(boolean.union)
+export const bDifferenceFromSeleciton = () =>
+    startOperationFromSelection(boolean.difference)
+export const bIntersectionFromSeleciton = () =>
+    startOperationFromSelection(boolean.intersection)
