@@ -63,7 +63,18 @@ export type NodeLocation = {
     index: number
 }
 
-export type { GizmoPreset, GizmoSettings } from "./App/selection/ThreeControllersManager"
+export type ToolId =
+    | "select"
+    | "selectNodes"
+    | "insert"
+    | "moveNode"
+    | "moveSegment"
+    | "moveSelection"
+
+export type {
+    GizmoPreset,
+    GizmoSettings,
+} from "./App/selection/ThreeControllersManager"
 export type { PanelSettings } from "./components/Leva/LevaStore"
 export type {
     InteractiveObject,

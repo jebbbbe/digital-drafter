@@ -86,6 +86,25 @@ export const moveDeltaSelectedNodes = (delta: THREE.Vector3) => {
     )
 }
 
+export const moveAbsoluteSelectedNodes = (position: THREE.Vector3) => {
+    const delta = new THREE.Vector3().subVectors(
+        position,
+        selection.averagePosition
+    )
+    selection.run(
+        {
+            apply(node) {
+                moveNodeDelta(node, delta, false)
+            },
+            end(nodes) {
+                drafter.updatePatchedNodeArray(nodes)
+            },
+        },
+        selection.filter("TransformNode")
+    )
+    return delta
+}
+
 export function deSelectAll() {
     // hide transform controls
     controllers.detachTransformControls()

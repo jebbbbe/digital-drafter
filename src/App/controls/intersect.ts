@@ -2,8 +2,8 @@ import * as THREE from "three"
 import { Brush } from "three-bvh-csg"
 import type { CSGOperation } from "three-bvh-csg"
 
-import { drafter, eventManager, selection } from "../AppContext"
-import type { TransformNode } from "@types"
+import { controllers, drafter, eventManager, selection } from "../AppContext"
+import type { TransformNode, ToolId } from "@types"
 import { evaluateCSG, boolean } from "../utils/csg"
 import { deSelectAll } from "./interaction"
 
@@ -21,7 +21,38 @@ function createNodeBrush(node: TransformNode, yOffset = 0): Brush {
     return brush
 }
 
-export function intersectTwoNodes(
+function intersectFromNodes(nodes: TransformNode[], operation = boolean.union) {
+    const [nodeA, nodeB, nodeC, nodeD] = nodes
+    const d1 = nodeA.position.distanceTo(nodeC.position)
+    const d2 = nodeB.position.distanceTo(nodeD.position)
+    const zOffset = d1 - d2
+    const brushResult = intersectTwoNodes(nodeC, nodeD, zOffset, operation)
+    if (!brushResult) return
+    const id = drafter.instanceItems.nextIndex()
+    drafter.newInstance(brushResult.geometry)
+    const nodeE = drafter.addLeafNode({
+        position: nodeC.position.clone().add(_offset),
+        location: { id, index: -1 },
+        parent: nodeC,
+    })
+    if (!nodeE) {
+        return
+    }
+
+    nodes.push(nodeE)
+    // const intersectAttachment = {
+    // 	nodes,
+    // 	operation,
+    // }
+    // nodeA.attachments.intersect = intersectAttachment
+    // nodeB.attachments.intersect = intersectAttachment
+    // nodeC.attachments.intersect = intersectAttachment
+    // nodeD.attachments.intersect = intersectAttachment
+    // nodeE.attachments.intersect = intersectAttachment
+    return nodeE
+}
+
+function intersectTwoNodes(
     nodeA: TransformNode,
     nodeB: TransformNode,
     yOffset = 0,
@@ -122,25 +153,110 @@ export function startDifferenceFromFirst() {
     startIntersection(node, boolean.difference)
 }
 
-function startIntersectionFromSelection(operation = boolean.union) {
-    console.log(operation)
+function createUserToolPromise(tool: ToolId, ...args: unknown[]) {
+    return new Promise<void>((resolve, reject) => {
+        eventManager.setTool(tool, ...args, resolve, () =>
+            reject(new Error(`${tool} cancelled`))
+        )
+    })
+}
+
+async function _startIntersectionFromSelection(operation = boolean.union) {
     if (selection.size > 2) {
         deSelectAll()
     }
 
-    if (selection.size < 2) {
+    let items = selection.filter("TransformNode")
+    if (items.length !== 2) {
         console.log("select more nodes")
+        try {
+            await createUserToolPromise("selectNodes", 2)
+        } catch {
+            exitIntersectionClean()
+            return
+        }
+        items = selection.filter("TransformNode")
     }
+    /*
 
-    const items = selection.items()
+		A,B
+		c,D
+
+		A is first seleccted that gets the oepration appied to it.
+		A -> C
+		B -> D
+
+		any move will recalc the intersection in recusive call.
+		
+
+	*/
+
     const [nodeA, nodeB] = items
+
     console.log(nodeA)
     console.log(nodeB)
-    // eventManager.setTool("moveNode", nodeA, new THREE.Vector3())
+
+    const partialA = {
+        position: nodeA.position.clone().add(_offset),
+    }
+    const partialB = {
+        position: nodeB.position.clone().add(_offset),
+    }
+
+    const nodeC = drafter.addLeafNode(partialA, nodeA)
+    const nodeD = drafter.addLeafNode(partialB, nodeB)
+    if (!nodeC || !nodeD) {
+        exitIntersectionClean()
+        return
+    }
+    selection.clear()
+    selection.add(nodeC)
+    selection.add(nodeD)
+    controllers.useTransformControls = false
+
+    try {
+        await createUserToolPromise("insert")
+    } catch {
+        exitIntersectionClean()
+        return
+    }
+    selection.remove(nodeD)
+
+    try {
+        // CONSTRAINED MOVE HERE
+        console.warn("contrain not implemented")
+        await createUserToolPromise("insert")
+    } catch {
+        exitIntersectionClean()
+        return
+    }
+
+    const nodes = [nodeA, nodeB, nodeC, nodeD]
+    const nodeE = intersectFromNodes(nodes, operation)
+    if (!nodeE) {
+        exitIntersectionClean()
+        return
+    }
+
+    selection.clear()
+    selection.add(nodeE)
+    try {
+        await createUserToolPromise("insert")
+    } catch {
+        exitIntersectionClean()
+        return
+    }
+
+    exitIntersectionClean()
+    return
+}
+
+function exitIntersectionClean() {
+    controllers.useTransformControls = true
+    deSelectAll()
+    eventManager.setTool("select")
 }
 
 export function startIntersectionFromSeleciton() {
-    const node = selection.firstNode()
-    if (!node) return
-    startIntersectionFromSelection(boolean.intersection)
+    _startIntersectionFromSelection(boolean.union)
 }

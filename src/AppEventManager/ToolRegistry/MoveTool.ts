@@ -5,7 +5,10 @@ import { moveNodeToPosition } from "../../App/controls/move"
 import type { SegmentAttachment, TransformNode } from "@types"
 import type { AppEventManager } from "../AppEventManager"
 import { Tool, type NormalizedPointerEvent } from "./Tool"
-import { moveDeltaSelectedNodes } from "../../App/controls/interaction"
+import {
+    moveDeltaSelectedNodes,
+    moveAbsoluteSelectedNodes,
+} from "../../App/controls/interaction"
 
 export class MoveNodeTool extends Tool {
     private node?: TransformNode
@@ -222,8 +225,6 @@ export class MoveSelectionTool extends Tool {
 
         moveDeltaSelectedNodes(this.delta)
 
-        this.prevHit.copy(hit)
-        this.ctx.selection.averagePosition.add(this.delta)
         this.linkGizmo()
         this.linkPanel()
     }

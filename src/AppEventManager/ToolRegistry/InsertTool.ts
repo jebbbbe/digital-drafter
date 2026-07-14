@@ -1,18 +1,14 @@
 import * as THREE from "three"
 import { Tool, type NormalizedPointerEvent } from "./Tool"
-import type { TransformNode } from "@types"
-import { moveNodeToPosition } from "../../App/controls/move"
 import * as levaStore from "../../components/Leva/LevaStore"
-
-const _hit = new THREE.Vector3()
-const _delta = new THREE.Vector3()
+import { moveAbsoluteSelectedNodes } from "../../App/controls/interaction"
 
 export class InsertTool extends Tool {
-    private node: TransformNode | undefined
+    private resolve?: () => void
+    private reject?: () => void
 
-    override enter(): void {
-        this.node = this.ctx.selection.firstNode()
-        if (!this.node) {
+    override enter(resolve = undefined, reject = undefined): void {
+        if (this.ctx.selection.size === 0) {
             this.eventManager.setTool("select")
             return
         }
@@ -20,36 +16,53 @@ export class InsertTool extends Tool {
         this.ctx.controllers.attachTransformProxy()
         this.linkGizmo()
         this.linkPanel()
+
+        this.resolve = resolve
+        this.reject = reject
     }
 
     override onPointerMove(e: NormalizedPointerEvent) {
-        if (!this.node) return
-
-        const hit = this.ctx.raycastHelper.castFromEventToPlane(e.event, _hit)
+        const hit = this.ctx.raycastHelper.castFromEventToPlane(e.event)
         if (!hit) return
-
-        _delta.subVectors(hit, this.node.position)
-
-        moveNodeToPosition(this.node, hit)
-
-        this.ctx.selection.averagePosition.add(_delta)
-        this.linkGizmo()
+        console.log(hit)
+        const delta = moveAbsoluteSelectedNodes(hit)
+        this.ctx.selection.averagePosition.add(delta)
         this.linkPanel()
     }
 
     override onPointerUp() {
-        if (!this.node) return
-
-        levaStore.setLevaInsertDefault()
+        this.linkGizmo()
+        this.linkPanel()
+        levaStore.setLevaInsertDefault() //sets ui dropdown to default
         this.ctx.controllers.resumeControls()
-        this.node = undefined
-        this.eventManager.setTool("select")
+
+        console.log(this.resolve)
+        console.log(this.resolve !== undefined)
+
+        if (this.resolve !== undefined) {
+            this.finish()
+        } else {
+            this.eventManager.setTool("select")
+        }
     }
 
     override cancel() {
-        if (!this.node) return
+        if (!this.resolve) return
 
         this.ctx.controllers.resumeControls()
-        this.node = undefined
+        this.resolve = undefined
+        this.reject?.()
+        this.reject = undefined
+    }
+
+    private finish() {
+        if (!this.resolve) return
+
+        const resolve = this.resolve
+        this.ctx.controllers.resumeControls()
+        this.resolve = undefined
+        this.reject = undefined
+
+        resolve?.()
     }
 }

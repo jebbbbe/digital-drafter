@@ -13,6 +13,7 @@ export async function linkThreeApp(container: HTMLElement) {
     // link tools to evvent manager
     const { eventManager } = ctx
     eventManager.register("select", new Tools.SelectTool(ctx, eventManager))
+    eventManager.register("selectNodes", new Tools.SelectNodesTool(ctx, eventManager))
     eventManager.register("insert", new Tools.InsertTool(ctx, eventManager))
     eventManager.register("moveNode", new Tools.MoveNodeTool(ctx, eventManager))
     eventManager.register(

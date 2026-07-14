@@ -117,7 +117,7 @@ export class TransformNode
         if (SectionFaceGroup) {
             SectionFaceGroup.setSelected(isSelected)
         }
-		
+
         // line
         const segment = this.attachments.segment
         if (segment) {
