@@ -7,12 +7,12 @@ import type {
     PanelSettings,
     SectionAttachment,
     SegmentAttachment,
+    NodeLocation,
 } from "@types"
 import { getLevaArgs } from "../controls/nodes"
 import { updatePanel } from "../../components/Leva/LevaStore"
 import { moveNodeToPosition } from "../controls/move"
 import { deSelectAll } from "../controls/interaction"
-import { pruneNode } from "../controls/nodes"
 import { getSlotIndex } from "../objects/textures/GlobalTreeTexture"
 
 const _quaternion = new THREE.Quaternion()
@@ -40,7 +40,7 @@ export class TransformNode
     position: THREE.Vector3
     baseMatrix: THREE.Matrix4
     compoundMatrix: THREE.Matrix4
-    location: Node<TransformData>["location"]
+    location: NodeLocation
     parent: TransformNode
     children: TransformNode[]
     type: TransformType
@@ -104,7 +104,7 @@ export class TransformNode
 
     override delete() {
         deSelectAll()
-        pruneNode(this)
+        drafter.pruneNode(this)
     }
 
     override setSelected(isSelected: boolean) {

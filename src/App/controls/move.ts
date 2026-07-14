@@ -30,17 +30,12 @@ function updateSectionParentAttachments(node: TransformNode, delta = _delta) {
 
 export function moveNodeToPosition(
     node: TransformNode,
-    nextPosition: THREE.Vector3
+    nextPosition: THREE.Vector3,
+    recusrive = true
 ) {
-    _prevPosition.copy(node.position)
     node.position.copy(nextPosition)
-    _delta.subVectors(node.position, _prevPosition)
-    if (_delta.lengthSq() === 0) return false
-
     if (node.sectionParent) updateSectionParentAttachments(node)
-    drafter.updatePatchedNode(node)
-
-    return true
+    if (recusrive) drafter.updatePatchedNode(node)
 }
 
 export function moveNodeDelta(
