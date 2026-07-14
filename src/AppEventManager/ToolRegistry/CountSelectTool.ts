@@ -7,7 +7,7 @@ type SelectNodesEnterArgs = [
     reject?: () => void,
 ]
 
-export class SelectNodesTool extends Tool {
+export class CountSelectTool extends Tool {
     private targetCount = 0
     private resolve?: () => void
     private reject?: () => void

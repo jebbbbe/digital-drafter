@@ -170,7 +170,7 @@ async function _startIntersectionFromSelection(operation = boolean.union) {
     if (items.length !== 2) {
         console.log("select more nodes")
         try {
-            await createUserToolPromise("selectNodes", 2)
+            await createUserToolPromise("selectCount", 2)
         } catch {
             exitIntersectionClean()
             return
@@ -215,7 +215,7 @@ async function _startIntersectionFromSelection(operation = boolean.union) {
     controllers.useTransformControls = false
 
     try {
-        await createUserToolPromise("insert")
+        await createUserToolPromise("moveAttached")
     } catch {
         exitIntersectionClean()
         return
@@ -225,7 +225,7 @@ async function _startIntersectionFromSelection(operation = boolean.union) {
     try {
         // CONSTRAINED MOVE HERE
         console.warn("contrain not implemented")
-        await createUserToolPromise("insert")
+        await createUserToolPromise("moveAttached")
     } catch {
         exitIntersectionClean()
         return
@@ -241,7 +241,7 @@ async function _startIntersectionFromSelection(operation = boolean.union) {
     selection.clear()
     selection.add(nodeE)
     try {
-        await createUserToolPromise("insert")
+        await createUserToolPromise("moveAttached")
     } catch {
         exitIntersectionClean()
         return

@@ -65,8 +65,8 @@ export type NodeLocation = {
 
 export type ToolId =
     | "select"
-    | "selectNodes"
-    | "insert"
+    | "selectCount"
+    | "moveAttached"
     | "moveNode"
     | "moveSegment"
     | "moveSelection"

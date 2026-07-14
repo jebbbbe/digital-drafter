@@ -3,7 +3,7 @@ import { Tool, type NormalizedPointerEvent } from "./Tool"
 import * as levaStore from "../../components/Leva/LevaStore"
 import { moveAbsoluteSelectedNodes } from "../../App/controls/interaction"
 
-export class InsertTool extends Tool {
+export class AttachedMoveTool extends Tool {
     private resolve?: () => void
     private reject?: () => void
 
