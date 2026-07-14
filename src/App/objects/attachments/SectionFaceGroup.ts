@@ -70,6 +70,12 @@ export class SectionFaceGroup extends THREE.Group {
         this.matrix.copy(faceMatrix)
         this.matrixWorldNeedsUpdate = true
     }
+	
+    setSelected(isSelected: boolean) {
+        this.edges.material = isSelected
+            ? this.selectedMaterial
+            : this.defaultMaterial
+    }
 
     dispose() {
         this.face.geometry.dispose()

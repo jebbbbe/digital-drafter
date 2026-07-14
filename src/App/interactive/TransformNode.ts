@@ -112,11 +112,16 @@ export class TransformNode
         drafter.globalTreeTexture.writeNodeSelected(slot, isSelected)
         drafter.globalTreeTexture.sendUpdate(slot)
 
+        //section
         const SectionFaceGroup = this.attachments?.section?.object
         if (SectionFaceGroup) {
-            SectionFaceGroup.edges.material = isSelected
-                ? SectionFaceGroup.selectedMaterial
-                : SectionFaceGroup.defaultMaterial
+            SectionFaceGroup.setSelected(isSelected)
+        }
+		
+        // line
+        const segment = this.attachments.segment
+        if (segment) {
+            segment.setSelected(isSelected)
         }
     }
 }
