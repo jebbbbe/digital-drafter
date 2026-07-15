@@ -26,7 +26,7 @@ function intersectFromNodes(nodes: TransformNode[], operation = boolean.union) {
     const d1 = nodeA.position.distanceTo(nodeC.position)
     const d2 = nodeB.position.distanceTo(nodeD.position)
     const zOffset = d1 - d2
-    const brushResult = intersectTwoNodes(nodeC, nodeD, zOffset, operation)
+    const brushResult = intersectTwoNodes(nodeD, nodeC, zOffset, operation)
     if (!brushResult) return
     const id = drafter.instanceItems.nextIndex()
     drafter.newInstance(brushResult.geometry)
@@ -38,7 +38,7 @@ function intersectFromNodes(nodes: TransformNode[], operation = boolean.union) {
     if (!nodeE) {
         return
     }
-
+    // nodeA.position.y = zOffset //	 align drawing depth with z offset...?
     nodes.push(nodeE)
     // const intersectAttachment = {
     // 	nodes,
@@ -63,7 +63,7 @@ function intersectTwoNodes(
     // Use temporary brushes so nodes that share an instance id still carry
     // independent transforms into the CSG evaluation.
     const instanceBrushA = createNodeBrush(nodeA)
-    const instanceBrushB = createNodeBrush(nodeB, yOffset)
+    const instanceBrushB = createNodeBrush(nodeB)
 
     try {
         const brushResult = evaluateCSG(
@@ -144,7 +144,7 @@ async function startOperationFromSelection(operation = boolean.union) {
         exitIntersectionClean()
         return
     }
-    selection.remove(nodeD)
+    selection.remove(nodeC)
 
     try {
         // CONSTRAINED MOVE HERE
