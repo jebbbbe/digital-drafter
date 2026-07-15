@@ -18,6 +18,8 @@ const _zeroQuaternion = new THREE.Quaternion()
 export abstract class Tool {
     protected ctx: AppContext
     protected eventManager: AppEventManager
+    protected resolve?: (success: boolean) => void
+
     constructor(ctx: AppContext, eventManager: AppEventManager) {
         this.ctx = ctx
         this.eventManager = eventManager
@@ -45,6 +47,15 @@ export abstract class Tool {
     }
     onKeyUp(event: KeyboardEvent): boolean {
         return false
+    }
+
+    protected resolveTool(success: boolean): boolean {
+        const resolve = this.resolve
+        if (!resolve) return false
+
+        this.resolve = undefined
+        resolve(success)
+        return true
     }
 
     linkGizmo() {

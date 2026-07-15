@@ -3,28 +3,28 @@ import { Tool, type NormalizedPointerEvent } from "./Tool"
 import * as levaStore from "../../components/Leva/LevaStore"
 import { moveAbsoluteSelectedNodes } from "../../App/controls/interaction"
 
-export class AttachedMoveTool extends Tool {
-    private resolve?: () => void
-    private reject?: () => void
+type AttachedMoveEnterArgs = [done?: (success: boolean) => void]
 
-    override enter(resolve = undefined, reject = undefined): void {
+export class AttachedMoveTool extends Tool {
+    override enter(...args: unknown[]): void {
+        const [done] = args as AttachedMoveEnterArgs
+        this.resolve = done
+
         if (this.ctx.selection.size === 0) {
+            this.resolveTool(false)
             this.eventManager.setTool("select")
             return
         }
+
         this.ctx.controllers.pauseControls()
         this.ctx.controllers.attachTransformProxy()
         this.linkGizmo()
         this.linkPanel()
-
-        this.resolve = resolve
-        this.reject = reject
     }
 
     override onPointerMove(e: NormalizedPointerEvent) {
         const hit = this.ctx.raycastHelper.castFromEventToPlane(e.event)
         if (!hit) return
-        console.log(hit)
         const delta = moveAbsoluteSelectedNodes(hit)
         this.ctx.selection.averagePosition.add(delta)
         this.linkPanel()
@@ -33,36 +33,27 @@ export class AttachedMoveTool extends Tool {
     override onPointerUp() {
         this.linkGizmo()
         this.linkPanel()
-        levaStore.setLevaInsertDefault() //sets ui dropdown to default
-        this.ctx.controllers.resumeControls()
-
-        console.log(this.resolve)
-        console.log(this.resolve !== undefined)
-
-        if (this.resolve !== undefined) {
-            this.finish()
-        } else {
-            this.eventManager.setTool("select")
-        }
+        levaStore.setLevaInsertDefault()
+        this.resolveTool(true)
+        this.eventManager.setTool("select")
     }
 
-    override cancel() {
-        if (!this.resolve) return
-
-        this.ctx.controllers.resumeControls()
-        this.resolve = undefined
-        this.reject?.()
-        this.reject = undefined
+    override onPointerCancel() {
+        this.resolveTool(false)
+        this.eventManager.setTool("select")
     }
 
-    private finish() {
-        if (!this.resolve) return
+    override onKeyDown(event: KeyboardEvent): boolean {
+        if (event.key !== "Escape") return false
 
-        const resolve = this.resolve
+        this.resolveTool(false)
+        this.eventManager.setTool("select")
+        return true
+    }
+
+    cancel() {
+        levaStore.setLevaInsertDefault()
         this.ctx.controllers.resumeControls()
-        this.resolve = undefined
-        this.reject = undefined
-
-        resolve?.()
+        this.resolveTool(false)
     }
 }

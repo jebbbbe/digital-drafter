@@ -3,7 +3,7 @@ import { Brush } from "three-bvh-csg"
 import type { CSGOperation } from "three-bvh-csg"
 
 import { controllers, drafter, eventManager, selection } from "../AppContext"
-import type { TransformNode, ToolId } from "@types"
+import type { TransformNode } from "@types"
 import { evaluateCSG, boolean } from "../utils/csg"
 import { deSelectAll } from "./interaction"
 
@@ -81,14 +81,6 @@ function intersectTwoNodes(
 
 const _offset = new THREE.Vector3(0, 0, -2)
 
-function createUserToolPromise(tool: ToolId, ...args: unknown[]) {
-    return new Promise<void>((resolve, reject) => {
-        eventManager.setTool(tool, ...args, resolve, () =>
-            reject(new Error(`${tool} cancelled`))
-        )
-    })
-}
-
 async function startOperationFromSelection(operation = boolean.union) {
     if (selection.size > 2) {
         deSelectAll()
@@ -97,13 +89,13 @@ async function startOperationFromSelection(operation = boolean.union) {
     let items = selection.filter("TransformNode")
     if (items.length !== 2) {
         console.log("select more nodes")
-        try {
-            await createUserToolPromise("selectCount", 2)
-        } catch {
+        let success = await eventManager.setToolAsync("selectCount", 2)
+        items = selection.filter("TransformNode")
+        success = success && items.length === 2
+        if (!success) {
             exitIntersectionClean()
             return
         }
-        items = selection.filter("TransformNode")
     }
     /*
 		A,B
@@ -138,19 +130,15 @@ async function startOperationFromSelection(operation = boolean.union) {
     selection.add(nodeD)
     controllers.useTransformControls = false
 
-    try {
-        await createUserToolPromise("moveAttached")
-    } catch {
+    if (!(await eventManager.setToolAsync("moveAttached"))) {
         exitIntersectionClean()
         return
     }
     selection.remove(nodeC)
 
-    try {
-        // CONSTRAINED MOVE HERE
-        console.warn("contrain not implemented")
-        await createUserToolPromise("moveAttached")
-    } catch {
+    // CONSTRAINED MOVE HERE
+    console.warn("contrain not implemented")
+    if (!(await eventManager.setToolAsync("moveAttached"))) {
         exitIntersectionClean()
         return
     }
@@ -164,9 +152,7 @@ async function startOperationFromSelection(operation = boolean.union) {
 
     selection.clear()
     selection.add(nodeE)
-    try {
-        await createUserToolPromise("moveAttached")
-    } catch {
+    if (!(await eventManager.setToolAsync("moveAttached"))) {
         exitIntersectionClean()
         return
     }

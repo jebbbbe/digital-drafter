@@ -218,7 +218,7 @@ export function insertGeometry(geo: THREE.BufferGeometry) {
     if (!node) return
     selection.clear()
     selection.add(node)
-    eventManager.setTool("insert")
+    eventManager.setTool("moveAttached")
 }
 
 function addGeometryToLibrary(

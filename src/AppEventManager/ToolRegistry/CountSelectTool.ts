@@ -2,32 +2,30 @@ import { Tool, type NormalizedPointerEvent } from "./Tool"
 import { deSelectAll } from "../../App/controls/interaction"
 
 type SelectNodesEnterArgs = [
-    targetCount: number,
-    resolve?: () => void,
-    reject?: () => void,
+    done?: (success: boolean) => void,
+    targetCount?: number,
 ]
 
 export class CountSelectTool extends Tool {
     private targetCount = 0
-    private resolve?: () => void
-    private reject?: () => void
 
     override enter(...args: unknown[]): void {
-        const [targetCount, resolve, reject] = args as SelectNodesEnterArgs
+        const [resolve, targetCount = 0] = args as SelectNodesEnterArgs
         this.targetCount = targetCount
         this.resolve = resolve
-        this.reject = reject
         this.ctx.controllers.detachTransformControls()
         this.ctx.controllers.pauseControls()
 
-        if (this.ctx.selection.size >= this.targetCount) {
-            this.finish()
+        if (
+            this.ctx.selection.filter("TransformNode").length >=
+            this.targetCount
+        ) {
+            this.resolveTool(true)
+            this.eventManager.setTool("select")
         }
     }
 
     override onPointerUp(_normalized: NormalizedPointerEvent) {
-        if (!this.resolve) return
-
         const e = _normalized.event
         const { drafter, raycastHelper, selection } = this.ctx
 
@@ -61,42 +59,35 @@ export class CountSelectTool extends Tool {
             !removed &&
             selection.filter("TransformNode").length >= this.targetCount
         ) {
-            this.finish()
+            this.resolveTool(true)
+            this.eventManager.setTool("select")
         }
     }
 
     override onPointerCancel() {
-        this.cancel()
+        deSelectAll()
+        this.resolveTool(false)
         this.eventManager.setTool("select")
     }
 
     override onKeyDown(event: KeyboardEvent): boolean {
+        if (event.key === "Enter") {
+            this.resolveTool(true)
+            this.eventManager.setTool("select")
+            return true
+        }
+
         if (event.key !== "Escape") return false
 
-        this.cancel()
+        deSelectAll()
+        this.resolveTool(false)
         this.eventManager.setTool("select")
         return true
     }
 
-    override cancel(): void {
-        if (!this.resolve) return
-
-        this.targetCount = 0
-        deSelectAll()
-        this.resolve = undefined
-        this.reject?.()
-        this.reject = undefined
-    }
-
-    private finish() {
-        if (!this.resolve) return
-
-        const resolve = this.resolve
+    cancel(): void {
         this.targetCount = 0
         this.ctx.controllers.resumeControls()
-        this.resolve = undefined
-        this.reject = undefined
-
-        resolve?.()
+        this.resolveTool(false)
     }
 }

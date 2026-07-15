@@ -9,6 +9,9 @@ const _zeroVec3 = new THREE.Vector3()
 const _zeroQuaternion = new THREE.Quaternion()
 
 export class SelectTool extends Tool {
+    override enter(..._args: unknown[]): void {
+        // console.log("select Enter")
+    }
     override onPointerDown(_normalized: NormalizedPointerEvent) {
         const e = _normalized.event
         const { drafter, raycastHelper, selection, controllers } = this.ctx

@@ -65,6 +65,12 @@ export class AppEventManager {
         this.currentTool.enter(...args)
     }
 
+    setToolAsync(tool: ToolId, ...args: unknown[]) {
+        return new Promise<boolean>((resolve) => {
+            this.setTool(tool, resolve, ...args)
+        })
+    }
+
     normalizePointerEvent(e: PointerEvent): NormalizedPointerEvent {
         // convert to NDC
         const rect = this.ctx.renderer.domElement.getBoundingClientRect?.() ?? {

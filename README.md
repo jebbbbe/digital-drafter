@@ -60,7 +60,7 @@
 
 ### v0.4.0
 
-- [ ] tool cancel, reject, resolve issue.
+- [x] tool cancel, reject, resolve issue.
 - [ ] update intersect attachment.?
 - [ ] commands always on, run selection pattern with simple popup?
 - [x] rm nodeSlot
