@@ -27,6 +27,8 @@
     - [ ] model import
     - [ ] animation methods etc control.
     - [ ] session data
+    - [ ] selection drag
+    - [ ] rotate & select without cancel
     - [ ] kbm
         - [ ] control a , select all
         - [ ] control c + v, copy paste selection
@@ -39,12 +41,13 @@
     - [ ] line thickness for printing, global v screen
     - [ ] tile renderer for export?
 - [ ] refactor
+    - [ ] heave v light refacctor where we skip geom creation
     - [ ] main as class
-	- [ ] drafter
-		- [ ] error, not check undef
-		- [ ] map of repeat geom
-		- [ ] instanceItem.localtransform rm? 
-    - [x] abstract 
+    - [ ] drafter
+        - [ ] error, not check undef
+        - [ ] map of repeat geom
+        - [ ] instanceItem.localtransform rm?
+    - [x] abstract
         - [x] attachment abstract class
         - [x] selectObject v attachment as similar objects
         - [x] better event patterns for abstract classes.
