@@ -136,7 +136,7 @@ export function calculateCompoundMatrix(
             .multiply(node.parent.compoundMatrix)
     }
     if (node.sectionChild) {
-        // this will update section cust recusivly, but it is SLOW
+        // this will update section cuts recusivly, but it is SLOW
         // console.log(node.location)
         updateSectionChildAttachments(node)
     }

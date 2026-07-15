@@ -14,14 +14,18 @@
 - [ ] payment?
 - [ ] cli?
 - [ ] materials
-    - [ ] Profile Edge Depthmap Read..?
+- [ ] Profile Edge Depthmap Read..?
+- [ ] snap to object...?\
+- [ ] contrained move object?
+- [ ] enable/ disable snap..?
 
 ### v0.5.0
 
 - [ ] features
+    - [ ] ICONS
     - [ ] circular arc
     - [ ] model import
-    - [ ] aniamtion control.
+    - [ ] animation methods etc control.
     - [ ] session data
     - [ ] kbm
         - [ ] control a , select all
@@ -36,10 +40,14 @@
     - [ ] tile renderer for export?
 - [ ] refactor
     - [ ] main as class
-    - [ ] abstract - [ ] attachment abstract class
-        - [ ] selectObject v attachment as similar objects
-        - [ ] better event patterns for abstract classes.
-
+	- [ ] drafter
+		- [ ] error, not check undef
+		- [ ] map of repeat geom
+		- [ ] instanceItem.localtransform rm? 
+    - [x] abstract 
+        - [x] attachment abstract class
+        - [x] selectObject v attachment as similar objects
+        - [x] better event patterns for abstract classes.
 - [ ] issues
     - [ ] delete section grandchildren should detach
     - [ ] delte section grandchildren leaves gizmo in view
@@ -49,6 +57,9 @@
 
 ### v0.4.0
 
+- [ ] tool cancel, reject, resolve issue.
+- [ ] update intersect attachment.?
+- [ ] commands always on, run selection pattern with simple popup?
 - [x] rm nodeSlot
 - [x] scale fix in nodeData
 - [x] node anchors
@@ -58,8 +69,8 @@
 - [x] main exports
 - [x] remaning material + issues
 
-- [ ] features
-    - [ ] fix intersecitons with new tool
+- [x] features
+    - [x] fix intersecitons with new tool
 
 - [x] issues
     - [x] lwinstance merge
