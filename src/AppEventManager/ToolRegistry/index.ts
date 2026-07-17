@@ -1,4 +1,5 @@
 export type { Tool, NormalizedPointerEvent } from "./Tool"
+export { DisableTool } from "./DisableTool"
 export { SelectTool } from "./SelectTool"
 export { CountSelectTool } from "./CountSelectTool"
 export { AttachedMoveTool } from "./AttachedMoveTool"

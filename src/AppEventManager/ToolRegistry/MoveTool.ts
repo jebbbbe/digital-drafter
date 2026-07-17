@@ -20,10 +20,6 @@ export class MoveNodeTool extends Tool {
     private parentPosition?: THREE.Vector3
     private lineLengthSq = 0
 
-    constructor(ctx: AppContext, eventManager: AppEventManager) {
-        super(ctx, eventManager)
-    }
-
     override enter(node: TransformNode, startHit: THREE.Vector3): void {
         this.node = node
         this.prevHit.copy(startHit)
@@ -114,8 +110,8 @@ export class MoveSegmentTool extends Tool {
     private sectionParent?: TransformNode
     private lineLengthSq = 0
 
-    constructor(ctx: AppContext, eventManager: AppEventManager) {
-        super(ctx, eventManager)
+    constructor(ctx: AppContext) {
+        super(ctx)
         this.sectionCutter = this.ctx.drafter.sectionCutter
     }
 
@@ -208,10 +204,6 @@ export class MoveSegmentTool extends Tool {
 export class MoveSelectionTool extends Tool {
     private delta = new THREE.Vector3()
     private prevHit = new THREE.Vector3()
-
-    constructor(ctx: AppContext, eventManager: AppEventManager) {
-        super(ctx, eventManager)
-    }
 
     override enter(startHit: THREE.Vector3) {
         this.prevHit.copy(startHit)

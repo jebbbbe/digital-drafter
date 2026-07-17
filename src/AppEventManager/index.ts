@@ -12,28 +12,17 @@ export async function linkThreeApp(container: HTMLElement) {
 
     // link tools to evvent manager
     const { eventManager } = ctx
-    eventManager.register("select", new Tools.SelectTool(ctx, eventManager))
-    eventManager.register(
-        "selectCount",
-        new Tools.CountSelectTool(ctx, eventManager)
-    )
-    eventManager.register(
-        "moveAttached",
-        new Tools.AttachedMoveTool(ctx, eventManager)
-    )
-    eventManager.register("moveNode", new Tools.MoveNodeTool(ctx, eventManager))
-    eventManager.register(
-        "moveSegment",
-        new Tools.MoveSegmentTool(ctx, eventManager)
-    )
-    eventManager.register(
-        "moveSelection",
-        new Tools.MoveSelectionTool(ctx, eventManager)
-    )
+    eventManager.register("disable", new Tools.DisableTool(ctx))
+    eventManager.register("select", new Tools.SelectTool(ctx))
+    eventManager.register("selectCount", new Tools.CountSelectTool(ctx))
+    eventManager.register("moveAttached", new Tools.AttachedMoveTool(ctx))
+    eventManager.register("moveNode", new Tools.MoveNodeTool(ctx))
+    eventManager.register("moveSegment", new Tools.MoveSegmentTool(ctx))
+    eventManager.register("moveSelection", new Tools.MoveSelectionTool(ctx))
     eventManager.setContext(ctx, "select")
 
     // link transform controls events
-    const transform = new Tools.TransformTool(ctx, eventManager)
+    const transform = new Tools.TransformTool(ctx)
     const transformControls = ctx.controllers.transformControls
     transformControls.addEventListener("mouseDown", () =>
         transform.onTransfromStart()
@@ -43,7 +32,7 @@ export async function linkThreeApp(container: HTMLElement) {
     )
 
     //Panel Tool
-    const panelTool = new Tools.PanelTool(ctx, eventManager)
+    const panelTool = new Tools.PanelTool(ctx)
 
     // set up the sccene
     controls.setUpDrafter()

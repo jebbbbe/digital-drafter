@@ -20,9 +20,9 @@ export abstract class Tool {
     protected eventManager: AppEventManager
     protected resolve?: (success: boolean) => void
 
-    constructor(ctx: AppContext, eventManager: AppEventManager) {
+    constructor(ctx: AppContext) {
         this.ctx = ctx
-        this.eventManager = eventManager
+        this.eventManager = ctx.eventManager
     }
     enter(..._args: unknown[]): void {}
 

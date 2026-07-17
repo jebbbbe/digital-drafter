@@ -64,6 +64,7 @@ export type NodeLocation = {
 }
 
 export type ToolId =
+	| "disable"
     | "select"
     | "selectCount"
     | "moveAttached"
