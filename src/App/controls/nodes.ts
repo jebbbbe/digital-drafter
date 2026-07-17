@@ -205,7 +205,7 @@ export function getLevaArgs(node: TransformNode) {
     }
 }
 
-export function insertGeometry(geo: THREE.BufferGeometry) {
+export async function insertGeometry(geo: THREE.BufferGeometry) {
     const x = 9999 // offscreen
     const id = drafter.instanceItems.nextIndex()
     drafter.newInstance(geo)
@@ -218,7 +218,8 @@ export function insertGeometry(geo: THREE.BufferGeometry) {
     if (!node) return
     selection.clear()
     selection.add(node)
-    eventManager.setTool("moveAttached")
+    await eventManager.setToolAsync("moveAttached")
+    eventManager.setToolAsync("select")
 }
 
 function addGeometryToLibrary(

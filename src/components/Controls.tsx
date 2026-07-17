@@ -442,7 +442,7 @@ function Controls({ bridge }: any) {
                 disabled: true,
             }),
             "Mirror View": button(() => controls.mirrorSelectedNodes(), {
-                disabled: true,
+                // disabled: true,
             }),
             "Detach View": button(() => controls.detachSelectedNodes(), {
                 disabled: true,

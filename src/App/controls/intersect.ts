@@ -87,6 +87,7 @@ async function startOperationFromSelection(operation = boolean.union) {
     }
 
     let items = selection.filter("TransformNode")
+    controllers.useTransformControls = false
     if (items.length !== 2) {
         console.log("select more nodes")
         let success = await eventManager.setToolAsync("selectCount", 2)
@@ -128,7 +129,6 @@ async function startOperationFromSelection(operation = boolean.union) {
     selection.clear()
     selection.add(nodeC)
     selection.add(nodeD)
-    controllers.useTransformControls = false
 
     if (!(await eventManager.setToolAsync("moveAttached"))) {
         exitIntersectionClean()
@@ -157,7 +157,8 @@ async function startOperationFromSelection(operation = boolean.union) {
         return
     }
 
-    exitIntersectionClean()
+    controllers.useTransformControls = true
+    eventManager.setTool("select")
     return
 }
 

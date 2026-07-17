@@ -131,7 +131,7 @@ function setButtonsDisabled(disabled: boolean = true) {
     levaStore.setSettingsAtPath(panelPaths.stubCut, { disabled })
     levaStore.setSettingsAtPath(panelPaths.stubDetach, { disabled })
     levaStore.setSettingsAtPath(panelPaths.stubDetachChildren, { disabled })
-    levaStore.setSettingsAtPath(panelPaths.stubMirror, { disabled })
+    levaStore.setSettingsAtPath(panelPaths.stubMirror, { disabled: false })
     levaStore.setSettingsAtPath(panelPaths.stubUnion, { disabled })
     levaStore.setSettingsAtPath(panelPaths.stubDifference, { disabled })
     levaStore.setSettingsAtPath(panelPaths.stubIntersect, { disabled })

@@ -21,7 +21,7 @@ export class CountSelectTool extends Tool {
             this.targetCount
         ) {
             this.resolveTool(true)
-            this.eventManager.setTool("select")
+            this.eventManager.setTool("disable")
         }
     }
 
@@ -60,20 +60,20 @@ export class CountSelectTool extends Tool {
             selection.filter("TransformNode").length >= this.targetCount
         ) {
             this.resolveTool(true)
-            this.eventManager.setTool("select")
+            this.eventManager.setTool("disable")
         }
     }
 
     override onPointerCancel() {
         deSelectAll()
         this.resolveTool(false)
-        this.eventManager.setTool("select")
+        this.eventManager.setTool("disable")
     }
 
     override onKeyDown(event: KeyboardEvent): boolean {
         if (event.key === "Enter") {
             this.resolveTool(true)
-            this.eventManager.setTool("select")
+            this.eventManager.setTool("disable")
             return true
         }
 
@@ -81,7 +81,7 @@ export class CountSelectTool extends Tool {
 
         deSelectAll()
         this.resolveTool(false)
-        this.eventManager.setTool("select")
+        this.eventManager.setTool("disable")
         return true
     }
 

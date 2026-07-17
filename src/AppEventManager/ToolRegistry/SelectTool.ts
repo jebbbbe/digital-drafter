@@ -10,7 +10,12 @@ const _zeroQuaternion = new THREE.Quaternion()
 
 export class SelectTool extends Tool {
     override enter(..._args: unknown[]): void {
-        // console.log("select Enter")
+        const { selection, controllers } = this.ctx
+        if (selection.size === 0) return
+
+        controllers.attachTransformProxy()
+        this.linkGizmo()
+        this.linkPanel()
     }
     override onPointerDown(_normalized: NormalizedPointerEvent) {
         const e = _normalized.event

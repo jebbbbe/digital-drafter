@@ -12,7 +12,7 @@ export class AttachedMoveTool extends Tool {
 
         if (this.ctx.selection.size === 0) {
             this.resolveTool(false)
-            this.eventManager.setTool("select")
+            this.eventManager.setTool("disable")
             return
         }
 
@@ -35,19 +35,19 @@ export class AttachedMoveTool extends Tool {
         this.linkPanel()
         levaStore.setLevaInsertDefault()
         this.resolveTool(true)
-        this.eventManager.setTool("select")
+        this.eventManager.setTool("disable")
     }
 
     override onPointerCancel() {
         this.resolveTool(false)
-        this.eventManager.setTool("select")
+        this.eventManager.setTool("disable")
     }
 
     override onKeyDown(event: KeyboardEvent): boolean {
         if (event.key !== "Escape") return false
 
         this.resolveTool(false)
-        this.eventManager.setTool("select")
+        this.eventManager.setTool("disable")
         return true
     }
 

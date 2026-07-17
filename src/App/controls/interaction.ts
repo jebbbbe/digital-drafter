@@ -1,5 +1,5 @@
 import * as THREE from "three"
-import { selection, controllers, drafter } from "../AppContext"
+import { selection, controllers, drafter, eventManager } from "../AppContext"
 import * as levaStore from "../../components/Leva/LevaStore"
 import {
     detachNode,
@@ -11,6 +11,18 @@ import { createNewCutNode } from "./section"
 import { moveNodeDelta } from "./move"
 
 export const deleteFirstObject = (object = selection.first()) => object.delete()
+
+async function getUserSelection() {
+    let items = selection.filter("TransformNode")
+    if (items.length !== 0) {
+        return items
+    }
+
+    let success = await eventManager.setToolAsync("selectCount", Infinity)
+    items = success ? selection.filter("TransformNode") : []
+    eventManager.setTool("select")
+    return items
+}
 
 export const addLeafToSelectedNodes = () => {
     selection.run(
@@ -34,7 +46,9 @@ export const cutSelectedNodes = () => {
     )
 }
 
-export const mirrorSelectedNodes = () => {
+export const mirrorSelectedNodes = async () => {
+    const items = await getUserSelection()
+    if (items.length === 0) return
     selection.run(
         {
             apply(node) {
@@ -44,7 +58,7 @@ export const mirrorSelectedNodes = () => {
                 drafter.updatePatchedNodeArray(nodes)
             },
         },
-        selection.filter("TransformNode")
+        items
     )
 }
 
