@@ -8,7 +8,7 @@ export class AppEventManager {
     private tools = new Map<ToolId, Tool>()
     private currentToolId!: ToolId
     private currentTool!: Tool
-
+    asyncToolActive: boolean = false
     constructor() {}
 
     setContext(ctx: AppContext, initialToolId: ToolId) {
@@ -66,6 +66,7 @@ export class AppEventManager {
     }
 
     setToolAsync(tool: ToolId, ...args: unknown[]) {
+		this.asyncToolActive = true
         return new Promise<boolean>((resolve) => {
             this.setTool(tool, resolve, ...args)
         })

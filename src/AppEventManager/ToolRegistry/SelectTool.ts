@@ -10,6 +10,9 @@ const _zeroQuaternion = new THREE.Quaternion()
 
 export class SelectTool extends Tool {
     override enter(..._args: unknown[]): void {
+        //this is the default tool so we can set this false here
+        this.eventManager.asyncToolActive = false
+
         const { selection, controllers } = this.ctx
         if (selection.size === 0) return
 

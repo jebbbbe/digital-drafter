@@ -13,6 +13,8 @@ import { moveNodeDelta } from "./move"
 export const deleteFirstObject = (object = selection.first()) => object.delete()
 
 async function getUserSelection() {
+    if (eventManager.asyncToolActive) return []
+
     let items = selection.filter("TransformNode")
     if (items.length !== 0) {
         return items
@@ -24,25 +26,29 @@ async function getUserSelection() {
     return items
 }
 
-export const addLeafToSelectedNodes = () => {
+export const addLeafToSelectedNodes = async () => {
+    const items = await getUserSelection()
+    if (items.length === 0) return
     selection.run(
         {
             apply(node) {
                 addLeafNearbyRandomlyNicely(node)
             },
         },
-        selection.filter("TransformNode")
+        items
     )
 }
 
-export const cutSelectedNodes = () => {
+export const cutSelectedNodes = async () => {
+    const items = await getUserSelection()
+    if (items.length === 0) return
     selection.run(
         {
             apply(node) {
                 createNewCutNode(node)
             },
         },
-        selection.filter("TransformNode")
+        items
     )
 }
 
@@ -62,7 +68,9 @@ export const mirrorSelectedNodes = async () => {
     )
 }
 
-export const detachSelectedNodes = () => {
+export const detachSelectedNodes = async () => {
+    const items = await getUserSelection()
+    if (items.length === 0) return
     selection.run(
         {
             apply(node) {
@@ -70,11 +78,13 @@ export const detachSelectedNodes = () => {
             },
             end(nodes) {},
         },
-        selection.filter("TransformNode")
+        items
     )
 }
 
-export const detachChildrenSelectedNodes = () => {
+export const detachChildrenSelectedNodes = async () => {
+    const items = await getUserSelection()
+    if (items.length === 0) return
     selection.run(
         {
             apply(node) {
@@ -82,7 +92,7 @@ export const detachChildrenSelectedNodes = () => {
             },
             end(nodes) {},
         },
-        selection.filter("TransformNode")
+        items
     )
 }
 

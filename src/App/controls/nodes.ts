@@ -60,7 +60,7 @@ export function addLeafNearbyRandomlyNicely(node: TransformNode) {
         near.push(children[i].position)
     }
     const minDist = 2
-    const rItems = [2, 4, 6] as const
+    const rItems = [2, 4] as const
     const tItems = [
         0,
         PI / 4,
@@ -206,6 +206,8 @@ export function getLevaArgs(node: TransformNode) {
 }
 
 export async function insertGeometry(geo: THREE.BufferGeometry) {
+    if (eventManager.asyncToolActive) return []
+
     const x = 9999 // offscreen
     const id = drafter.instanceItems.nextIndex()
     drafter.newInstance(geo)

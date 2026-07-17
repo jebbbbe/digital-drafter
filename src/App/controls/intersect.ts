@@ -82,6 +82,8 @@ function intersectTwoNodes(
 const _offset = new THREE.Vector3(0, 0, -2)
 
 async function startOperationFromSelection(operation = boolean.union) {
+    if (eventManager.asyncToolActive) return
+
     if (selection.size > 2) {
         deSelectAll()
     }
