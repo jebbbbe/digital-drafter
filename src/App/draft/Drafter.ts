@@ -15,6 +15,7 @@ import { matlib } from "./materialManager"
 import type { NodeLocation, TransformNode } from "@types"
 
 const _anchoredCenter = new THREE.Vector3()
+type NodeSearch = TransformNode | NodeLocation
 
 export class Drafter {
     tree = new TransformTree()
@@ -174,7 +175,8 @@ export class Drafter {
         this.tree.removeBucket(id)
         this.globalTreeTexture.decBlockCount()
     }
-    findNode(location: NodeLocation) {
+    findNode(target: NodeSearch) {
+        const location = "location" in target ? target.location : target
         const node = this.tree.findNode(location) as TransformNode | undefined
         return node
     }
@@ -279,16 +281,11 @@ export class Drafter {
         return node
     }
 
-    pruneNode(target: TransformNode | NodeLocation) {
-        //get location
-        const location = "location" in target ? target.location : target
-        const id = location.id
-        //get instanceItem
-        const instanceItem = this.getInstance(id)
-
-        //get node
-        const node = this.tree.findNode(location) as TransformNode | undefined
+    pruneNode(target: NodeSearch) {
+        const node = this.findNode(target)
         if (!node) return
+
+        const instanceItem = this.getInstance(node.location.id)
 
         //remove attachments
         const segmentAttachment = node.attachments.segment
@@ -317,7 +314,7 @@ export class Drafter {
         const swappedNode =
             removedIndex === lastActiveIndex
                 ? undefined
-                : (this.tree.getBucket(id)?.[lastActiveIndex] as
+                : (this.tree.getBucket(node.location.id)?.[lastActiveIndex] as
                       | TransformNode
                       | undefined)
 
@@ -333,9 +330,8 @@ export class Drafter {
         this.updatePatchedNode(parentNode)
     }
 
-    removeNode(target: TransformNode | NodeLocation) {
-        const location = "location" in target ? target.location : target
-        const node = this.tree.findNode(location) as TransformNode | undefined
+    removeNode(target: NodeSearch) {
+        const node = this.findNode(target)
         if (!node) return
 
         const subtree: TransformNode[] = []
@@ -391,15 +387,14 @@ export class Drafter {
         return Array.from(emptyIds)
     }
 
-    detachNode(target: TransformNode | NodeLocation) {
-        const location = "location" in target ? target.location : target
-        const node = this.tree.findNode(location) as TransformNode | undefined
+    detachNode(target: NodeSearch) {
+        const node = this.findNode(target)
         if (!node) return
         const isRoot = node === node.parent
         // already an orphan
         if (isRoot) return
 
-        const instanceItem = this.getInstance(location.id)
+        const instanceItem = this.getInstance(node.location.id)
 
         const parent = node.parent
         const siblings = parent.children
