@@ -83,7 +83,6 @@ export class SegmentAttachment extends InteractiveObject {
     }
 
     override delete() {
-        deSelectAll()
         deleteSegment(this)
     }
 

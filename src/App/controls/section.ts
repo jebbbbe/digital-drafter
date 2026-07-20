@@ -289,5 +289,5 @@ export function deleteSegment(line: SegmentAttachment) {
         drafter.detachNode(children[i])
     }
 
-    drafter.pruneNode(node)
+    drafter.spliceNode(node)
 }

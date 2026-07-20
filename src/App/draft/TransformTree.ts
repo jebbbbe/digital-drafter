@@ -98,7 +98,7 @@ export class TransformTree {
      *
      * @param node - Node to prune from the tree.
      */
-    pruneNode(node: Node) {
+    spliceNode(node: Node) {
         const removed = this.removeNode(node)
         if (removed === undefined) {
             console.error("Couldnt prune Node", node)

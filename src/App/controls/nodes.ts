@@ -112,8 +112,8 @@ export function addLeafNearbyRandomlyNicely(node: TransformNode) {
     }
 }
 
-export function pruneNode(node: TransformNode) {
-    drafter.pruneNode(node)
+export function spliceNode(node: TransformNode) {
+    drafter.spliceNode(node)
 }
 
 export function rotateRootFromSelection(rot: { x: number; y: number }) {

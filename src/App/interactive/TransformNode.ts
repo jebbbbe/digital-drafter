@@ -103,8 +103,7 @@ export class TransformNode
     }
 
     override delete() {
-        deSelectAll()
-        drafter.pruneNode(this)
+        drafter.spliceNode(this)
     }
 
     override setSelected(isSelected: boolean) {

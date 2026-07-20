@@ -6,7 +6,10 @@ import { createNewCutNode } from "./section"
 import { moveNodeDelta } from "./move"
 import { getNodevalues } from "./nodes"
 
-export const deleteFirstObject = (object = selection.first()) => object.delete()
+export const deleteFirstObject = (object = selection.first()) => {
+    object.delete()
+    deSelectAll()
+}
 
 function panelDetachedUpdate(nodes: any[]) {
     if (nodes.length === 1) {

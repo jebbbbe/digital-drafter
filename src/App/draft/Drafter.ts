@@ -281,7 +281,7 @@ export class Drafter {
         return node
     }
 
-    pruneNode(target: NodeSearch) {
+    spliceNode(target: NodeSearch) {
         const node = this.findNode(target)
         if (!node) return
 
@@ -319,7 +319,7 @@ export class Drafter {
                       | undefined)
 
         // reparent the children
-        this.tree.pruneNode(node)
+        this.tree.spliceNode(node)
         instanceItem.decrementInstanceCount()
 
         if (swappedNode) {
