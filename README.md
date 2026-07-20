@@ -62,7 +62,7 @@
 
 - [x] tool cancel, reject, resolve issue.
 - [ ] update intersect attachment.?
-- [ ] commands always on, run selection pattern with simple popup?
+- [x] commands always on
 - [x] rm nodeSlot
 - [x] scale fix in nodeData
 - [x] node anchors
