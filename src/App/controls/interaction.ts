@@ -1,16 +1,22 @@
 import * as THREE from "three"
 import { selection, controllers, drafter, eventManager } from "../AppContext"
 import * as levaStore from "../../components/Leva/LevaStore"
-import {
-    detachNode,
-    detachNodeChildren,
-    mirrorNode,
-    addLeafNearbyRandomlyNicely,
-} from "./nodes"
+import { addLeafNearbyRandomlyNicely } from "./nodes"
 import { createNewCutNode } from "./section"
 import { moveNodeDelta } from "./move"
+import { getNodevalues } from "./nodes"
 
 export const deleteFirstObject = (object = selection.first()) => object.delete()
+
+function panelDetachedUpdate(nodes: any[]) {
+    if (nodes.length === 1) {
+        const node = nodes[0]
+        // update stub panel
+        levaStore.enableNodeStub(node.parent === node)
+        // todo the rotation value derived from this are wong due to how rebaseDetachedMatrixNodeToRoot gets the new matrix..
+        levaStore.syncLevaDisplayStub(getNodevalues(node))
+    }
+}
 
 async function getUserSelection() {
     if (eventManager.asyncToolActive) return []
@@ -58,8 +64,7 @@ export const mirrorSelectedNodes = async () => {
     selection.run(
         {
             apply(node) {
-                // mirrorNode(node, false)
-				node.mirrorNode(false)
+                node.mirrorNode(false)
             },
             end(nodes) {
                 drafter.updatePatchedNodeArray(nodes)
@@ -75,9 +80,11 @@ export const detachSelectedNodes = async () => {
     selection.run(
         {
             apply(node) {
-                detachNode(node, false)
+                node.detachNode()
             },
-            end(nodes) {},
+            end(nodes) {
+                panelDetachedUpdate(nodes)
+            },
         },
         items
     )
@@ -89,9 +96,27 @@ export const detachChildrenSelectedNodes = async () => {
     selection.run(
         {
             apply(node) {
-                detachNodeChildren(node, false)
+                node.detachChildren()
             },
-            end(nodes) {},
+            end(nodes) {
+                panelDetachedUpdate(nodes)
+            },
+        },
+        items
+    )
+}
+
+export const detachAllSelectedNodes = async () => {
+    const items = await getUserSelection()
+    if (items.length === 0) return
+    selection.run(
+        {
+            apply(node) {
+                node.detachAll()
+            },
+            end(nodes) {
+                panelDetachedUpdate(nodes)
+            },
         },
         items
     )

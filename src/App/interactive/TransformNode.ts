@@ -128,6 +128,32 @@ export class TransformNode
         this.mirror = !this.mirror
         if (recursive) drafter.updatePatchedNode(this)
     }
+
+    detachNode() {
+        const segmentAttachment = this.attachments.segment
+        if (segmentAttachment !== undefined) {
+            this.attachments.segment = undefined
+            drafter.sectionCutter.deleteSegment(segmentAttachment.index)
+        }
+
+        const faceAttachment = this.attachments.section
+        if (faceAttachment !== undefined) {
+            this.attachments.section = undefined
+            faceAttachment.object.dispose()
+        }
+
+        drafter.detachNode(this)
+    }
+    detachChildren() {
+        const children = [...this.children]
+        children.forEach((child) => {
+            child.detachNode()
+        })
+    }
+    detachAll() {
+        this.detachNode
+        this.detachChildren()
+    }
 }
 
 export function createTransformNode(

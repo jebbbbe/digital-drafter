@@ -404,7 +404,6 @@ function Controls({ bridge }: any) {
                     if (!context?.fromPanel) return
                     panelTool.onMoveStart(value)
                 },
-                // onChange: wControls.moveNodeFromSelection,
                 onChange(value, path, context) {
                     // console.log(value)
                     // wPanelTool.onMove(value)

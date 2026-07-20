@@ -116,18 +116,6 @@ export function pruneNode(node: TransformNode) {
     drafter.pruneNode(node)
 }
 
-export function moveNodeFromSelection(pos: { x: number; z: number }) {
-    const node = selection.firstNode()
-    if (!node) return
-
-    node.position.set(pos.x, 0, pos.z)
-    drafter.updatePatchedNode(node)
-
-    const anchor = drafter.getNodesAnchoredCenter(node)
-    controllers.setAnchorCache(anchor)
-    controllers.setGizmoPosition(node.position)
-}
-
 export function rotateRootFromSelection(rot: { x: number; y: number }) {
     const rootNode = selection.firstNode()
     if (!rootNode) return
@@ -256,45 +244,4 @@ export function addObjectToLibraryFromSelection(): void {
 
     addGeometryToLibrary(instanceItem.geometry, baseTitle)
     syncLevaInsertOptions(geometryTitles)
-}
-
-export function detachNodeFromSelection() {
-    const node = selection.firstNode()
-    if (!node) return
-    detachNode(node)
-}
-
-export function detachNode(node: TransformNode, tmp = true) {
-    const segmentAttachment = node.attachments.segment
-    if (segmentAttachment !== undefined) {
-        node.attachments.segment = undefined
-        drafter.sectionCutter.deleteSegment(segmentAttachment.index)
-    }
-
-    const faceAttachment = node.attachments.section
-    if (faceAttachment !== undefined) {
-        node.attachments.section = undefined
-        faceAttachment.object.dispose()
-    }
-
-    drafter.detachNode(node)
-
-    if (tmp) {
-        // update stub panel
-        enableNodeStub(node.parent === node)
-        // todo the rotation value derived from this are wong due to how rebaseDetachedMatrixNodeToRoot gets the new matrix..
-        syncLevaDisplayStub(getNodevalues(node))
-    }
-}
-
-export function detachNodeChildren(node: TransformNode, tmp = true) {
-    const children = [...node.children]
-    children.forEach((child) => {
-        detachNode(child, tmp)
-    })
-}
-
-export function detachNodeAll(node: TransformNode, tmp = true) {
-    detachNode(node, tmp)
-    detachNodeChildren(node, tmp)
 }
