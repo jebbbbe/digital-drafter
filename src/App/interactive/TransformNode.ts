@@ -124,6 +124,10 @@ export class TransformNode
             segment.setSelected(isSelected)
         }
     }
+    mirrorNode(recursive: boolean = true) {
+        this.mirror = !this.mirror
+        if (recursive) drafter.updatePatchedNode(this)
+    }
 }
 
 export function createTransformNode(

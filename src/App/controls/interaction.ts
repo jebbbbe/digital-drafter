@@ -58,7 +58,8 @@ export const mirrorSelectedNodes = async () => {
     selection.run(
         {
             apply(node) {
-                mirrorNode(node, false)
+                // mirrorNode(node, false)
+				node.mirrorNode(false)
             },
             end(nodes) {
                 drafter.updatePatchedNodeArray(nodes)

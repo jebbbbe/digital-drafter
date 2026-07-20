@@ -298,8 +298,3 @@ export function detachNodeAll(node: TransformNode, tmp = true) {
     detachNode(node, tmp)
     detachNodeChildren(node, tmp)
 }
-
-export function mirrorNode(node: TransformNode, recursive: boolean = true) {
-    node.mirror = !node.mirror
-    if (recursive) drafter.updatePatchedNode(node)
-}
