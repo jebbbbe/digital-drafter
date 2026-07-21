@@ -102,12 +102,14 @@ export class TransformNode
     }
 
     override delete() {
-        drafter.spliceNode(this)
+        // drafter.spliceNode(this)
+        // drafter.removeBranch(this)
+        drafter.removeNode(this)
     }
 
     override setSelected(isSelected: boolean) {
         this.selected = isSelected
-		
+
         const slot = getSlotIndex(this.location)
         drafter.globalTreeTexture.writeNodeSelected(slot, isSelected)
         drafter.globalTreeTexture.sendUpdate(slot)
@@ -140,7 +142,7 @@ export class TransformNode
         })
     }
     detachAll() {
-        this.detachNode
+        this.detachNode()
         this.detachChildren()
     }
 

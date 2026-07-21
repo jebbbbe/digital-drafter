@@ -198,7 +198,10 @@ export class Drafter {
         }
 
         if (instanceItem.count === instanceItem.maxCount) {
-            const reusable = this.findReusableInstance(instanceItem.geometry, id)
+            const reusable = this.findReusableInstance(
+                instanceItem.geometry,
+                id
+            )
             if (reusable) {
                 partialNode.location.id = reusable.id
                 instanceItem = reusable.instanceItem
@@ -253,17 +256,7 @@ export class Drafter {
         const instanceItem = this.getInstance(node.location.id)
 
         //remove attachments
-        const segmentAttachment = node.attachments.segment
-        if (segmentAttachment !== undefined) {
-            node.attachments.segment = undefined
-            this.sectionCutter.deleteSegment(segmentAttachment.index)
-        }
-
-        const faceAttachment = node.attachments.section
-        if (faceAttachment !== undefined) {
-            node.attachments.section = undefined
-            faceAttachment.object.dispose()
-        }
+        node.removeCutAttachments
 
         //isRoot branch
         const isRoot = node === node.parent
@@ -293,6 +286,46 @@ export class Drafter {
             this.updatePatchedNode(swappedNode)
         }
         this.updatePatchedNode(parentNode)
+    }
+
+    removeNode(target: NodeSearch) {
+        const node = this.findNode(target)
+        if (!node) return
+
+        node.detachAll()
+
+        const id = node.location.id
+        const instanceItem = this.getInstance(id)
+
+        const removedIndex = node.location.index
+        const lastActiveIndex = instanceItem.count - 1
+        const swappedNode =
+            removedIndex === lastActiveIndex
+                ? undefined
+                : (this.tree.getBucket(id)?.[lastActiveIndex] as
+                      | TransformNode
+                      | undefined)
+        if (removedIndex !== lastActiveIndex && !swappedNode) {
+            console.error("Node Not Found")
+            return
+        }
+
+        this.tree.removeNode(node)
+        instanceItem.decrementInstanceCount()
+
+        if (instanceItem.count === 0) {
+            this.removeInstance(id)
+            return
+        }
+
+        if (swappedNode) {
+            // The packed tree moved this node into the removed slot, so rewrite
+            // its instance data using the node's new location.
+            this.updatePatchedNode(swappedNode)
+            return
+        }
+
+        instanceItem.computeBoundingSphere()
     }
 
     removeBranch(target: NodeSearch) {
