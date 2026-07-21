@@ -5,6 +5,8 @@ import { addLeafNearbyRandomlyNicely } from "./nodes"
 import { createNewCutNode } from "./section"
 import { moveNodeDelta } from "./move"
 import { getNodevalues } from "./nodes"
+import { downloadSelectedObjectAsObj } from "./export"
+import { addObjectToLibraryFromSelection } from "./nodes"
 
 export const deleteFirstObject = (object = selection.first()) => {
     if (!object) return
@@ -22,7 +24,7 @@ function panelDetachedUpdate(nodes: any[]) {
     }
 }
 
-async function getUserSelection() {
+async function getUserSelection(count = Infinity) {
     if (eventManager.asyncToolActive) return []
 
     let items = selection.filter("TransformNode")
@@ -30,7 +32,7 @@ async function getUserSelection() {
         return items
     }
 
-    let success = await eventManager.setToolAsync("selectCount", Infinity)
+    let success = await eventManager.setToolAsync("selectCount", count)
     items = success ? selection.filter("TransformNode") : []
     eventManager.setTool("select")
     return items
@@ -198,4 +200,18 @@ export function deSelectAll() {
         scaleValue: 1.0,
     })
     levaStore.disableStub()
+}
+
+export const downloadSelectedNodes = async () => {
+    deSelectAll()
+    const items = await getUserSelection(1)
+    if (items.length === 0) return
+    downloadSelectedObjectAsObj(items[0])
+}
+
+export const addSelectedNodesToLibrary = async () => {
+    deSelectAll()
+    const items = await getUserSelection(1)
+    if (items.length === 0) return
+    addObjectToLibraryFromSelection(items[0])
 }

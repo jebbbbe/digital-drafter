@@ -43,18 +43,9 @@ export const panelPaths = {
     stubPos: "Selection.position",
     stubRot: "Selection.rotate",
     stubScale: "Selection.scale",
-    stubButton: "Selection.buttonGroup", // not able to disable..?
-    stubAdd: "Selection.Add View",
-    stubDelete: "Selection.Delete View",
-    stubCut: "Selection.Section Cut",
-    stubMirror: "Selection.Mirror View",
-    stubDetach: "Selection.Detach View",
-    stubDetachChildren: "Selection.Detach Children",
     stubUnion: "Selection.Boolean Union",
     stubDifference: "Selection.Boolean Difference",
     stubIntersect: "Selection.Boolean Intersect",
-    stubSaveObject: "Selection.Save Object",
-    stubAddLibrary: "Selection.Add Object to Library",
 }
 
 export function syncLevaDisplayControls(display: SettingsDisplay): void {
@@ -125,18 +116,9 @@ export function syncLevaDisplayStub({
 
 // STUB panel
 function setButtonsDisabled(disabled: boolean = true) {
-    // levaStore.setSettingsAtPath(panelPaths.stubButton, { disabled })
-    // levaStore.setSettingsAtPath(panelPaths.stubAdd, { disabled })
-    // levaStore.setSettingsAtPath(panelPaths.stubDelete, { disabled })
-    // levaStore.setSettingsAtPath(panelPaths.stubCut, { disabled })
-    // levaStore.setSettingsAtPath(panelPaths.stubDetach, { disabled })
-    // levaStore.setSettingsAtPath(panelPaths.stubDetachChildren, { disabled })
-    // levaStore.setSettingsAtPath(panelPaths.stubMirror, { disabled: false })
     levaStore.setSettingsAtPath(panelPaths.stubUnion, { disabled })
     levaStore.setSettingsAtPath(panelPaths.stubDifference, { disabled })
     levaStore.setSettingsAtPath(panelPaths.stubIntersect, { disabled })
-    levaStore.setSettingsAtPath(panelPaths.stubSaveObject, { disabled })
-    levaStore.setSettingsAtPath(panelPaths.stubAddLibrary, { disabled })
 }
 
 export function setStubDisabled(disabled: boolean = true) {

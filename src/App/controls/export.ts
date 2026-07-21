@@ -112,8 +112,10 @@ export function downloadSceneAsObj(
     disposeObjExportScene(exportScene)
 }
 
-export function downloadSelectedObjectAsObj(filename = "object.obj"): void {
-    const node = selection.firstNode()
+export function downloadSelectedObjectAsObj(
+    node = selection.firstNode(),
+    filename = "object.obj"
+): void {
     if (!node || node.location.index < 0) {
         return
     }

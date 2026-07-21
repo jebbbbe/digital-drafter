@@ -435,8 +435,10 @@ function Controls({ bridge }: any) {
             "Delete View": button(() => controls.deleteSelectedNodes()),
             "Section Cut": button(() => controls.cutSelectedNodes()),
             "Mirror View": button(() => controls.mirrorSelectedNodes()),
-            "Detach View": button(() => controls.detachSelectedNodes()),
-            "Detach Children": button(() =>controls.detachChildrenSelectedNodes()),
+            "Detach View": button(() => controls.detachAllSelectedNodes()),
+            // "Detach View": button(() => controls.detachSelectedNodes()),
+            // "Detach Children": button(() => controls.detachChildrenSelectedNodes() ),
+            "Add Object to Library": button(() => controls.addSelectedNodesToLibrary()),
 
             "Boolean Union": button(() => controls.bUnionFromSeleciton(), {
                 disabled: true,
@@ -447,15 +449,6 @@ function Controls({ bridge }: any) {
             ),
             "Boolean Intersect": button(
                 () => controls.bIntersectionFromSeleciton(),
-                { disabled: true }
-            ),
-
-            "Save Object": button(
-                () => controls.downloadSelectedObjectAsObj(),
-                { disabled: true }
-            ),
-            "Add Object to Library": button(
-                () => controls.addObjectToLibraryFromSelection(),
                 { disabled: true }
             ),
         })
@@ -478,6 +471,7 @@ function Controls({ bridge }: any) {
             "Save Image": button(() => controls.downloadImage()),
             "Save SVG": button(() => controls.downloadSvg()),
             "Save Scene": button(() => controls.downloadSceneAsObj()),
+            "Save Object": button(() => controls.downloadSelectedNodes()),
             Settings,
             ...(Debug ? { Debug } : {}),
         }

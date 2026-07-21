@@ -235,8 +235,9 @@ function addGeometryToLibrary(
     }
 }
 
-export function addObjectToLibraryFromSelection(): void {
-    const node = selection.firstNode()
+export function addObjectToLibraryFromSelection(
+    node = selection.firstNode()
+): void {
     if (!node) return
 
     const instanceItem = drafter.getInstance(node.location.id)
