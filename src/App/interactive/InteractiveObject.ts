@@ -2,6 +2,8 @@ import * as THREE from "three"
 import type { GizmoSettings, PanelSettings } from "@types"
 
 export abstract class InteractiveObject {
+    selected = false
+
     abstract move(startHit: THREE.Vector3): unknown
 
     abstract getCenter(): THREE.Vector3

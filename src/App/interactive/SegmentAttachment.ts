@@ -4,7 +4,6 @@ import { drafter, controllers } from "../AppContext"
 import type { GizmoSettings, PanelSettings, SectionCutter } from "@types"
 import { updatePanel } from "../../components/Leva/LevaStore"
 import { moveSegmentToPosition } from "../controls/move"
-import { deSelectAll } from "../controls/interaction"
 import { deleteSegment } from "../controls/section"
 
 const _segmentMidPoint = new THREE.Vector3()
@@ -87,6 +86,7 @@ export class SegmentAttachment extends InteractiveObject {
     }
 
     override setSelected(isSelected: boolean) {
+		this.selected = isSelected
         console.warn("not implemented Select for ", this)
     }
 }

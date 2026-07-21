@@ -19,7 +19,6 @@ export type Node<T = object> = T & {
  */
 export class TransformTree {
     freelist: FreeList<PackedArray<Node>>
-    roots = new Set<Node>()
     /**
      * Creates a tree with one empty bucket for instance id `0`.
      *
@@ -111,7 +110,6 @@ export class TransformTree {
             child.parent = parent
             parent.children.push(child)
         }
-        this.roots.delete(node)
     }
 
     /**
@@ -145,7 +143,6 @@ export class TransformTree {
             const idx = pc.indexOf(node)
             if (idx !== -1) pc.splice(idx, 1)
         }
-        this.roots.delete(node)
 
         return { children, parent }
     }

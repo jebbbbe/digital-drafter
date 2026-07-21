@@ -12,7 +12,6 @@ import type {
 import { getLevaArgs } from "../controls/nodes"
 import { updatePanel } from "../../components/Leva/LevaStore"
 import { moveNodeToPosition } from "../controls/move"
-import { deSelectAll } from "../controls/interaction"
 import { getSlotIndex } from "../objects/textures/GlobalTreeTexture"
 
 const _quaternion = new THREE.Quaternion()
@@ -107,6 +106,8 @@ export class TransformNode
     }
 
     override setSelected(isSelected: boolean) {
+        this.selected = isSelected
+		
         const slot = getSlotIndex(this.location)
         drafter.globalTreeTexture.writeNodeSelected(slot, isSelected)
         drafter.globalTreeTexture.sendUpdate(slot)
@@ -129,18 +130,7 @@ export class TransformNode
     }
 
     detachNode() {
-        const segmentAttachment = this.attachments.segment
-        if (segmentAttachment !== undefined) {
-            this.attachments.segment = undefined
-            drafter.sectionCutter.deleteSegment(segmentAttachment.index)
-        }
-
-        const faceAttachment = this.attachments.section
-        if (faceAttachment !== undefined) {
-            this.attachments.section = undefined
-            faceAttachment.object.dispose()
-        }
-
+        this.removeCutAttachments()
         drafter.detachNode(this)
     }
     detachChildren() {
@@ -152,6 +142,20 @@ export class TransformNode
     detachAll() {
         this.detachNode
         this.detachChildren()
+    }
+
+    removeCutAttachments() {
+        const segmentAttachment = this.attachments.segment
+        if (segmentAttachment !== undefined) {
+            this.attachments.segment = undefined
+            drafter.sectionCutter.deleteSegment(segmentAttachment.index)
+        }
+        const faceAttachment = this.attachments.section
+        if (faceAttachment !== undefined) {
+            this.attachments.section = undefined
+            faceAttachment.object.dispose()
+        }
+        this.sectionChild = false
     }
 }
 

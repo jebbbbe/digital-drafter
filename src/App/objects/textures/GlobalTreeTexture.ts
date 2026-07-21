@@ -190,7 +190,7 @@ export class GlobalTreeTexture {
         const slot = getSlotIndex(node.location)
         const parentSlot = getSlotIndex(node.parent.location)
         this.writeMatrix(slot, node.compoundMatrix.elements)
-        this.writeNodeParent(slot, parentSlot)
+        this.writeData(slot, [parentSlot, Number(node.selected), 0, 0])
         this.sendUpdate(slot)
         return slot
     }

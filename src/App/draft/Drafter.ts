@@ -219,8 +219,6 @@ export class Drafter {
         const node = createTransformNode(rootNode)
         // add node to tree
         this.tree.addNode(node)
-        // add node to root set
-        this.tree.roots.add(node)
 
         // increment count
         instanceItem.incrementInstanceCount()

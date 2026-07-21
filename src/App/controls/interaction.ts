@@ -7,8 +7,9 @@ import { moveNodeDelta } from "./move"
 import { getNodevalues } from "./nodes"
 
 export const deleteFirstObject = (object = selection.first()) => {
-    object.delete()
+    if (!object) return
     deSelectAll()
+    object.delete()
 }
 
 function panelDetachedUpdate(nodes: any[]) {
