@@ -181,49 +181,47 @@ export class Drafter {
         return node
     }
 
-    addRootNode(rootNode: Partial<TransformNode>) {
-        // get id for insertion
-        const id = rootNode?.location?.id
-        if (id === undefined || rootNode?.location === undefined) {
-            console.log("rootnode missing location", rootNode)
+    private addNode(
+        partialNode: Partial<TransformNode>,
+        parent?: TransformNode
+    ) {
+        const id = partialNode.location?.id
+        if (id === undefined || partialNode.location === undefined) {
+            console.error("node missing location", partialNode)
             return
         }
 
         let instanceItem = this.instanceItems[id]
         if (!instanceItem) {
-            console.error("couldnt find instanceItem at id", rootNode)
+            console.error("couldnt find instanceItem at id", partialNode)
             return
         }
 
         if (instanceItem.count === instanceItem.maxCount) {
-            const reusable = this.findReusableInstance(
-                instanceItem.geometry,
-                id
-            )
+            const reusable = this.findReusableInstance(instanceItem.geometry, id)
             if (reusable) {
-                rootNode.location.id = reusable.id
+                partialNode.location.id = reusable.id
                 instanceItem = reusable.instanceItem
             } else {
-                // create new Instance object with same props...
-                rootNode.location.id = this.instanceItems.nextIndex()
+                partialNode.location.id = this.instanceItems.nextIndex()
                 instanceItem = this.newInstance(instanceItem.geometry)
                 if (!instanceItem) {
                     return
                 }
             }
         }
-        // set type
-        rootNode.type = "root"
 
-        // make node
-        const node = createTransformNode(rootNode)
-        // add node to tree
-        this.tree.addNode(node)
+        const node = createTransformNode(partialNode)
+        this.tree.addNode(node, parent)
 
-        // increment count
         instanceItem.incrementInstanceCount()
         this.updatePatchedNode(node)
         return node
+    }
+
+    addRootNode(rootNode: Partial<TransformNode>) {
+        rootNode.type = "root"
+        return this.addNode(rootNode)
     }
 
     // i dont like parentLocation, switch to passing another node...
@@ -244,39 +242,8 @@ export class Drafter {
             }
         }
 
-        const id = partialNode.location.id
-        let instanceItem = this.instanceItems[id]
-        if (!instanceItem) {
-            console.error("couldnt find instanceItem at id", partialNode)
-            return
-        }
-
-        if (instanceItem.count === instanceItem.maxCount) {
-            const reusable = this.findReusableInstance(
-                instanceItem.geometry,
-                id
-            )
-            if (reusable) {
-                partialNode.location.id = reusable.id
-                instanceItem = reusable.instanceItem
-            } else {
-                // create new Instance object with same props...
-                partialNode.location.id = this.instanceItems.nextIndex()
-                instanceItem = this.newInstance(instanceItem.geometry)
-                if (!instanceItem) {
-                    return
-                }
-            }
-        }
-
-        const node = createTransformNode(partialNode)
-        const parent = this.tree.findNode(parentNodeLocation)
-        this.tree.addNode(node, parent)
-
-        instanceItem.incrementInstanceCount()
-        this.updatePatchedNode(node)
-
-        return node
+        const parent = this.findNode(parentNodeLocation)
+        return this.addNode(partialNode, parent)
     }
 
     spliceNode(target: NodeSearch) {
