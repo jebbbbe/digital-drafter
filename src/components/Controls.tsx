@@ -432,14 +432,11 @@ function Controls({ bridge }: any) {
                 onChange: wControls.scaleRootFromSelection,
             },
             "Add View": button(() => controls.addLeafToSelectedNodes()),
-            "Delete View": button(() => controls.deleteFirstObject(), {
-                disabled: true,
-            }),
+            "Delete View": button(() => controls.deleteSelectedNodes()),
             "Section Cut": button(() => controls.cutSelectedNodes()),
             "Mirror View": button(() => controls.mirrorSelectedNodes()),
             "Detach View": button(() => controls.detachSelectedNodes()),
-            "Detach Children": button(() =>controls.detachChildrenSelectedNodes()
-            ),
+            "Detach Children": button(() =>controls.detachChildrenSelectedNodes()),
 
             "Boolean Union": button(() => controls.bUnionFromSeleciton(), {
                 disabled: true,

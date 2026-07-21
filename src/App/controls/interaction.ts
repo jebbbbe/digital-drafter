@@ -49,6 +49,33 @@ export const addLeafToSelectedNodes = async () => {
     )
 }
 
+export const deleteSelectedNodes = async () => {
+    if (selection.size === 1) {
+        const object = selection.first()
+        if (!object) return
+        object.delete()
+        deSelectAll()
+        return
+    }
+
+    // runs dfs per node
+    // due to how removing requires running dfs on the swapped node, we will have to change logic for all
+    // remove/splice/branch commands
+    const items = await getUserSelection()
+    if (items.length === 0) return
+    selection.run(
+        {
+            apply(node) {
+                node.delete()
+            },
+            end(nodes) {
+                deSelectAll()
+            },
+        },
+        items
+    )
+}
+
 export const cutSelectedNodes = async () => {
     const items = await getUserSelection()
     if (items.length === 0) return

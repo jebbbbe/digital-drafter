@@ -127,7 +127,7 @@ export function syncLevaDisplayStub({
 function setButtonsDisabled(disabled: boolean = true) {
     // levaStore.setSettingsAtPath(panelPaths.stubButton, { disabled })
     // levaStore.setSettingsAtPath(panelPaths.stubAdd, { disabled })
-    levaStore.setSettingsAtPath(panelPaths.stubDelete, { disabled })
+    // levaStore.setSettingsAtPath(panelPaths.stubDelete, { disabled })
     // levaStore.setSettingsAtPath(panelPaths.stubCut, { disabled })
     // levaStore.setSettingsAtPath(panelPaths.stubDetach, { disabled })
     // levaStore.setSettingsAtPath(panelPaths.stubDetachChildren, { disabled })
