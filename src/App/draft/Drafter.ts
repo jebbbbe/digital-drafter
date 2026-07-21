@@ -268,7 +268,7 @@ export class Drafter {
         //isRoot branch
         const isRoot = node === node.parent
         if (isRoot) {
-            this.removeNode(node)
+            this.removeBranch(node)
             return
         }
 
@@ -295,7 +295,7 @@ export class Drafter {
         this.updatePatchedNode(parentNode)
     }
 
-    removeNode(target: NodeSearch) {
+    removeBranch(target: NodeSearch) {
         const node = this.findNode(target)
         if (!node) return
 
