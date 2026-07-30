@@ -139,8 +139,15 @@ async function startOperationFromSelection(operation = boolean.union) {
     selection.remove(nodeC)
 
     // CONSTRAINED MOVE HERE
-    console.warn("contrain not implemented")
-    if (!(await eventManager.setToolAsync("moveAttached"))) {
+    const constrain = {
+        origin: nodeB.position.clone(),
+        direction: new THREE.Vector3().subVectors(
+            nodeC.position,
+            nodeA.position
+        ),
+    }
+
+    if (!(await eventManager.setToolAsync("moveAttached", constrain))) {
         exitIntersectionClean()
         return
     }
@@ -158,6 +165,10 @@ async function startOperationFromSelection(operation = boolean.union) {
         exitIntersectionClean()
         return
     }
+
+    // tempchange for dfs updates...
+    // nodeA.detachNode()
+    // nodeB.detachNode()
 
     controllers.useTransformControls = true
     eventManager.setTool("select")

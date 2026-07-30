@@ -7,8 +7,8 @@ import type { AppEventManager } from "../AppEventManager"
 import { Tool, type NormalizedPointerEvent } from "./Tool"
 import {
     moveDeltaSelectedNodes,
-    moveAbsoluteSelectedNodes,
 } from "../../App/controls/interaction"
+import { constrainDirection } from "./constrain"
 
 export class MoveNodeTool extends Tool {
     private node?: TransformNode
@@ -16,25 +16,23 @@ export class MoveNodeTool extends Tool {
     private readonly candidatePosition = new THREE.Vector3()
     private readonly delta = new THREE.Vector3()
     private readonly lineDirection = new THREE.Vector3()
-    private readonly parentToCandidate = new THREE.Vector3()
     private parentPosition?: THREE.Vector3
-    private lineLengthSq = 0
 
     override enter(node: TransformNode, startHit: THREE.Vector3): void {
         this.node = node
         this.prevHit.copy(startHit)
         this.lineDirection.set(0, 0, 0)
-        this.parentToCandidate.set(0, 0, 0)
 
         const hasParentConstraint = this.node.parent !== this.node
         this.parentPosition = hasParentConstraint
             ? this.node.parent.position.clone()
             : undefined
-        this.lineLengthSq = hasParentConstraint
-            ? this.lineDirection
-                  .subVectors(this.node.position, this.node.parent.position)
-                  .lengthSq()
-            : 0
+        if (hasParentConstraint) {
+            this.lineDirection.subVectors(
+                this.node.position,
+                this.node.parent.position
+            )
+        }
 
         this.ctx.controllers.pauseControls()
     }
@@ -51,24 +49,17 @@ export class MoveNodeTool extends Tool {
         this.candidatePosition.copy(this.node.position).add(this.delta)
 
         const parentPosition = this.parentPosition
-        const constrainMove =
-            event.event.shiftKey && parentPosition && this.lineLengthSq > 0
+        const constrainMove = event.event.shiftKey && parentPosition
 
         if (constrainMove) {
-            const t = this.parentToCandidate
-                .subVectors(this.candidatePosition, parentPosition)
-                .dot(this.lineDirection)
-
-            this.candidatePosition
-                .copy(parentPosition)
-                .addScaledVector(this.lineDirection, t / this.lineLengthSq)
+            constrainDirection(this.candidatePosition, this.lineDirection, parentPosition)
         }
 
         this.prevHit.copy(hit)
 
         moveNodeToPosition(this.node, this.candidatePosition)
 
-        this.ctx.selection.averagePosition.add(this.delta)
+        this.ctx.selection.averagePosition.copy(this.node.position)
         this.linkGizmo()
         this.linkPanel()
     }
@@ -108,7 +99,6 @@ export class MoveSegmentTool extends Tool {
     private readonly sectionCutter: AppContext["drafter"]["sectionCutter"]
     private sectionChild?: TransformNode
     private sectionParent?: TransformNode
-    private lineLengthSq = 0
 
     constructor(ctx: AppContext) {
         super(ctx)
@@ -121,7 +111,6 @@ export class MoveSegmentTool extends Tool {
         this.sectionChild = undefined
         this.sectionParent = undefined
         this.segmentLineDirection.set(0, 0, 0)
-        this.lineLengthSq = 0
 
         this.sectionChild = this.sectionCutter.nodeMap.get(this.line.index)
         if (this.sectionChild === undefined) {
@@ -137,12 +126,11 @@ export class MoveSegmentTool extends Tool {
             this.sectionChild.position,
             this.sectionParent.position
         )
-        this.lineLengthSq = this.segmentLineDirection.lengthSq()
         this.ctx.controllers.pauseControls()
     }
 
     override onPointerMove(event: NormalizedPointerEvent) {
-        if (this.lineLengthSq === 0 || !this.line) return
+        if (!this.line) return
 
         const hit = this.ctx.raycastHelper.castFromEventToPlane(event.event)
         if (!hit) return
@@ -150,11 +138,7 @@ export class MoveSegmentTool extends Tool {
         this.delta.subVectors(hit, this.prevHit)
         if (this.delta.lengthSq() === 0) return
 
-        const deltaAlongLine =
-            this.delta.dot(this.segmentLineDirection) / this.lineLengthSq
-        this.delta
-            .copy(this.segmentLineDirection)
-            .multiplyScalar(deltaAlongLine)
+        constrainDirection(this.delta, this.segmentLineDirection)
         if (this.delta.lengthSq() === 0) return
 
         this.sectionCutter.moveSegmentVector(
@@ -214,8 +198,11 @@ export class MoveSelectionTool extends Tool {
         const hit = this.ctx.raycastHelper.castFromEventToPlane(e.event)
         if (!hit) return
         this.delta.subVectors(hit, this.prevHit)
+        if (this.delta.lengthSq() === 0) return
 
         moveDeltaSelectedNodes(this.delta)
+        this.prevHit.copy(hit)
+        this.ctx.selection.averagePosition.add(this.delta)
 
         this.linkGizmo()
         this.linkPanel()

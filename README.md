@@ -61,7 +61,8 @@
 ### v0.4.0
 
 - [x] tool cancel, reject, resolve issue.
-- [ ] update intersect attachment.?
+- [ ] update intersect attachment in recusive?
+- [x] constrain move
 - [x] commands always on
 - [x] rm nodeSlot
 - [x] scale fix in nodeData
