@@ -27,7 +27,6 @@
     - [ ] model import
     - [ ] animation methods etc control.
     - [ ] session data
-    - [ ] selection drag
     - [ ] rotate & select without cancel
     - [ ] kbm
         - [ ] control a , select all
@@ -41,7 +40,7 @@
     - [ ] line thickness for printing, global v screen
     - [ ] tile renderer for export?
 - [ ] refactor
-    - [ ] heave v light refacctor where we skip geom creation
+    - [ ] heave v light refactor where we skip geom creation
     - [ ] main as class
     - [ ] drafter
         - [ ] error, not check undef
@@ -57,11 +56,11 @@
     - [ ] drafter instance item map for duplicates
     - [ ] drafter error pass
     - [ ] tie interaciton events in with renderer timing.
+	- [ ] update intersect attachment in recusive?
 
 ### v0.4.0
 
 - [x] tool cancel, reject, resolve issue.
-- [ ] update intersect attachment in recusive?
 - [x] constrain move
 - [x] commands always on
 - [x] rm nodeSlot
