@@ -22,10 +22,13 @@
 ### v0.5.0
 
 - [ ] features
-    - [ ] ICONS
+    - [x] move readme to src
+    - [ ] project name, desciption and domain
+    - [ ] project writeup
+    - [ ] starting scenes/ load scene option
+    - [ ] button icons
     - [ ] circular arc
     - [ ] model import
-    - [ ] animation methods etc control.
     - [ ] session data
     - [ ] rotate & select without cancel
     - [ ] kbm
@@ -40,7 +43,6 @@
     - [ ] line thickness for printing, global v screen
     - [ ] tile renderer for export?
 - [ ] refactor
-    - [ ] heave v light refactor where we skip geom creation
     - [ ] main as class
     - [ ] drafter
         - [ ] error, not check undef
@@ -56,7 +58,7 @@
     - [ ] drafter instance item map for duplicates
     - [ ] drafter error pass
     - [ ] tie interaciton events in with renderer timing.
-	- [ ] update intersect attachment in recusive?
+    - [ ] update intersect attachment in recusive?
 
 ### v0.4.0
 
