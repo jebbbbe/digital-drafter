@@ -159,7 +159,7 @@ export function createNewCutNode(sectionParent: TransformNode) {
     const id = sectionParent.location.id
     const instanceItem = drafter.getInstance(id)
 
-    const sectionFace = createSectionAttachment() //new SectionAttachment()
+    const sectionFace = createSectionAttachment()
     const cutResult = csgFromParent(_start, _end, instanceItem, sectionParent)
     if (!cutResult) {
         sectionFace.delete()
@@ -268,22 +268,4 @@ export function updateCutNode(
         )
         .multiply(face1Brush.matrix)
     group.setMatrix(faceMatrix)
-}
-
-export function deleteSegment(line: SegmentAttachment) {
-    const index = line.index
-    const sectionCutter = drafter.sectionCutter
-    const node = sectionCutter.nodeMap.get(index)
-    if (!node) return
-
-    sectionCutter.deleteSegment(index)
-    node.attachments.segment = undefined
-
-    const children = node.children as TransformNode[]
-
-    for (let i = 0; i < children.length; i++) {
-        drafter.detachNode(children[i])
-    }
-
-    drafter.spliceNode(node)
 }

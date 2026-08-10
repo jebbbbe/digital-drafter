@@ -149,11 +149,18 @@ export class TransformNode
         this.detachChildren()
     }
 
+    // createSectionAttachment(){
+    // 	this.attachments.section = new SectionAttachment()
+    // }
+    // createSectionAttachment(){
+    // 	this.attachments.section = new SectionAttachment()
+    // }
+
     removeCutAttachments() {
         const segmentAttachment = this.attachments.segment
         if (segmentAttachment !== undefined) {
             this.attachments.segment = undefined
-            drafter.sectionCutter.deleteSegment(segmentAttachment.index)
+            segmentAttachment.delete()
         }
         const faceAttachment = this.attachments.section
         if (faceAttachment !== undefined) {

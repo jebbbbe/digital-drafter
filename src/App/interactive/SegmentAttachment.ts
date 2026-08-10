@@ -1,16 +1,21 @@
 import * as THREE from "three"
 import { InteractiveObject } from "./InteractiveObject"
 import { drafter, controllers } from "../AppContext"
-import type { GizmoSettings, PanelSettings, SectionCutter } from "@types"
+import type {
+    GizmoSettings,
+    PanelSettings,
+    SectionCutter,
+    TransformNode,
+} from "@types"
 import { updatePanel } from "../../components/Leva/LevaStore"
-import { moveSegmentToPosition } from "../controls/move"
-import { deleteSegment } from "../controls/section"
 
 const _segmentMidPoint = new THREE.Vector3()
 const _segmentDirection = new THREE.Vector3()
 const _segmentQuaternion = new THREE.Quaternion()
 const _segmentZAxis = new THREE.Vector3(0, 0, -1)
 const _zeroVec3 = new THREE.Vector3()
+const _delta = new THREE.Vector3()
+const _segmentLineDirection = new THREE.Vector3()
 
 export class SegmentAttachment extends InteractiveObject {
     object: SectionCutter
@@ -77,16 +82,59 @@ export class SegmentAttachment extends InteractiveObject {
         updatePanel(settings as PanelSettings)
     }
 
-    override gizmoListener(position = controllers.getGizmoPosition()) {
-        moveSegmentToPosition(this, position)
+    override gizmoListener(nextPosition = controllers.getGizmoPosition()) {
+        const index = this.index
+        const sectionChild = drafter.sectionCutter.nodeMap.get(index)
+        if (sectionChild === undefined) return false
+
+        const sectionParent = sectionChild.parent
+        if (sectionParent === undefined) return false
+
+        _segmentLineDirection.subVectors(
+            sectionChild.position,
+            sectionParent.position
+        )
+        const lineLengthSq = _segmentLineDirection.lengthSq()
+        if (lineLengthSq === 0) return false
+
+        const [a, b] = drafter.sectionCutter.getSegmentAsVector(index)
+        _segmentMidPoint.addVectors(a, b).multiplyScalar(0.5)
+        _delta.subVectors(nextPosition, _segmentMidPoint)
+
+        const deltaAlongLine = _delta.dot(_segmentLineDirection) / lineLengthSq
+        _delta.copy(_segmentLineDirection).multiplyScalar(deltaAlongLine)
+        if (_delta.lengthSq() === 0) return false
+
+        drafter.sectionCutter.moveSegmentVector(_delta, _delta, index)
+
+        const [nextA, nextB] = drafter.sectionCutter.getSegmentAsVector(index)
+        drafter.updatePatchedNode(sectionChild)
+        _segmentMidPoint.addVectors(nextA, nextB).multiplyScalar(0.5)
+        controllers.updateGizmoPosition(_segmentMidPoint)
+
+        return true
     }
 
     override delete() {
-        deleteSegment(this)
+        const index = this.index
+        const sectionCutter = drafter.sectionCutter
+        const node = sectionCutter.nodeMap.get(index)
+        if (!node) return
+
+        sectionCutter.deleteSegment(index)
+        node.attachments.segment = undefined
+
+        const children = node.children as TransformNode[]
+
+        for (let i = 0; i < children.length; i++) {
+            drafter.detachNode(children[i])
+        }
+
+        drafter.spliceNode(node)
     }
 
     override setSelected(isSelected: boolean) {
-		this.selected = isSelected
+        this.selected = isSelected
         console.warn("not implemented Select for ", this)
     }
 }

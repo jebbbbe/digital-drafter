@@ -4,9 +4,7 @@ import { drafter, controllers } from "../AppContext"
 import { rotatePointOnXZPlane, getXZRotationAngle } from "../utils/rotation"
 import { updateCutNode } from "./section"
 
-const _prevPosition = new THREE.Vector3()
 const _delta = new THREE.Vector3()
-const _segmentLineDirection = new THREE.Vector3()
 const _segmentMidPoint = new THREE.Vector3()
 const _segmentDirection = new THREE.Vector3()
 const _segmentQuaternion = new THREE.Quaternion()
@@ -103,40 +101,4 @@ export function setupSegmentGizmo(line: SegmentAttachment) {
     }
 
     controllers.setGizmoQuaternion(_segmentQuaternion)
-}
-
-export function moveSegmentToPosition(
-    line: SegmentAttachment,
-    nextPosition: THREE.Vector3
-) {
-    const index = line.index
-    const sectionChild = drafter.sectionCutter.nodeMap.get(index)
-    if (sectionChild === undefined) return false
-
-    const sectionParent = sectionChild.parent
-    if (sectionParent === undefined) return false
-
-    _segmentLineDirection.subVectors(
-        sectionChild.position,
-        sectionParent.position
-    )
-    const lineLengthSq = _segmentLineDirection.lengthSq()
-    if (lineLengthSq === 0) return false
-
-    const [a, b] = drafter.sectionCutter.getSegmentAsVector(index)
-    _segmentMidPoint.addVectors(a, b).multiplyScalar(0.5)
-    _delta.subVectors(nextPosition, _segmentMidPoint)
-
-    const deltaAlongLine = _delta.dot(_segmentLineDirection) / lineLengthSq
-    _delta.copy(_segmentLineDirection).multiplyScalar(deltaAlongLine)
-    if (_delta.lengthSq() === 0) return false
-
-    drafter.sectionCutter.moveSegmentVector(_delta, _delta, index)
-
-    const [nextA, nextB] = drafter.sectionCutter.getSegmentAsVector(index)
-    drafter.updatePatchedNode(sectionChild)
-    _segmentMidPoint.addVectors(nextA, nextB).multiplyScalar(0.5)
-    controllers.updateGizmoPosition(_segmentMidPoint)
-
-    return true
 }
