@@ -5,9 +5,7 @@ import { moveNodeToPosition } from "../../App/controls/move"
 import type { SegmentAttachment, TransformNode } from "@types"
 import type { AppEventManager } from "../AppEventManager"
 import { Tool, type NormalizedPointerEvent } from "./Tool"
-import {
-    moveDeltaSelectedNodes,
-} from "../../App/controls/interaction"
+import { moveDeltaSelectedNodes } from "../../App/controls/interaction"
 import { constrainDirection } from "./constrain"
 
 export class MoveNodeTool extends Tool {
@@ -52,7 +50,11 @@ export class MoveNodeTool extends Tool {
         const constrainMove = event.event.shiftKey && parentPosition
 
         if (constrainMove) {
-            constrainDirection(this.candidatePosition, this.lineDirection, parentPosition)
+            constrainDirection(
+                this.candidatePosition,
+                this.lineDirection,
+                parentPosition
+            )
         }
 
         this.prevHit.copy(hit)
@@ -96,13 +98,13 @@ export class MoveSegmentTool extends Tool {
     private readonly delta = new THREE.Vector3()
     private readonly segmentLineDirection = new THREE.Vector3()
     private readonly segmentMidPoint = new THREE.Vector3()
-    private readonly sectionCutter: AppContext["drafter"]["sectionCutter"]
+    private readonly sectionCutter: AppContext["sectionCutter"]
     private sectionChild?: TransformNode
     private sectionParent?: TransformNode
 
     constructor(ctx: AppContext) {
         super(ctx)
-        this.sectionCutter = this.ctx.drafter.sectionCutter
+        this.sectionCutter = this.ctx.sectionCutter
     }
 
     override enter(line: SegmentAttachment, startHit: THREE.Vector3): void {
@@ -147,9 +149,7 @@ export class MoveSegmentTool extends Tool {
             this.line.index
         )
 
-        const [a, b] = this.ctx.drafter.sectionCutter.getSegmentAsVector(
-            this.line.index
-        )
+        const [a, b] = this.sectionCutter.getSegmentAsVector(this.line.index)
         this.ctx.drafter.updatePatchedNode(this.sectionChild!)
         this.segmentMidPoint.addVectors(a, b).multiplyScalar(0.5)
         this.prevHit.copy(hit)

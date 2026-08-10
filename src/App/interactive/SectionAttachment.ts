@@ -11,9 +11,9 @@ selectedMaterial.color.set("#e6e600")
 export class SectionAttachment extends THREE.Group implements Attachment {
     selected = false
     face: THREE.Mesh
-    edges: THREE.LineSegments | LineSegments2
-    selectedMaterial: THREE.LineBasicMaterial | LineMaterial
-    defaultMaterial: THREE.LineBasicMaterial | LineMaterial
+    edges: LineSegments2
+    selectedMaterial: LineMaterial
+    defaultMaterial: LineMaterial
     constructor(
         faceGeometry: THREE.BufferGeometry = new THREE.BufferGeometry()
     ) {
@@ -50,23 +50,7 @@ export class SectionAttachment extends THREE.Group implements Attachment {
     }
 
     setEdgePositions(positions: number[] | Float32Array) {
-        if (this.edges instanceof LineSegments2) {
-            ;(this.edges.geometry as LineSegmentsGeometry).setPositions(
-                positions
-            )
-            return
-        }
-
-        const geometry = this.edges.geometry
-        const buffer =
-            positions instanceof Float32Array
-                ? positions
-                : new Float32Array(positions)
-
-        geometry.setAttribute("position", new THREE.BufferAttribute(buffer, 3))
-        geometry.setDrawRange(0, buffer.length / 3)
-        geometry.computeBoundingSphere()
-        geometry.computeBoundingBox()
+        ;(this.edges.geometry as LineSegmentsGeometry).setPositions(positions)
     }
 
     setFaceGeometry(faceGeometry: THREE.BufferGeometry) {

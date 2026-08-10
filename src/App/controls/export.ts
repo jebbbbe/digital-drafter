@@ -12,6 +12,7 @@ import { downloadBlob, saveAsGlb, saveAsGltf } from "../utils/loader"
 import {
     camera,
     drafter,
+	sectionCutter,
     selection,
     orbitControls,
     renderer,
@@ -869,7 +870,7 @@ function shouldExportInstancedObjObject(source: InstancedRenderable): boolean {
 }
 
 function shouldExportPlainObjObject(source: THREE.Object3D): boolean {
-    return source === drafter.sectionCutter.mesh
+    return source === sectionCutter.mesh
 }
 
 function isGroundedObjLine(object: THREE.Object3D): object is THREE.Line {

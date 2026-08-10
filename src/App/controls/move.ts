@@ -1,6 +1,6 @@
 import * as THREE from "three"
 import type { SegmentAttachment, TransformNode } from "@types"
-import { drafter, controllers } from "../AppContext"
+import { drafter, sectionCutter, controllers } from "../AppContext"
 import { rotatePointOnXZPlane, getXZRotationAngle } from "../utils/rotation"
 import { updateCutNode } from "./section"
 
@@ -22,7 +22,7 @@ function updateSectionParentAttachments(node: TransformNode, delta = _delta) {
         if (attachment === undefined) continue
 
         const index = attachment.index
-        drafter.sectionCutter.moveSegmentVector(delta, delta, index)
+        sectionCutter.moveSegmentVector(delta, delta, index)
     }
 }
 
@@ -53,7 +53,7 @@ export function updateSectionChildAttachments(node: TransformNode) {
 
     const parentPos = node.parent.position
     const index = segment.index
-    const [a, b] = drafter.sectionCutter.getSegmentAsVector(index)
+    const [a, b] = sectionCutter.getSegmentAsVector(index)
 
     _segmentDirection.subVectors(b, a).setY(0)
     if (_segmentDirection.lengthSq() === 0) return
@@ -73,7 +73,7 @@ export function updateSectionChildAttachments(node: TransformNode) {
 
     rotatePointOnXZPlane(a, rotateAngle, parentPos, a)
     rotatePointOnXZPlane(b, rotateAngle, parentPos, b)
-    drafter.sectionCutter.patchSegmentVector(a, b, index)
+    sectionCutter.patchSegmentVector(a, b, index)
 
     //update FACE attachment
     updateCutNode(a, b, node)
@@ -82,7 +82,7 @@ export function updateSectionChildAttachments(node: TransformNode) {
 }
 
 export function setupSegmentGizmo(line: SegmentAttachment) {
-    const [a, b] = drafter.sectionCutter.getSegmentAsVector(line.index)
+    const [a, b] = sectionCutter.getSegmentAsVector(line.index)
 
     _segmentMidPoint.addVectors(a, b).multiplyScalar(0.5)
     _segmentDirection.subVectors(b, a)

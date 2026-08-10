@@ -9,6 +9,7 @@ export type AppContext = Pick<
     | "camera"
     | "orbitControls"
     | "drafter"
+    | "sectionCutter"
     | "raycastHelper"
     | "selection"
     | "controllers"
@@ -22,6 +23,7 @@ export let scene: AppContext["scene"]
 export let camera: AppContext["camera"]
 export let orbitControls: AppContext["orbitControls"]
 export let drafter: AppContext["drafter"]
+export let sectionCutter: AppContext["sectionCutter"]
 export let raycastHelper: AppContext["raycastHelper"]
 export let selection: AppContext["selection"]
 export let controllers: AppContext["controllers"]
@@ -35,6 +37,7 @@ export function linkContext(ctx: AppContext) {
     camera = ctx.camera
     orbitControls = ctx.orbitControls
     drafter = ctx.drafter
+    sectionCutter = ctx.sectionCutter
     raycastHelper = ctx.raycastHelper
     selection = ctx.selection
     controllers = ctx.controllers

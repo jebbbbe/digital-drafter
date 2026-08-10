@@ -22,13 +22,18 @@ export class SelectTool extends Tool {
     }
     override onPointerDown(_normalized: NormalizedPointerEvent) {
         const e = _normalized.event
-        const { drafter, raycastHelper, selection, controllers } = this.ctx
-		
-		// right click is for orbit controls 
-		if(e.button === 2){
-			return
-		}
-		
+        const {
+            drafter,
+            sectionCutter,
+            raycastHelper,
+            selection,
+            controllers,
+        } = this.ctx
+
+        // right click is for orbit controls
+        if (e.button === 2) {
+            return
+        }
 
         // exit early for multiple touchs on mobile
         if (e.pointerType === "touch" && !e.isPrimary) return
@@ -53,7 +58,7 @@ export class SelectTool extends Tool {
         if (!hit) return
 
         let selectedObject: TransformNode | SegmentAttachment
-        if (first.object === drafter.sectionCutter.mesh) {
+        if (first.object === sectionCutter.mesh) {
             // hit section cutter
             const { index, faceIndex, object }: any = first
             const segmentIndex =

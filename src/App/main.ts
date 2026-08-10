@@ -3,6 +3,7 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
 import { AspectLayout } from "./utils/AspectLayout"
 import { loadGlb } from "./utils/loader"
 import { Drafter } from "./draft/Drafter"
+import { SectionCutter } from "./interactive/SectionCutter"
 import { StatsPanel } from "./test/StatsPanel"
 import {
     RaycastHelper,
@@ -13,6 +14,7 @@ import { TransformControls } from "three/examples/jsm/Addons.js"
 import { AppEventManager } from "../AppEventManager/AppEventManager"
 import { linkContext } from "./AppContext"
 import { settings } from "./settings"
+import type { Raycastable } from "@types"
 
 export class ThreeApp {
     isAppReady = { value: false }
@@ -23,6 +25,8 @@ export class ThreeApp {
     layout!: AspectLayout
     statsPanel!: StatsPanel
     drafter!: Drafter
+    sectionCutter!: SectionCutter
+    raycastObjects!: Raycastable
     raycastHelper!: RaycastHelper
     selection!: SelectionManager
     controllers!: ThreeControllersManager
@@ -57,13 +61,15 @@ export class ThreeApp {
         camera.position.set(...settings.camera.position)
         camera.lookAt(0, 0, 0)
 
-        // Drafter
-        const drafter = new Drafter(scene)
+        // interactive geometry
+        const raycastObjects: Raycastable = []
+        const drafter = new Drafter(scene, raycastObjects)
+        const sectionCutter = new SectionCutter(scene, raycastObjects)
 
         // raycaster
         const raycastHelper = new RaycastHelper(
             camera,
-            drafter.interactiveObjects,
+            raycastObjects,
             renderer.domElement
         )
         // selectionManager
@@ -106,20 +112,20 @@ export class ThreeApp {
         // axesHelper.renderOrder = 1
         // scene.add(gridHelper, axesHelper)
 
-		
-		// params
-		this.renderer = renderer
+        // params
+        this.renderer = renderer
         this.scene = scene
         this.camera = camera
         this.orbitControls = orbitControls
         this.layout = layout
         this.statsPanel = statsPanel
         this.drafter = drafter
+        this.sectionCutter = sectionCutter
+        this.raycastObjects = raycastObjects
         this.raycastHelper = raycastHelper
         this.selection = selection
         this.controllers = controllers
         this.eventManager = eventManager
-
 
         layout.addResizeListener(renderer, camera, () => this.render())
         this.frameId = globalThis.requestAnimationFrame(() => this.animate())

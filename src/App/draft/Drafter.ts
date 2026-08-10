@@ -2,7 +2,6 @@ import * as THREE from "three"
 import { TransformTree } from "./TransformTree"
 import { FreeList } from "../objects/FreeList"
 import { GlobalTreeTexture } from "../objects/textures/GlobalTreeTexture"
-import { SectionCutter } from "../interactive"
 import { createTransformNode } from "../interactive"
 import {
     calculateBaseMatrix,
@@ -12,7 +11,7 @@ import {
 import { InstanceItem } from "./InstanceItem"
 import { walkSubtree, walkSeenSubtree } from "./recursive"
 import { matlib } from "./materialManager"
-import type { NodeLocation, TransformNode } from "@types"
+import type { Raycastable, NodeLocation, TransformNode } from "@types"
 
 const _anchoredCenter = new THREE.Vector3()
 type NodeSearch = TransformNode | NodeLocation
@@ -20,7 +19,7 @@ type NodeSearch = TransformNode | NodeLocation
 export class Drafter {
     tree = new TransformTree()
     instanceItems: FreeList<InstanceItem> = new FreeList()
-    interactiveObjects: THREE.Object3D[] = []
+    raycastObjects!: Raycastable
     scene!: THREE.Scene
     globalTreeTexture = new GlobalTreeTexture({})
     materials = {
@@ -40,15 +39,20 @@ export class Drafter {
         },
         enable: false,
     }
-    sectionCutter = new SectionCutter(this.materials.sectionLine)
-    constructor(scene: THREE.Scene, debug: boolean = false) {
+    // sectionCutter = new SectionCutter(this.materials.sectionLine)
+    constructor(
+        scene: THREE.Scene,
+        raycastObjects: Raycastable,
+        debug: boolean = false
+    ) {
         this.scene = scene
+        this.raycastObjects = raycastObjects
         this.assignTexture()
         this.debug.enable = debug
         if (debug) this.setUpDebug()
-        const mesh = this.sectionCutter.mesh
-        this.scene.add(mesh)
-        this.interactiveObjects.push(mesh)
+        // const mesh = this.sectionCutter.mesh
+        // this.scene.add(mesh)
+        // this.raycastObjects.push(mesh)
     }
     assignTexture() {
         const text = this.globalTreeTexture.texture
@@ -72,16 +76,6 @@ export class Drafter {
         this.debug.enable = true
         this.debug.objects.line.material = this.materials.debugLine
         this.debug.objects.point.material = this.materials.debugPoint
-
-        const boxDebug = new THREE.Mesh(
-            this.sectionCutter.box,
-            new THREE.MeshBasicMaterial({
-                color: 0x00ffff,
-            })
-        )
-        boxDebug.matrixAutoUpdate = false
-        this.debug.objects.section = boxDebug
-        this.scene.add(boxDebug)
     }
     getInstance(id: number): InstanceItem {
         const instanceItem = this.instanceItems[id]
@@ -107,7 +101,7 @@ export class Drafter {
         // push to Freelist, should arrive at id
         this.instanceItems.push(newInstanceItem)
         // push to interactive objects
-        this.interactiveObjects.push(newInstanceItem.instances.mesh)
+        this.raycastObjects.push(newInstanceItem.instances.mesh)
         // create new node freelist bucket, id should match the instanceitems
         const treeId = this.tree.addBucket()
         if (id !== treeId) {
@@ -166,9 +160,9 @@ export class Drafter {
 
         // clean up other refrences
         this.scene.remove(instanceItem.group)
-        const rm = this.interactiveObjects.indexOf(instanceItem.instances.mesh)
+        const rm = this.raycastObjects.indexOf(instanceItem.instances.mesh)
         if (rm !== -1) {
-            this.interactiveObjects.splice(rm, 1)
+            this.raycastObjects.splice(rm, 1)
         }
         // remove from both freelists,
         this.instanceItems.remove(id)

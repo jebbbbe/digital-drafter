@@ -1,3 +1,5 @@
+import type { Object3D } from "three"
+
 type Material = {
     color: string
     opacity: number
@@ -57,6 +59,8 @@ export type Settings = {
     }
     display: SettingsDisplay
 }
+
+export type Raycastable = Object3D[]
 
 export type NodeLocation = {
     id: number

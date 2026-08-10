@@ -1,5 +1,5 @@
 import * as THREE from "three"
-import { drafter } from "../AppContext"
+import { drafter, sectionCutter } from "../AppContext"
 import { createSegmentAttachment } from "../interactive"
 import type { SegmentAttachment, TransformNode } from "@types"
 import * as rand from "../utils/random"
@@ -43,7 +43,7 @@ function csgFromParent(
     _scale.makeScale(size, size, size)
     _rotate.makeRotationY(angle)
     _move2.makeTranslation(_midPoint)
-    const boxBrush = drafter.sectionCutter.brush
+    const boxBrush = sectionCutter.brush
     boxBrush.matrix.identity()
     boxBrush.matrix
         .copy(_move2)
@@ -94,8 +94,6 @@ const _start = new THREE.Vector3()
 const _end = new THREE.Vector3()
 
 export function createNewCutNode(sectionParent: TransformNode) {
-    const sectionCutter = drafter.sectionCutter
-
     // see if children have cuts
     let noCuts = true
     const children = sectionParent.children
