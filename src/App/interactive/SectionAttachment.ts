@@ -2,7 +2,7 @@ import * as THREE from "three"
 import { LineSegments2 } from "three/addons/lines/LineSegments2.js"
 import { LineSegmentsGeometry } from "three/addons/lines/LineSegmentsGeometry.js"
 import { Attachment } from "./InteractiveObject"
-import { matlib, orders, activeMaterialLib } from "../draft/materialManager"
+import { matlib, orders } from "../draft/materialManager"
 import type { LineMaterial } from "three/addons/lines/LineMaterial.js"
 
 const selectedMaterial = matlib.sectionEdge.clone()
@@ -22,17 +22,10 @@ export class SectionAttachment extends THREE.Group implements Attachment {
         this.face = new THREE.Mesh(faceGeometry, matlib.sectionFace)
         this.face.renderOrder = orders.sectionFace
 
-        if (activeMaterialLib === "linewidth") {
-            this.edges = new LineSegments2(
-                new LineSegmentsGeometry(),
-                matlib.sectionEdge
-            )
-        } else {
-            this.edges = new THREE.LineSegments(
-                new THREE.BufferGeometry(),
-                matlib.sectionEdge
-            )
-        }
+        this.edges = new LineSegments2(
+            new LineSegmentsGeometry(),
+            matlib.sectionEdge
+        )
         this.edges.renderOrder = orders.sectionEdge
 
         this.defaultMaterial = matlib.sectionEdge
