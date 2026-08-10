@@ -1,6 +1,20 @@
 // context.ts
-import type { AppContext } from "./main"
-export  type { AppContext } from "./main"
+import type { ThreeApp } from "./main"
+
+export type AppContext = Pick<
+    ThreeApp,
+    | "isAppReady"
+    | "renderer"
+    | "scene"
+    | "camera"
+    | "orbitControls"
+    | "drafter"
+    | "raycastHelper"
+    | "selection"
+    | "controllers"
+    | "statsPanel"
+    | "eventManager"
+>
 
 export let isAppReady: AppContext["isAppReady"]
 export let renderer: AppContext["renderer"]

@@ -1,4 +1,4 @@
-import { init } from "../App/main"
+import { ThreeApp } from "../App/main"
 import { themeOptions } from "../App/constants"
 import { geometryTitles } from "../App/objects/geometries/library"
 import { controls } from "../App/controls/controls"
@@ -8,9 +8,9 @@ import { settings } from "../App/settings"
 
 export async function linkThreeApp(container: HTMLElement) {
     // set up app
-    const disposeApp = init(container)
+    const threeApp = new ThreeApp(container)
 
-    // link tools to evvent manager
+    // link tools to event manager
     const { eventManager } = ctx
     eventManager.register("disable", new Tools.DisableTool(ctx))
     eventManager.register("select", new Tools.SelectTool(ctx))
@@ -53,8 +53,7 @@ export async function linkThreeApp(container: HTMLElement) {
             panelTool,
         },
         dispose: () => {
-            eventManager.dispose()
-            disposeApp()
+            threeApp.dispose()
         },
     }
 }
