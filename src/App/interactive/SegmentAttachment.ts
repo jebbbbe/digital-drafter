@@ -18,14 +18,14 @@ const _delta = new THREE.Vector3()
 const _segmentLineDirection = new THREE.Vector3()
 
 export class SegmentAttachment extends InteractiveObject {
-    object: SectionCutter
+    sectionCutter: SectionCutter
     index: number
-    constructor(object: SectionCutter, index: number) {
+    constructor(sectionCutter: SectionCutter, index: number) {
         super()
-        this.object = object
+        this.sectionCutter = sectionCutter
         this.index = index
 
-        this.object.attachments[index] = this
+        this.sectionCutter.attachments[index] = this
     }
 
     override move(_startHit: THREE.Vector3) {
@@ -34,14 +34,14 @@ export class SegmentAttachment extends InteractiveObject {
 
     override getCenter() {
         const line = this
-        const [a, b] = drafter.sectionCutter.getSegmentAsVector(line.index)
+        const [a, b] = this.sectionCutter.getSegmentAsVector(line.index)
         _segmentMidPoint.addVectors(a, b).multiplyScalar(0.5)
         return _segmentMidPoint
     }
 
     override gizmoSetup(settings: Partial<GizmoSettings>) {
         const line = this
-        const [a, b] = drafter.sectionCutter.getSegmentAsVector(line.index)
+        const [a, b] = this.sectionCutter.getSegmentAsVector(line.index)
         _segmentMidPoint.addVectors(a, b).multiplyScalar(0.5)
         _segmentDirection.subVectors(b, a)
         if (_segmentDirection.lengthSq() === 0) {
@@ -65,7 +65,7 @@ export class SegmentAttachment extends InteractiveObject {
 
     override panelSetup(settings: Partial<PanelSettings>) {
         const line = this
-        const [a, b] = drafter.sectionCutter.getSegmentAsVector(line.index)
+        const [a, b] = this.sectionCutter.getSegmentAsVector(line.index)
         _segmentMidPoint.addVectors(a, b).multiplyScalar(0.5)
 
         const defaultPanel = {
@@ -84,7 +84,7 @@ export class SegmentAttachment extends InteractiveObject {
 
     override gizmoListener(nextPosition = controllers.getGizmoPosition()) {
         const index = this.index
-        const sectionChild = drafter.sectionCutter.nodeMap.get(index)
+        const sectionChild = this.sectionCutter.nodeMap.get(index)
         if (sectionChild === undefined) return false
 
         const sectionParent = sectionChild.parent
@@ -97,7 +97,7 @@ export class SegmentAttachment extends InteractiveObject {
         const lineLengthSq = _segmentLineDirection.lengthSq()
         if (lineLengthSq === 0) return false
 
-        const [a, b] = drafter.sectionCutter.getSegmentAsVector(index)
+        const [a, b] = this.sectionCutter.getSegmentAsVector(index)
         _segmentMidPoint.addVectors(a, b).multiplyScalar(0.5)
         _delta.subVectors(nextPosition, _segmentMidPoint)
 
@@ -105,9 +105,9 @@ export class SegmentAttachment extends InteractiveObject {
         _delta.copy(_segmentLineDirection).multiplyScalar(deltaAlongLine)
         if (_delta.lengthSq() === 0) return false
 
-        drafter.sectionCutter.moveSegmentVector(_delta, _delta, index)
+        this.sectionCutter.moveSegmentVector(_delta, _delta, index)
 
-        const [nextA, nextB] = drafter.sectionCutter.getSegmentAsVector(index)
+        const [nextA, nextB] = this.sectionCutter.getSegmentAsVector(index)
         drafter.updatePatchedNode(sectionChild)
         _segmentMidPoint.addVectors(nextA, nextB).multiplyScalar(0.5)
         controllers.updateGizmoPosition(_segmentMidPoint)
@@ -117,11 +117,10 @@ export class SegmentAttachment extends InteractiveObject {
 
     override delete() {
         const index = this.index
-        const sectionCutter = drafter.sectionCutter
-        const node = sectionCutter.nodeMap.get(index)
+        const node = this.sectionCutter.nodeMap.get(index)
         if (!node) return
 
-        sectionCutter.deleteSegment(index)
+        this.sectionCutter.deleteSegment(index)
         node.attachments.segment = undefined
 
         const children = node.children as TransformNode[]
