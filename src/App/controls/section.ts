@@ -1,14 +1,11 @@
 import * as THREE from "three"
 import { drafter } from "../AppContext"
-import {
-    createSectionAttachment,
-    createSegmentAttachment,
-} from "../interactive"
+import { createSegmentAttachment } from "../interactive"
 import type { SegmentAttachment, TransformNode } from "@types"
 import * as rand from "../utils/random"
 import { evaluateCSG, boolean, csgEvaluator } from "../utils/csg"
 import type { InstanceItem } from "../draft/InstanceItem"
-import { SectionFaceGroup } from "../interactive"
+import { createSectionAttachment } from "../interactive"
 
 const _up = new THREE.Vector3(0, 1, 0)
 const _offset = new THREE.Vector3()
@@ -162,10 +159,10 @@ export function createNewCutNode(sectionParent: TransformNode) {
     const id = sectionParent.location.id
     const instanceItem = drafter.getInstance(id)
 
-    const sectionFace = new SectionFaceGroup()
+    const sectionFace = createSectionAttachment() //new SectionAttachment()
     const cutResult = csgFromParent(_start, _end, instanceItem, sectionParent)
     if (!cutResult) {
-        sectionFace.dispose()
+        sectionFace.delete()
         return
     }
     const { brush1, face1Brush, positions } = cutResult
@@ -200,7 +197,7 @@ export function createNewCutNode(sectionParent: TransformNode) {
     // add new root!
     const sectionChild = drafter.addLeafNode(side1Root)
     if (!sectionChild) {
-        sectionFace.dispose()
+        sectionFace.delete()
         return
     }
 
@@ -231,8 +228,7 @@ export function createNewCutNode(sectionParent: TransformNode) {
 
     drafter.scene.add(sectionFace)
 
-    const attachment = createSectionAttachment(sectionFace)
-    sectionChild.attachments.section = attachment
+    sectionChild.attachments.section = sectionFace
 
     // mark parent node as the source of a section cut
     sectionParent.sectionParent = true
@@ -253,7 +249,7 @@ export function updateCutNode(
     const attachment = sectionChild.attachments.section
     if (!attachment) return
 
-    const group = attachment.object
+    const group = attachment
 
     const cutResult = csgFromParent(start, end, instanceItem, sectionParent)
     if (!cutResult) return

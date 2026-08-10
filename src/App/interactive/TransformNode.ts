@@ -115,18 +115,18 @@ export class TransformNode
         drafter.globalTreeTexture.sendUpdate(slot)
 
         //section
-        const SectionFaceGroup = this.attachments?.section?.object
-        if (SectionFaceGroup) {
-            SectionFaceGroup.setSelected(isSelected)
+        const SectionAttachment = this.attachments?.section
+        if (SectionAttachment) {
+            SectionAttachment.setSelected(isSelected)
         }
 
         // line
-        const segment = this.attachments.segment
+        const segment = this.attachments?.segment
         if (segment) {
             segment.setSelected(isSelected)
         }
     }
-	
+
     mirrorNode(recursive: boolean = true) {
         this.mirror = !this.mirror
         if (recursive) drafter.updatePatchedNode(this)
@@ -136,12 +136,14 @@ export class TransformNode
         this.removeCutAttachments()
         drafter.detachNode(this)
     }
+
     detachChildren() {
         const children = [...this.children]
         children.forEach((child) => {
             child.detachNode()
         })
     }
+
     detachAll() {
         this.detachNode()
         this.detachChildren()
@@ -156,7 +158,7 @@ export class TransformNode
         const faceAttachment = this.attachments.section
         if (faceAttachment !== undefined) {
             this.attachments.section = undefined
-            faceAttachment.object.dispose()
+            faceAttachment.delete()
         }
         this.sectionChild = false
     }

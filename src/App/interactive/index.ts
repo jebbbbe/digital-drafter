@@ -1,7 +1,5 @@
 export { TransformNode, createTransformNode } from "./TransformNode"
-export { createSectionAttachment } from "./SectionAttachment"
-export type { SectionAttachment } from "./SectionAttachment"
 export { SegmentAttachment, createSegmentAttachment } from "./SegmentAttachment"
 export type { InteractiveObject } from "./InteractiveObject"
 export { SectionCutter } from "./SectionCutter"
-export { SectionFaceGroup } from "./SectionFaceGroup"
+export { SectionAttachment, createSectionAttachment } from "./SectionAttachment"
