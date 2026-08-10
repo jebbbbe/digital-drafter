@@ -106,24 +106,24 @@ export class ThreeApp {
         // axesHelper.renderOrder = 1
         // scene.add(gridHelper, axesHelper)
 
-        layout.addResizeListener(renderer, camera, this.render)
-        const frameId = globalThis.requestAnimationFrame(this.animate)
-        const isAppReady = { value: true }
-
-        // params
-        this.isAppReady = isAppReady
-        this.renderer = renderer
+		
+		// params
+		this.renderer = renderer
         this.scene = scene
         this.camera = camera
         this.orbitControls = orbitControls
         this.layout = layout
-        this.frameId = frameId
         this.statsPanel = statsPanel
         this.drafter = drafter
         this.raycastHelper = raycastHelper
         this.selection = selection
         this.controllers = controllers
         this.eventManager = eventManager
+
+
+        layout.addResizeListener(renderer, camera, () => this.render())
+        this.frameId = globalThis.requestAnimationFrame(() => this.animate())
+        this.isAppReady.value = true
 
         //ctx
         linkContext(this)
@@ -144,14 +144,14 @@ export class ThreeApp {
     }
 
     render(): void {
-        this.statsPanel.update()
+        this.statsPanel?.update()
         this.orbitControls.update()
         this.renderer.render(this.scene, this.camera)
     }
 
     animate(): void {
         this.render()
-        this.frameId = globalThis.requestAnimationFrame(this.animate)
+        this.frameId = globalThis.requestAnimationFrame(() => this.animate())
     }
 
     initOrbit(camera: THREE.OrthographicCamera, renderer: THREE.WebGLRenderer) {
