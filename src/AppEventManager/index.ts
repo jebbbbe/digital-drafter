@@ -34,7 +34,7 @@ export async function linkThreeApp(container: HTMLElement) {
     //Panel Tool
     const panelTool = new Tools.PanelTool(ctx)
 
-    // set up the sccene
+    // set up the scene
     controls.setUpDrafter()
 
     // add context for logging

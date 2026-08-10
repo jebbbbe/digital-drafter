@@ -1,7 +1,7 @@
 import * as THREE from "three"
 import { LineSegments2 } from "three/addons/lines/LineSegments2.js"
 import { LineSegmentsGeometry } from "three/addons/lines/LineSegmentsGeometry.js"
-import { matlib, orders, activeMaterialLib } from "../../draft/materialManager"
+import { matlib, orders, activeMaterialLib } from "../draft/materialManager"
 import type { LineMaterial } from "three/addons/lines/LineMaterial.js"
 
 const selectedMaterial = matlib.sectionEdge.clone()

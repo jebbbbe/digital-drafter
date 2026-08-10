@@ -64,7 +64,7 @@ export type NodeLocation = {
 }
 
 export type ToolId =
-	| "disable"
+    | "disable"
     | "select"
     | "selectCount"
     | "moveAttached"
@@ -83,4 +83,4 @@ export type {
     TransformNode,
 } from "./App/interactive"
 export type { SectionAttachment } from "./App/interactive"
-export type { SectionCutter, SectionFaceGroup } from "./App/objects/attachments"
+export type { SectionCutter, SectionFaceGroup } from "./App/interactive"

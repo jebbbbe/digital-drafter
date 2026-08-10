@@ -8,7 +8,7 @@ import type { SegmentAttachment, TransformNode } from "@types"
 import * as rand from "../utils/random"
 import { evaluateCSG, boolean, csgEvaluator } from "../utils/csg"
 import type { InstanceItem } from "../draft/InstanceItem"
-import { SectionFaceGroup } from "../objects/attachments"
+import { SectionFaceGroup } from "../interactive"
 
 const _up = new THREE.Vector3(0, 1, 0)
 const _offset = new THREE.Vector3()
