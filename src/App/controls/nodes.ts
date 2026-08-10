@@ -112,10 +112,6 @@ export function addLeafNearbyRandomlyNicely(node: TransformNode) {
     }
 }
 
-export function spliceNode(node: TransformNode) {
-    drafter.spliceNode(node)
-}
-
 export function rotateRootFromSelection(rot: { x: number; y: number }) {
     const rootNode = selection.firstNode()
     if (!rootNode) return
@@ -148,7 +144,7 @@ export function scaleRootFromSelection(n: number) {
 }
 
 // manager -> leva
-export type NodeMatrixValues = {
+type NodeMatrixValues = {
     positionValue: { x: number; z: number }
     rotateValue: { x: number; y: number }
     scaleValue: number
