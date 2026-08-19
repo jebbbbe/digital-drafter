@@ -23,6 +23,7 @@
 
 - [ ] features
     - [x] move readme to src
+	- [ ] copy rhinos move + tab constrain. need display geom...
     - [ ] project name, desciption and domain
     - [ ] project writeup
     - [ ] starting scenes/ load scene option
@@ -36,7 +37,9 @@
         - [ ] control c + v, copy paste selection
         - [ ] control z + y, redo, undo
 - [ ] materials
-    - [ ] remove gl_lines, why would we use them?
+    - [x] remove gl_lines, why would we use them?
+	- [ ] IL -> NodeIL
+		we need the generic isntanced line classes for seciton line. .. i removed them
     - [ ] custom dashes in frag
     - [ ] fix issues written in MaterialManagers
     - [ ] materail aliasing / transparency for super thin lw
