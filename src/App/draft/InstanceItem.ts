@@ -1,12 +1,16 @@
 import * as THREE from "three"
 import { LineSegmentsGeometry } from "three/addons/lines/LineSegmentsGeometry.js"
-import { InstancedLineSegments } from "../objects/meshes/InstancedLineSegments"
-import { InstancedLineSegments2 } from "../objects/meshes/InstancedLineSegments2"
-import { ProjectionLineMaterial } from "../objects/materials/ProjectionLineMaterial"
-import { ProjectionLineMaterial2 } from "../objects/materials/ProjectionLineMaterial2"
-import { InstancedLineMaterial } from "../objects/materials/InstancedLineMaterial"
-import { FoldLineMaterial2 } from "../objects/materials/FoldLineMaterial2"
 import { InstanceCount } from "../constants"
+import {
+    InstancedLineSegments,
+    InstancedLineSegments2,
+} from "../objects/meshes"
+import {
+    InstancedLineMaterial,
+    ProjectionLineMaterial,
+    ProjectionLineMaterial2,
+    FoldLineMaterial2,
+} from "../objects/materials"
 import { brushCleaner } from "../objects/geometries/brushCleaner"
 import {
     setInstanceMatrixAt,

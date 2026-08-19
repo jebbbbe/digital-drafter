@@ -1,12 +1,14 @@
 import * as THREE from "three"
-import { settings } from "../settings"
-import { InstancedLineMaterial } from "../objects/materials/InstancedLineMaterial"
-import { ProjectionLineMaterial } from "../objects/materials/ProjectionLineMaterial"
-import { ProjectionLineMaterial2 } from "../objects/materials/ProjectionLineMaterial2"
-import { patchNodeMatrix } from "../objects/materials/nodeWrapper"
 import { LineMaterial } from "three/addons/lines/LineMaterial.js"
-import { FoldLineMaterial } from "../objects/materials/FoldLineMaterial"
-import { FoldLineMaterial2 } from "../objects/materials/FoldLineMaterial2"
+import { settings } from "../settings"
+import {
+    InstancedLineMaterial,
+    ProjectionLineMaterial,
+    ProjectionLineMaterial2,
+    patchNodeMatrix,
+    FoldLineMaterial,
+    FoldLineMaterial2,
+} from "../objects/materials"
 
 /*
 

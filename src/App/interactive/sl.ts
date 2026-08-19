@@ -2,7 +2,7 @@ import * as THREE from "three"
 import type { GizmoSettings, PanelSettings } from "@types"
 import { InteractiveObject } from "./InteractiveObject"
 import { matlib, orders } from "../draft/materialManager"
-import { InstancedLineSegments2 } from "../objects/meshes/InstancedLineSegments2"
+import { InstancedLineSegments2 } from "../objects/meshes"
 import { LineSegmentsGeometry } from "three/addons/lines/LineSegmentsGeometry.js"
 import { scene } from "../AppContext"
 
