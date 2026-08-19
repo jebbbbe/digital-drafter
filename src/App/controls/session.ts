@@ -1,16 +1,17 @@
 import * as THREE from "three"
-import { drafter, controllers } from "../AppContext"
+import { drafter, controllers, scene } from "../AppContext"
 import { createNewCutNode } from "./section"
 import { geometryLibrary } from "../objects/geometries/library"
 import * as rand from "../utils/random"
 import type { NodeLocation, TransformNode } from "@types"
 import type { Drafter } from "../draft/Drafter"
+import { NEWSectionCutter } from "../interactive/sl"
 
 export function setUpDrafter() {
     // add default starting scene.
     // can replace later with  session specific loading logic.
     // we do not have a ssave/load scheme
-
+    let t = new NEWSectionCutter(scene)
     const geometryItems = Object.values(geometryLibrary) as [
         THREE.BufferGeometry,
         ...THREE.BufferGeometry[],
