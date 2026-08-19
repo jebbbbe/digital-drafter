@@ -6,7 +6,7 @@ import {
     InstancedLineSegments2,
 } from "../objects/meshes"
 import {
-    InstancedLineMaterial,
+    InstancedNodeMaterial,
     ProjectionLineMaterial,
     ProjectionLineMaterial2,
     FoldLineMaterial2,
@@ -89,11 +89,11 @@ export class InstanceItem {
         )
         line = new InstancedLineSegments2(
             lineGeometry,
-            materials.line as InstancedLineMaterial,
+            materials.line as InstancedNodeMaterial,
             capacity
         )
         line.onBeforeRender = (renderer: THREE.WebGLRenderer) => {
-            const material = line.material as unknown as InstancedLineMaterial
+            const material = line.material as unknown as InstancedNodeMaterial
             // this changes for every mesh isntance, otherwise we need multiple materials
             material.treeBlockOffset = id
             // might be abel to set this elsewhere
@@ -108,12 +108,12 @@ export class InstanceItem {
         )
         outline = new InstancedLineSegments2(
             outLineGeometry,
-            materials.outline as InstancedLineMaterial,
+            materials.outline as InstancedNodeMaterial,
             capacity
         )
         outline.onBeforeRender = (renderer: THREE.WebGLRenderer) => {
             const material =
-                outline.material as unknown as InstancedLineMaterial
+                outline.material as unknown as InstancedNodeMaterial
             material.treeBlockOffset = id
             material.instanceMatrixCount = Math.max(1, outline.count)
             material.uniformsNeedUpdate = true
@@ -128,11 +128,11 @@ export class InstanceItem {
         )
         dash = new InstancedLineSegments2(
             dashGeometry,
-            materials.dash as InstancedLineMaterial,
+            materials.dash as InstancedNodeMaterial,
             capacity
         )
         dash.onBeforeRender = (renderer: THREE.WebGLRenderer) => {
-            const material = dash.material as unknown as InstancedLineMaterial
+            const material = dash.material as unknown as InstancedNodeMaterial
             material.treeBlockOffset = id
             material.instanceMatrixCount = Math.max(1, dash.count)
             material.uniformsNeedUpdate = true

@@ -1,6 +1,6 @@
 import * as THREE from "three"
-import { InstancedLineMaterial } from "./InstancedLineMaterial"
-import type { CustomLineMaterialParameters } from "./InstancedLineMaterial"
+import { InstancedNodeMaterial } from "./InstancedNodeMaterial"
+import type { CustomLineMaterialParameters } from "./InstancedNodeMaterial"
 
 type FoldLineMaterial2Parameters = CustomLineMaterialParameters & {
     foldDistance?: number
@@ -9,14 +9,14 @@ type FoldLineMaterial2Parameters = CustomLineMaterialParameters & {
     anchor?: THREE.Vector3
 }
 
-type FoldLineMaterial2Uniforms = InstancedLineMaterial["uniforms"] & {
+type FoldLineMaterial2Uniforms = InstancedNodeMaterial["uniforms"] & {
     foldDistance: THREE.IUniform<number>
     foldSize: THREE.IUniform<number>
     boundingEdge: THREE.IUniform<number>
     anchor: THREE.IUniform<THREE.Vector3>
 }
 
-export class FoldLineMaterial2 extends InstancedLineMaterial {
+export class FoldLineMaterial2 extends InstancedNodeMaterial {
     declare uniforms: FoldLineMaterial2Uniforms
 
     constructor(parameters: FoldLineMaterial2Parameters = {}) {

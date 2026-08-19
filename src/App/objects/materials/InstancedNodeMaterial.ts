@@ -7,8 +7,8 @@ import {
     Vector2,
 } from "three"
 
-import instancedLineMaterialFrag from "./glsl/InstancedLineMaterialFrag.glsl?raw"
-import instancedLineMaterialVert from "./glsl/InstancedLineMaterialVert.glsl?raw"
+import instancedNodeMaterialFrag from "./glsl/InstancedNodeMaterialFrag.glsl?raw"
+import instancedNodeMaterialVert from "./glsl/InstancedNodeMaterialVert.glsl?raw"
 
 import { InstanceCount } from "../../constants"
 
@@ -58,8 +58,8 @@ ShaderLib["instanceLine"] = {
         (UniformsLib as any).instanceLine,
     ]),
 
-    vertexShader: instancedLineMaterialVert,
-    fragmentShader: instancedLineMaterialFrag,
+    vertexShader: instancedNodeMaterialVert,
+    fragmentShader: instancedNodeMaterialFrag,
 }
 
 /**
@@ -74,7 +74,7 @@ ShaderLib["instanceLine"] = {
  * @augments ShaderMaterial
  * @three_import import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
  */
-class InstancedLineMaterial extends ShaderMaterial {
+class InstancedNodeMaterial extends ShaderMaterial {
     /**
      * Constructs a new line segments geometry.
      *
@@ -349,4 +349,4 @@ class InstancedLineMaterial extends ShaderMaterial {
     }
 }
 
-export { InstancedLineMaterial }
+export { InstancedNodeMaterial }

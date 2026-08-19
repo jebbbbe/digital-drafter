@@ -1,9 +1,9 @@
-import { InstancedLineMaterial } from "./InstancedLineMaterial"
-import type { CustomLineMaterialParameters } from "./InstancedLineMaterial"
+import { InstancedNodeMaterial } from "./InstancedNodeMaterial"
+import type { CustomLineMaterialParameters } from "./InstancedNodeMaterial"
 
 type ProjectionLineMaterial2Parameters = CustomLineMaterialParameters
 
-export class ProjectionLineMaterial2 extends InstancedLineMaterial {
+export class ProjectionLineMaterial2 extends InstancedNodeMaterial {
     constructor(parameters: ProjectionLineMaterial2Parameters = {}) {
         super(parameters)
 

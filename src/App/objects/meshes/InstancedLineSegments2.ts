@@ -2,7 +2,7 @@ import * as THREE from "three"
 import { LineSegments2 } from "three/addons/lines/LineSegments2.js"
 import type { LineSegmentsGeometry } from "three/addons/lines/LineSegmentsGeometry.js"
 import type { LineMaterial } from "three/addons/lines/LineMaterial.js"
-import type { InstancedLineMaterial } from "../materials"
+import type { InstancedNodeMaterial } from "../materials"
 
 type InstancedInterleavedBufferAttribute =
     | (THREE.InterleavedBufferAttribute & {
@@ -18,7 +18,7 @@ class InstancedLineSegments2 extends LineSegments2 {
 
     constructor(
         geometry: LineSegmentsGeometry,
-        material: InstancedLineMaterial,
+        material: InstancedNodeMaterial,
         count: number = 1
     ) {
         //@ts-ignore

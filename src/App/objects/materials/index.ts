@@ -1,6 +1,6 @@
 export { FoldLineMaterial } from "./FoldLineMaterial"
 export { FoldLineMaterial2 } from "./FoldLineMaterial2"
-export { InstancedLineMaterial } from "./InstancedLineMaterial"
+export { InstancedNodeMaterial } from "./InstancedNodeMaterial"
 export { patchNodeMatrix } from "./nodeWrapper"
 export { ProjectionLineMaterial } from "./ProjectionLineMaterial"
 export { ProjectionLineMaterial2 } from "./ProjectionLineMaterial2"

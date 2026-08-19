@@ -2,7 +2,7 @@ import * as THREE from "three"
 import { LineMaterial } from "three/addons/lines/LineMaterial.js"
 import { settings } from "../settings"
 import {
-    InstancedLineMaterial,
+    InstancedNodeMaterial,
     ProjectionLineMaterial,
     ProjectionLineMaterial2,
     patchNodeMatrix,
@@ -97,12 +97,12 @@ if (activeMaterialLib === "gl_Line") {
         depthWrite: false,
     })
 } else {
-    matlib.outline = new InstancedLineMaterial({
+    matlib.outline = new InstancedNodeMaterial({
         ...materialSettings.outline,
         depthWrite: false,
     })
     //mesh
-    matlib.dash = new InstancedLineMaterial({
+    matlib.dash = new InstancedNodeMaterial({
         ...materialSettings.dash,
         depthTest: false,
         depthWrite: false,
@@ -118,7 +118,7 @@ if (activeMaterialLib === "gl_Line") {
         depthTest: true,
         depthWrite: false,
     })
-    matlib.line = new InstancedLineMaterial({
+    matlib.line = new InstancedNodeMaterial({
         ...materialSettings.line,
         depthWrite: false,
     })
