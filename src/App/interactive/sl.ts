@@ -6,48 +6,63 @@ import { InstancedNodeSegments2 } from "../objects/meshes"
 import { LineSegmentsGeometry } from "three/addons/lines/LineSegmentsGeometry.js"
 import { scene } from "../AppContext"
 
+import { InstancedLineMaterial } from "../objects/materials"
+import { InstancedLineSegments2 } from "../objects/meshes"
+
 // const points = [-1, 0, 0, 1, 0, 0]
 const points = [-1, 0, -1, -1, 0, 0, -1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, -1]
 export class NEWSectionCutter {
-    material = matlib.sectionLine
+    // material = matlib.sectionLine
+    material = new InstancedLineMaterial({
+        color: "#000000",
+        opacity: 1.0,
+        transparent: false,
+        linewidth: 1.15,
+
+        dashed: false,
+        dashSize: 0.05,
+        gapSize: 0.01,
+
+        depthTest: true,
+        depthWrite: false,
+    })
     geometry = new LineSegmentsGeometry().setPositions(points)
-    mesh = new InstancedNodeSegments2(this.geometry, this.material, 128)
+    mesh = new InstancedLineSegments2(this.geometry, this.material, 128)
     size = 128
     constructor(scene: THREE.Scene) {
         this.mesh.count = 1
         this.mesh.position.y = 4
         this.mesh.frustumCulled = false
         this.mesh.renderOrder = orders.sectionLine
-        // this.brush.matrixAutoUpdate = false
-
-        // this.mesh.userData.attachments = this.attachments
 
         scene.add(this.mesh)
         console.log("NEWSectionCutter")
         const a = this.getMatrix(0)
+        this.addInstance(new THREE.Vector3(0, 0, 3))
+        this.addInstance(new THREE.Vector3(0, 0, 6))
+        this.addInstance(new THREE.Vector3(0, 0, 9))
+        const b = this.getMatrix(1)
         console.log(a)
+        console.log(b)
     }
     resize(minSize = this.size * 2) {
         this.size = minSize
     }
+
     getMatrix(index: number) {
         const matrix = new THREE.Matrix4()
-        /*
-		this.mesh.getMatrixAt(index, matrix)
-		*/
+        this.mesh.getMatrixAt(index, matrix)
         return matrix
     }
 
     addInstance(origin: THREE.Vector3) {
         const index = this.mesh.count
-        /*
-		this.mesh.setMatrixAt(
-			index,
-			new THREE.Matrix4().makeTranslation(origin.x, origin.y, origin.z)
-		)
-		this.mesh.count += 1
-		this.mesh.instanceMatrix.needsUpdate = true
-		*/
+        this.mesh.setMatrixAt(
+            index,
+            new THREE.Matrix4().makeTranslation(origin.x, origin.y, origin.z)
+        )
+        this.mesh.count += 1
+        this.mesh.instanceMatrix.needsUpdate = true
     }
 
     markUpdate() {}

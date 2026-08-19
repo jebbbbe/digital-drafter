@@ -170,4 +170,4 @@ if (activeMaterialLib === "gl_Line") {
     matlib.line.uniformsGroups = []
 }
 
-export { matlib, activeMaterialLib, orders }
+export { matlib, orders }
