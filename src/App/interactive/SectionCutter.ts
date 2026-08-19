@@ -89,16 +89,6 @@ export class SectionCutter {
         geometry.computeBoundingBox()
     }
 
-    getSegmentAsArray(index: number, array: number[] = [0, 0, 0, 0, 0, 0]) {
-        const offset = index * this.itemSize
-        array[0] = this.array[offset]
-        array[1] = this.array[offset + 1]
-        array[2] = this.array[offset + 2]
-        array[3] = this.array[offset + 3]
-        array[4] = this.array[offset + 4]
-        array[5] = this.array[offset + 5]
-        return array
-    }
     getSegmentAsVector(
         index: number,
         a: THREE.Vector3 = new THREE.Vector3(),
@@ -131,32 +121,10 @@ export class SectionCutter {
         return index
     }
 
-    addSegmentArray(a: number[], node: TransformNode): number {
-        const index = this.count
-        const offset = index * this.itemSize
-        if (offset + this.stride > this.array.length) {
-            this.resize(offset + this.stride)
-        }
-
-        this.array.set(a, offset)
-
-        this.count += 2
-        this.markUpdate()
-
-        this.nodeMap.set(index, node)
-        return index
-    }
-
     patchSegmentVector(a: THREE.Vector3, b: THREE.Vector3, index: number) {
         const offset = index * this.itemSize
         a.toArray(this.array, offset)
         b.toArray(this.array, offset + this.itemSize)
-        this.markUpdate()
-    }
-
-    patchSegmentArray(a: number[], index: number) {
-        const offset = index * this.itemSize
-        this.array.set(a, offset)
         this.markUpdate()
     }
 
@@ -166,10 +134,6 @@ export class SectionCutter {
         a.toArray(move, 0)
         b.toArray(move, this.itemSize)
 
-        this.moveSegmentArray(move, index)
-    }
-
-    moveSegmentArray(move: number[], index: number) {
         // add pts to existing array
         const offset = index * this.itemSize
 
