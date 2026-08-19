@@ -2,7 +2,7 @@ import * as THREE from "three"
 import type { GizmoSettings, PanelSettings } from "@types"
 import { InteractiveObject } from "./InteractiveObject"
 import { matlib, orders } from "../draft/materialManager"
-import { InstancedLineSegments2 } from "../objects/meshes"
+import { InstancedNodeSegments2 } from "../objects/meshes"
 import { LineSegmentsGeometry } from "three/addons/lines/LineSegmentsGeometry.js"
 import { scene } from "../AppContext"
 
@@ -11,7 +11,7 @@ const points = [-1, 0, -1, -1, 0, 0, -1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, -1]
 export class NEWSectionCutter {
     material = matlib.sectionLine
     geometry = new LineSegmentsGeometry().setPositions(points)
-    mesh = new InstancedLineSegments2(this.geometry, this.material, 128)
+    mesh = new InstancedNodeSegments2(this.geometry, this.material, 128)
     size = 128
     constructor(scene: THREE.Scene) {
         this.mesh.count = 1

@@ -1,2 +1,2 @@
 export { InstancedLineSegments } from "./InstancedLineSegments"
-export { InstancedLineSegments2 } from "./InstancedLineSegments2"
+export { InstancedNodeSegments2 } from "./InstancedNodeSegments2"

@@ -10,8 +10,8 @@ type InstancedInterleavedBufferAttribute =
       })
     | undefined
 
-class InstancedLineSegments2 extends LineSegments2 {
-    isInstancedLineSegments2: boolean
+class InstancedNodeSegments2 extends LineSegments2 {
+    isInstancedNodeSegments2: boolean
     _instanceCapacity: number
     _count: number
     declare geometry: LineSegmentsGeometry
@@ -23,9 +23,9 @@ class InstancedLineSegments2 extends LineSegments2 {
     ) {
         //@ts-ignore
         super(geometry, material as LineMaterial)
-        ;(this as any).type = "InstancedLineSegments2"
+        ;(this as any).type = "InstancedNodeSegments2"
 
-        this.isInstancedLineSegments2 = true
+        this.isInstancedNodeSegments2 = true
 
         this._instanceCapacity = Math.max(1, count)
         this._count = 0
@@ -169,4 +169,4 @@ class InstancedLineSegments2 extends LineSegments2 {
     }
 }
 
-export { InstancedLineSegments2 }
+export { InstancedNodeSegments2 }

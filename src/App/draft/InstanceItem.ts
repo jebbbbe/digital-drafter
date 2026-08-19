@@ -3,7 +3,7 @@ import { LineSegmentsGeometry } from "three/addons/lines/LineSegmentsGeometry.js
 import { InstanceCount } from "../constants"
 import {
     InstancedLineSegments,
-    InstancedLineSegments2,
+    InstancedNodeSegments2,
 } from "../objects/meshes"
 import {
     InstancedNodeMaterial,
@@ -35,17 +35,17 @@ export class InstanceItem {
         mesh: THREE.InstancedMesh
         line:
             | InstancedLineSegments<THREE.LineBasicMaterial>
-            | InstancedLineSegments2
+            | InstancedNodeSegments2
         outline:
             | InstancedLineSegments<THREE.LineBasicMaterial>
-            | InstancedLineSegments2
+            | InstancedNodeSegments2
         dash:
             | InstancedLineSegments<THREE.LineDashedMaterial>
-            | InstancedLineSegments2
+            | InstancedNodeSegments2
         proj:
             | InstancedLineSegments<ProjectionLineMaterial>
-            | InstancedLineSegments2
-        fold: InstancedLineSegments | InstancedLineSegments2
+            | InstancedNodeSegments2
+        fold: InstancedLineSegments | InstancedNodeSegments2
     }
     count: number
     maxCount: number
@@ -72,22 +72,22 @@ export class InstanceItem {
 
         let line:
             | InstancedLineSegments<THREE.LineBasicMaterial>
-            | InstancedLineSegments2
+            | InstancedNodeSegments2
         let outline:
             | InstancedLineSegments<THREE.LineBasicMaterial>
-            | InstancedLineSegments2
+            | InstancedNodeSegments2
         let dash:
             | InstancedLineSegments<THREE.LineDashedMaterial>
-            | InstancedLineSegments2
+            | InstancedNodeSegments2
         let proj:
             | InstancedLineSegments<ProjectionLineMaterial>
-            | InstancedLineSegments2
-        let fold: InstancedLineSegments | InstancedLineSegments2
+            | InstancedNodeSegments2
+        let fold: InstancedLineSegments | InstancedNodeSegments2
 
         const lineGeometry = new LineSegmentsGeometry().fromEdgesGeometry(
             geometries.lineGeometry
         )
-        line = new InstancedLineSegments2(
+        line = new InstancedNodeSegments2(
             lineGeometry,
             materials.line as InstancedNodeMaterial,
             capacity
@@ -100,13 +100,13 @@ export class InstanceItem {
             material.instanceMatrixCount = Math.max(1, line.count)
             // render feature to look over uniforms changed in this fn
             material.uniformsNeedUpdate = true
-            InstancedLineSegments2.prototype.onBeforeRender.call(line, renderer)
+            InstancedNodeSegments2.prototype.onBeforeRender.call(line, renderer)
         }
 
         const outLineGeometry = new LineSegmentsGeometry().fromEdgesGeometry(
             geometries.lineGeometry
         )
-        outline = new InstancedLineSegments2(
+        outline = new InstancedNodeSegments2(
             outLineGeometry,
             materials.outline as InstancedNodeMaterial,
             capacity
@@ -117,7 +117,7 @@ export class InstanceItem {
             material.treeBlockOffset = id
             material.instanceMatrixCount = Math.max(1, outline.count)
             material.uniformsNeedUpdate = true
-            InstancedLineSegments2.prototype.onBeforeRender.call(
+            InstancedNodeSegments2.prototype.onBeforeRender.call(
                 outline,
                 renderer
             )
@@ -126,7 +126,7 @@ export class InstanceItem {
         const dashGeometry = new LineSegmentsGeometry().fromEdgesGeometry(
             geometries.lineGeometry
         )
-        dash = new InstancedLineSegments2(
+        dash = new InstancedNodeSegments2(
             dashGeometry,
             materials.dash as InstancedNodeMaterial,
             capacity
@@ -136,14 +136,14 @@ export class InstanceItem {
             material.treeBlockOffset = id
             material.instanceMatrixCount = Math.max(1, dash.count)
             material.uniformsNeedUpdate = true
-            InstancedLineSegments2.prototype.onBeforeRender.call(dash, renderer)
+            InstancedNodeSegments2.prototype.onBeforeRender.call(dash, renderer)
         }
 
         const projGeometry = new LineSegmentsGeometry().setPositions(
             geometries.projGeometry.getAttribute("position")
                 .array as Float32Array
         )
-        proj = new InstancedLineSegments2(
+        proj = new InstancedNodeSegments2(
             projGeometry,
             materials.projection as ProjectionLineMaterial2,
             capacity
@@ -153,14 +153,14 @@ export class InstanceItem {
             material.treeBlockOffset = id
             material.instanceMatrixCount = Math.max(1, proj.count)
             material.uniformsNeedUpdate = true
-            InstancedLineSegments2.prototype.onBeforeRender.call(proj, renderer)
+            InstancedNodeSegments2.prototype.onBeforeRender.call(proj, renderer)
         }
 
         const foldGeometry = new LineSegmentsGeometry().setPositions(
             geometries.foldGeometry.getAttribute("position")
                 .array as Float32Array
         )
-        fold = new InstancedLineSegments2(
+        fold = new InstancedNodeSegments2(
             foldGeometry,
             materials.fold as FoldLineMaterial2,
             capacity
@@ -181,7 +181,7 @@ export class InstanceItem {
             material.boundingEdge = largestDimension
 
             material.uniformsNeedUpdate = true
-            InstancedLineSegments2.prototype.onBeforeRender.call(fold, renderer)
+            InstancedNodeSegments2.prototype.onBeforeRender.call(fold, renderer)
         }
 
         dash.computeLineDistances()
