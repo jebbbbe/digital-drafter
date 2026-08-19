@@ -51,7 +51,7 @@ export type CustomLineMaterialParameters = ShaderMaterialParameters & {
     instanceMatrixCount: { value: 1 },
 }
 
-ShaderLib["instanceLine"] = {
+ShaderLib["instanceNodeLine"] = {
     uniforms: UniformsUtils.merge([
         UniformsLib.common,
         UniformsLib.fog,
@@ -87,9 +87,9 @@ class InstancedNodeMaterial extends ShaderMaterial {
     constructor(parameters: CustomLineMaterialParameters = {}) {
         super({
             glslVersion: GLSL3,
-            uniforms: UniformsUtils.clone(ShaderLib["instanceLine"].uniforms),
-            vertexShader: ShaderLib["instanceLine"].vertexShader,
-            fragmentShader: ShaderLib["instanceLine"].fragmentShader,
+            uniforms: UniformsUtils.clone(ShaderLib["instanceNodeLine"].uniforms),
+            vertexShader: ShaderLib["instanceNodeLine"].vertexShader,
+            fragmentShader: ShaderLib["instanceNodeLine"].fragmentShader,
             clipping: true, // required for clipping support
         })
         ;(this as any).isLineMaterial = true
