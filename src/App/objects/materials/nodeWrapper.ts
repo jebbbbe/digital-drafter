@@ -6,7 +6,7 @@ import type {
     MaterialClass,
     MaterialExtension,
 } from "./wrapper"
-import { replaceShader, replaceShaderVariables } from "./treeShaderChunk"
+import { replaceShader, replaceShaderVariables } from "./glsl/chunk/treeShaderChunk"
 import { InstanceCount } from "../../constants"
 
 type GlobalNodeMaterial = {

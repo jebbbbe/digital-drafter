@@ -1,11 +1,10 @@
 import * as THREE from "three"
 
-import uniformTree from "./glsl/uniformTree.glsl?raw"
-import treeFuncitons from "./glsl/treeFuncitons.glsl?raw"
-import treeMain from "./glsl/treeMain.glsl?raw"
-
-import uniformFold from "./glsl/uniformFoldLine.glsl?raw"
-import instancedLine from "./glsl/instancedLine.glsl?raw"
+import uniformTree from "./glsl/chunk/uniformTree.glsl?raw"
+import treeFuncitons from "./glsl/chunk/treeFuncitons.glsl?raw"
+import treeMain from "./glsl/chunk/treeMain.glsl?raw"
+import uniformFold from "./glsl/chunk/uniformFoldLine.glsl?raw"
+import instancedLine from "./glsl/chunk/instancedLine.glsl?raw"
 
 const replaceGLSL = {
     // oldString:newString
