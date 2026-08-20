@@ -330,6 +330,19 @@ class InstancedLineSegments2 extends LineSegments2 {
 
         return this
     }
+
+    dispose() {
+        if (this.instanceMatrixTexture !== null) {
+            this.instanceMatrixTexture.dispose()
+            //@ts-ignore
+            this.instanceMatrixTexture = null
+        }
+
+        if (this.instanceColorTexture !== null) {
+            this.instanceColorTexture.dispose()
+            this.instanceColorTexture = null
+        }
+    }
 }
 
 export { InstancedLineSegments2 }
