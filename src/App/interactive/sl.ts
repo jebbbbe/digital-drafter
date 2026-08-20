@@ -11,13 +11,17 @@ import { InstancedLineSegments2 } from "../objects/meshes"
 
 // const points = [-1, 0, 0, 1, 0, 0]
 const points = [-1, 0, -1, -1, 0, 0, -1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, -1]
+// const colors = [1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0]
+
 export class NEWSectionCutter {
+    size = 128
     // material = matlib.sectionLine
     material = new InstancedLineMaterial({
-        color: "#000000",
+        // color: "#000000",
+        color: 0xffffff,
         opacity: 1.0,
         transparent: false,
-        linewidth: 1.15,
+        linewidth: 1.15 * Math.random() * 5 + 0.35,
 
         dashed: false,
         dashSize: 0.05,
@@ -25,10 +29,11 @@ export class NEWSectionCutter {
 
         depthTest: true,
         depthWrite: false,
+
+        // vertexColors: true,
     })
-    geometry = new LineSegmentsGeometry().setPositions(points)
-    mesh = new InstancedLineSegments2(this.geometry, this.material, 128)
-    size = 128
+    geometry = new LineSegmentsGeometry().setPositions(points) //.setColors(colors)
+    mesh = new InstancedLineSegments2(this.geometry, this.material, this.size)
     constructor(scene: THREE.Scene) {
         this.mesh.count = 1
         this.mesh.position.y = 4
@@ -44,6 +49,11 @@ export class NEWSectionCutter {
         const b = this.getMatrix(1)
         console.log(a)
         console.log(b)
+
+        this.mesh.setColorAt(0, new THREE.Color(0x000000))
+        this.mesh.setColorAt(1, new THREE.Color(0xeeeeee))
+        this.mesh.setColorAt(2, new THREE.Color(0x00ff00))
+        this.mesh.setColorAt(3, new THREE.Color(0xffffff))
     }
     resize(minSize = this.size * 2) {
         this.size = minSize

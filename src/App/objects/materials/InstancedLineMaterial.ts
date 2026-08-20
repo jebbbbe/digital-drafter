@@ -29,6 +29,7 @@ export type MatrixTextureLineMaterialParameters = ShaderMaterialParameters & {
     alphaToCoverage?: boolean
     color?: ColorRepresentation
     instanceMatrices?: DataTexture | null
+    instanceColors?: DataTexture | null
     instanceMatrixCount?: number
 }
 ;(UniformsLib as any).instanceLine = {
@@ -40,6 +41,7 @@ export type MatrixTextureLineMaterialParameters = ShaderMaterialParameters & {
     dashSize: { value: 1 },
     gapSize: { value: 1 }, // todo FIX - maybe change to totalSize
     instanceMatrices: { value: null },
+    instanceColors: { value: null },
     instanceMatrixCount: { value: 1 },
 }
 
@@ -97,6 +99,26 @@ class InstancedLineMaterial extends ShaderMaterial {
     set instanceMatrices(value: DataTexture | null) {
         this.uniforms.instanceMatrices.value = value
         this.instanced = value !== null
+    }
+
+    get instanceColors(): DataTexture | null {
+        return this.uniforms.instanceColors.value
+    }
+
+    set instanceColors(value: DataTexture | null) {
+        const hasInstanceColor = "USE_INSTANCE_COLOR" in this.defines
+
+        this.uniforms.instanceColors.value = value
+
+        if ((value !== null) !== hasInstanceColor) {
+            this.needsUpdate = true
+        }
+
+        if (value !== null) {
+            this.defines.USE_INSTANCE_COLOR = ""
+        } else {
+            delete this.defines.USE_INSTANCE_COLOR
+        }
     }
 
     get instanceMatrixCount(): number {

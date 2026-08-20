@@ -37,6 +37,23 @@ varying float vLineDistance;
 
 #endif
 
+#ifdef USE_INSTANCE_COLOR
+
+	uniform highp sampler2D instanceColors;
+	flat in int virtualInstanceIndex;
+
+	vec3 readInstanceColor( const in int colorIndex ) {
+
+		ivec2 size = textureSize( instanceColors, 0 );
+		int x = colorIndex % size.x;
+		int y = colorIndex / size.x;
+
+		return texelFetch( instanceColors, ivec2( x, y ), 0 ).rgb;
+
+	}
+
+#endif
+
 #include <common>
 #include <color_pars_fragment>
 #include <fog_pars_fragment>
@@ -153,6 +170,12 @@ void main() {
 
 	#include <logdepthbuf_fragment>
 	#include <color_fragment>
+
+	#ifdef USE_INSTANCE_COLOR
+
+		diffuseColor.rgb *= readInstanceColor( virtualInstanceIndex );
+
+	#endif
 
 	gl_FragColor = vec4( diffuseColor.rgb, alpha );
 

@@ -43,6 +43,16 @@ attribute vec3 instanceColorEnd;
 
 #endif
 
+#ifdef USE_INSTANCE_COLOR
+
+	flat out int virtualInstanceIndex;
+
+#else
+
+	int virtualInstanceIndex;
+
+#endif
+
 #ifdef WORLD_UNITS
 
 	varying vec4 worldPos;
@@ -106,8 +116,9 @@ void main() {
 
 	#ifdef InstancedLine
 
-		int matrixIndex = gl_InstanceID % instanceMatrixCount;
-		mat4 lineMatrix = readInstanceMatrix( matrixIndex );
+		virtualInstanceIndex = gl_InstanceID % instanceMatrixCount;
+
+		mat4 lineMatrix = readInstanceMatrix( virtualInstanceIndex );
 		lineStart = ( lineMatrix * vec4( lineStart, 1.0 ) ).xyz;
 		lineEnd = ( lineMatrix * vec4( lineEnd, 1.0 ) ).xyz;
 
