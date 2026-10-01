@@ -23,7 +23,7 @@ export class ThreeApp {
     camera!: THREE.OrthographicCamera
     orbitControls!: OrbitControls
     layout!: AspectLayout
-    statsPanel!: StatsPanel
+    statsPanel?: StatsPanel
     drafter!: Drafter
     sectionCutter!: SectionCutter
     raycastObjects!: Raycastable
@@ -47,7 +47,9 @@ export class ThreeApp {
         renderer.setPixelRatio(globalThis.devicePixelRatio)
         container.appendChild(renderer.domElement)
 
-        const statsPanel = new StatsPanel(document.body, import.meta.env.DEV)
+        const statsPanel = import.meta.env.DEV
+            ? new StatsPanel(document.body, true)
+            : undefined
 
         // scene
         const scene = new THREE.Scene()
@@ -144,7 +146,7 @@ export class ThreeApp {
         this.layout.removeResizeListener()
         this.eventManager.dispose()
         this.controllers.dispose()
-        this.statsPanel.dispose()
+        this.statsPanel?.dispose()
         this.renderer.dispose()
         this.renderer.domElement.remove()
     }
