@@ -11,7 +11,7 @@ export function setUpDrafter() {
     // add default starting scene.
     // can replace later with  session specific loading logic.
     // we do not have a ssave/load scheme
-    let t = new NEWSectionCutter(scene)
+    // let t = new NEWSectionCutter(scene)
     const geometryItems = Object.values(geometryLibrary) as [
         THREE.BufferGeometry,
         ...THREE.BufferGeometry[],
