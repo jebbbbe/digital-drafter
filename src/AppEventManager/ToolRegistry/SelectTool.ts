@@ -99,7 +99,7 @@ export class SelectTool extends Tool {
         if (added) {
             controllers.attachTransformProxy()
         }
-
+        // console.log(selectedObject)
         this.linkPanel()
         this.linkGizmo()
 

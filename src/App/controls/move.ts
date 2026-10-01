@@ -31,8 +31,9 @@ export function moveNodeToPosition(
     nextPosition: THREE.Vector3,
     recusrive = true
 ) {
+    _delta.subVectors(nextPosition, node.position)
     node.position.copy(nextPosition)
-    if (node.sectionParent) updateSectionParentAttachments(node)
+    if (node.sectionParent) updateSectionParentAttachments(node, _delta)
     if (recusrive) drafter.updatePatchedNode(node)
 }
 
