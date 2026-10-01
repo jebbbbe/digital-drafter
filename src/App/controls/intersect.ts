@@ -8,6 +8,7 @@ import { evaluateCSG, boolean } from "../utils/csg"
 import { deSelectAll } from "./interaction"
 
 const _brushOffset = new THREE.Matrix4()
+const _offset = new THREE.Vector3(0, 0, -2)
 
 function createNodeBrush(node: TransformNode, yOffset = 0): Brush {
     const sourceBrush = drafter.getInstance(node.location.id).brush
@@ -21,7 +22,11 @@ function createNodeBrush(node: TransformNode, yOffset = 0): Brush {
     return brush
 }
 
-function intersectFromNodes(nodes: TransformNode[], operation = boolean.union) {
+export function intersectFromNodes(
+    nodes: TransformNode[],
+    operation: CSGOperation = boolean.union,
+    offset: THREE.Vector3 = _offset
+) {
     const [nodeA, nodeB, nodeC, nodeD] = nodes
     const d1 = nodeA.position.distanceTo(nodeC.position)
     const d2 = nodeB.position.distanceTo(nodeD.position)
@@ -31,7 +36,7 @@ function intersectFromNodes(nodes: TransformNode[], operation = boolean.union) {
     const id = drafter.instanceItems.nextIndex()
     drafter.newInstance(brushResult.geometry)
     const nodeE = drafter.addLeafNode({
-        position: nodeC.position.clone().add(_offset),
+        position: nodeC.position.clone().add(offset),
         location: { id, index: -1 },
         parent: nodeC,
     })
@@ -78,8 +83,6 @@ function intersectTwoNodes(
         return
     }
 }
-
-const _offset = new THREE.Vector3(0, 0, -2)
 
 async function startOperationFromSelection(operation = boolean.union) {
     if (eventManager.asyncToolActive) return

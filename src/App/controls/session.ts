@@ -1,11 +1,15 @@
 import * as THREE from "three"
 import { drafter, controllers, scene } from "../AppContext"
 import { createNewCutNode } from "./section"
+import { intersectFromNodes } from "./intersect"
+import { boolean } from "../utils/csg"
 import { geometryLibrary } from "../objects/geometries/library"
 import * as rand from "../utils/random"
 import type { NodeLocation, TransformNode } from "@types"
 import type { Drafter } from "../draft/Drafter"
 import { NEWSectionCutter } from "../interactive/sl"
+
+let prod = !import.meta.env.DEV
 
 export function setUpDrafter() {
     // add default starting scene.
@@ -16,7 +20,14 @@ export function setUpDrafter() {
         THREE.BufferGeometry,
         ...THREE.BufferGeometry[],
     ]
+    if (prod) {
+        // make default mesh the rectangle in prod
+        console.log({ geometryItems })
+        geometryItems.splice(3, geometryItems.length)
+        geometryItems.shift()
+    }
     geometryItems.pop()
+
     for (let i = 0; i < 3; i++) {
         drafter.newInstance(rand.randomItem(geometryItems))
     }
@@ -46,7 +57,7 @@ export function setUpDrafter() {
 				{ node:{position: new THREE.Vector3(2, 0, -2),  }, parent:{ id:0, index: 2 }},
 				{ node:{position: new THREE.Vector3(-2, 0, -2), }, parent:{ id:0, index: 0 }},
 				{ node:{position: new THREE.Vector3(-2, 0, 2),  }, parent:{ id:0, index: 0 }},
-				{ node:{position: new THREE.Vector3(4, 0, 0),  }, parent:{ id:0, index: 2 }},
+				// { node:{position: new THREE.Vector3(4, 0, 0),  }, parent:{ id:0, index: 2 }},
 				{ node:{position: new THREE.Vector3(-4, 0, 0), }, parent:{ id:0, index: 0 }},
 				{ node:{position: new THREE.Vector3(-4, 0, 2), }, parent:{ id:0, index: 5 }},
 				{ node:{position: new THREE.Vector3(-4, 0, -2), }, parent:{ id:0, index: 4 }},
@@ -118,6 +129,10 @@ export function setUpDrafter() {
         },
     ]
 
+    if (prod) {
+        initalTrees.splice(1, initalTrees.length)
+    }
+
     // add sample nodes
     addTrees(drafter, initalTrees)
 
@@ -125,12 +140,50 @@ export function setUpDrafter() {
     let nodeToCut
     nodeToCut = drafter.findNode({ id: 0, index: 4 })
     if (nodeToCut) createNewCutNode(nodeToCut)
-    nodeToCut = drafter.findNode({ id: 0, index: 6 })
-    if (nodeToCut) createNewCutNode(nodeToCut)
+
+    // nodeToCut = drafter.findNode({ id: 0, index: 6 })
+    nodeToCut = drafter.findNode({ id: 0, index: 2 })
+    if (nodeToCut) {
+        const sectionChild = createNewCutNode(nodeToCut)
+        const segment = sectionChild?.attachments.segment
+
+        if (sectionChild && segment) {
+            const delta = new THREE.Vector3(0.25, 0, 0)
+            segment.sectionCutter.moveSegmentVector(delta, delta, segment.index)
+            drafter.updatePatchedNode(sectionChild)
+        }
+    }
+
+    /*
     nodeToCut = drafter.findNode({ id: 1, index: 4 })
     if (nodeToCut) createNewCutNode(nodeToCut)
+
     nodeToCut = drafter.findNode({ id: 2, index: 5 })
     if (nodeToCut) createNewCutNode(nodeToCut)
+	*/
+
+    // Boolean Tests
+    const nodeA = drafter.findNode({ id: 0, index: 3 })
+    const nodeB = drafter.findNode({ id: 0, index: 9 })
+    if (nodeA && nodeB) {
+        const offset = new THREE.Vector3(0, 0, -2)
+        const nodeC = drafter.addLeafNode(
+            { position: nodeA.position.clone().add(offset) },
+            nodeA
+        )
+        const nodeD = drafter.addLeafNode(
+            { position: nodeB.position.clone().add(offset) },
+            nodeB
+        )
+
+        if (nodeC && nodeD) {
+            intersectFromNodes(
+                [nodeA, nodeB, nodeC, nodeD],
+                boolean.difference,
+                new THREE.Vector3(-2, 0, 0)
+            )
+        }
+    }
 }
 
 function addTrees(drafter: Drafter, trees: any) {

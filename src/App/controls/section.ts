@@ -230,6 +230,7 @@ export function createNewCutNode(sectionParent: TransformNode) {
 
     // mark parent node as the source of a section cut
     sectionParent.sectionParent = true
+    return sectionChild
 }
 
 export function updateCutNode(
