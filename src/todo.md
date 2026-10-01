@@ -23,28 +23,28 @@
 
 - [ ] features
     - [x] move readme to src
-	- [ ] copy rhinos move + tab constrain. need display geom...
-    - [ ] project name, desciption and domain
-    - [ ] project writeup
-    - [ ] starting scenes/ load scene option
-    - [ ] button icons
-    - [ ] circular arc
-    - [ ] model import
-    - [ ] session data
-    - [ ] rotate & select without cancel
-    - [ ] kbm
-        - [ ] control a , select all
-        - [ ] control c + v, copy paste selection
-        - [ ] control z + y, redo, undo
+    - [ ] copy rhinos move + tab constrain. need display geom...
+        - [ ] project name, desciption and domain
+        - [ ] project writeup
+        - [ ] starting scenes/ load scene option
+        - [ ] button icons
+        - [ ] circular arc
+        - [ ] model import
+        - [ ] session data
+        - [ ] rotate & select without cancel
+        - [ ] kbm
+            - [ ] control a , select all
+            - [ ] control c + v, copy paste selection
+            - [ ] control z + y, redo, undo
 - [ ] materials
     - [x] remove gl_lines, why would we use them?
-	- [ ] IL -> NodeIL
-		we need the generic isntanced line classes for seciton line. .. i removed them
-    - [ ] custom dashes in frag
-    - [ ] fix issues written in MaterialManagers
-    - [ ] materail aliasing / transparency for super thin lw
-    - [ ] line thickness for printing, global v screen
-    - [ ] tile renderer for export?
+    - [ ] IL -> NodeIL
+          we need the generic isntanced line classes for seciton line. .. i removed them
+        - [ ] custom dashes in frag
+        - [ ] fix issues written in MaterialManagers
+        - [ ] materail aliasing / transparency for super thin lw
+        - [ ] line thickness for printing, global v screen
+        - [ ] tile renderer for export?
 - [ ] refactor
     - [ ] main as class
     - [ ] drafter
@@ -62,6 +62,12 @@
     - [ ] drafter error pass
     - [ ] tie interaciton events in with renderer timing.
     - [ ] update intersect attachment in recusive?
+
+### v0.4.1
+
+- [x] simpllfy default scene in prod
+- [x] remove stat panel in prod
+- [x] fix seciton line regression
 
 ### v0.4.0
 
