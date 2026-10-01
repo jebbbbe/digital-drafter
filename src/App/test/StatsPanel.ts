@@ -23,6 +23,8 @@ export class StatsPanel {
         this.stats.dom.style.right = "0"
         this.stats.dom.style.top = "0"
         this.stats.dom.style.bottom = "auto"
+
+		this.stats.showPanel(1)
     }
     dispose() {
         this.stats.dom.remove()
