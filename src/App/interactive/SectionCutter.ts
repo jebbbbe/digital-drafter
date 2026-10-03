@@ -3,10 +3,19 @@ import { Brush } from "three-bvh-csg"
 import { LineSegments2 } from "three/addons/lines/LineSegments2.js"
 import { LineSegmentsGeometry } from "three/addons/lines/LineSegmentsGeometry.js"
 import { matlib, orders } from "../draft/materialManager"
-import type { Raycastable, SegmentAttachment, TransformNode } from "@types"
+import type {
+    GizmoSettings,
+    PanelSettings,
+    Raycastable,
+    SegmentAttachment,
+    TransformNode,
+} from "@types"
+import { InteractiveObject } from "./InteractiveObject"
+import { controllers, drafter } from "../AppContext"
+import { updatePanel } from "../../components/Leva/LevaStore"
 
 const material = matlib.sectionLine
-export class SectionCutter {
+export class SectionCutter extends InteractiveObject {
     mesh: LineSegments2
     itemSize = 3
     stride = this.itemSize * 2 // 2 3d points
@@ -24,6 +33,7 @@ export class SectionCutter {
         raycastObjects: Raycastable,
         debug: boolean = false
     ) {
+        super()
         const geometry = new LineSegmentsGeometry()
         geometry.setPositions(this.array)
         geometry.instanceCount = 0
@@ -42,6 +52,87 @@ export class SectionCutter {
 
         if (debug) this.setUpDebug(scene)
     }
+
+    override move(_startHit: THREE.Vector3) {
+        return undefined
+    }
+
+    override getCenter() {
+        // Use only active endpoints; the buffer also contains unused capacity.
+        const center = new THREE.Vector3()
+        const point = new THREE.Vector3()
+        for (let index = 0; index < this.count; index++) {
+            center.add(point.fromArray(this.array, index * this.itemSize))
+        }
+        if (this.count > 0) center.divideScalar(this.count)
+        return center
+    }
+
+    override gizmoSetup(settings: Partial<GizmoSettings>) {
+        controllers.setGizmoSettings({
+            anchor: new THREE.Vector3(),
+            center: this.getCenter(),
+            quaternion: new THREE.Quaternion(),
+            preset: "translate",
+            ...settings,
+        })
+    }
+
+    override panelSetup(settings: Partial<PanelSettings>) {
+        updatePanel({
+            position: this.getCenter(),
+            rotation: { x: 0, y: 0 },
+            scale: 1,
+            usePosition: true,
+            useRotation: false,
+            useScale: false,
+            useButtons: false,
+            ...settings,
+        })
+    }
+
+    override gizmoListener(position = controllers.getGizmoPosition()) {
+        if (this.count === 0) return false
+
+        const delta = new THREE.Vector3().subVectors(position, this.getCenter())
+        if (delta.lengthSq() === 0) return false
+
+        for (let index = 0; index < this.count; index++) {
+            const offset = index * this.itemSize
+            this.array[offset] += delta.x
+            this.array[offset + 1] += delta.y
+            this.array[offset + 2] += delta.z
+        }
+        this.markUpdate()
+
+        for (const node of new Set(this.nodeMap.values())) {
+            drafter.updatePatchedNode(node)
+        }
+        controllers.updateGizmoPosition(this.getCenter())
+        return true
+    }
+
+    override delete() {
+        // Attachment deletion also removes the associated cut nodes. Snapshot
+        // first because deleting a segment compacts the attachment array.
+        for (const attachment of [...this.attachments]) {
+            attachment?.delete()
+        }
+        while (this.count > 0) {
+            this.deleteSegment(this.count - 2, false)
+        }
+        this.attachments.length = 0
+        this.selected = false
+        this.markUpdate()
+    }
+
+    override setSelected(isSelected: boolean) {
+        this.selected = isSelected
+        for (const attachment of this.attachments) {
+            attachment?.setSelected(isSelected)
+        }
+    }
+
     setUpDebug(scene: THREE.Scene) {
         const boxDebug = new THREE.Mesh(
             this.box,

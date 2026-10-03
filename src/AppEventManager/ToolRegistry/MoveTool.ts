@@ -7,6 +7,8 @@ import type { AppEventManager } from "../AppEventManager"
 import { Tool, type NormalizedPointerEvent } from "./Tool"
 import { moveDeltaSelectedNodes } from "../../App/controls/interaction"
 import { constrainDirection } from "./constrain"
+import { SectionCutter } from "../../App/interactive"
+import { SectionCutterInstance } from "../../App/interactive/SectionCutterInstance"
 
 export class MoveNodeTool extends Tool {
     private node?: TransformNode
@@ -200,9 +202,27 @@ export class MoveSelectionTool extends Tool {
         this.delta.subVectors(hit, this.prevHit)
         if (this.delta.lengthSq() === 0) return
 
+        const cutters = this.ctx.selection
+            .items()
+            .filter(
+                (item): item is SectionCutter | SectionCutterInstance =>
+                    item instanceof SectionCutter ||
+                    item instanceof SectionCutterInstance
+            )
+        // Capture targets before moving nodes, which can also move cut segments.
+        const cutterPositions = cutters.map((cutter) =>
+            cutter.getCenter().add(this.delta)
+        )
+
         moveDeltaSelectedNodes(this.delta)
+        cutters.forEach((cutter, index) => {
+            cutter.gizmoListener(cutterPositions[index])
+        })
         this.prevHit.copy(hit)
-        this.ctx.selection.averagePosition.add(this.delta)
+        this.ctx.selection.averagePosition.resetAverage()
+        for (const item of this.ctx.selection.items()) {
+            this.ctx.selection.averagePosition.addToAverage(item.getCenter())
+        }
 
         this.linkGizmo()
         this.linkPanel()

@@ -1,5 +1,6 @@
 import * as THREE from "three"
-import type { GizmoSettings, PanelSettings } from "@types"
+import type { GizmoSettings, PanelSettings, Raycastable } from "@types"
+import { SectionCutterInstance } from "./SectionCutterInstance"
 import { InteractiveObject } from "./InteractiveObject"
 import { matlib, orders } from "../draft/materialManager"
 import { InstancedNodeSegments2 } from "../objects/meshes"
@@ -14,6 +15,7 @@ const points = [-1, 0, -1, -1, 0, 0, -1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, -1]
 // const colors = [1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0]
 
 export class NEWSectionCutter {
+    instances: SectionCutterInstance[] = []
     size = 128
     // material = matlib.sectionLine
     material = new InstancedLineMaterial({
@@ -34,13 +36,16 @@ export class NEWSectionCutter {
     })
     geometry = new LineSegmentsGeometry().setPositions(points) //.setColors(colors)
     mesh = new InstancedLineSegments2(this.geometry, this.material, this.size)
-    constructor(scene: THREE.Scene) {
+    constructor(scene: THREE.Scene, raycastObjects: Raycastable) {
         this.mesh.count = 1
+        this.instances.push(new SectionCutterInstance(this, 0))
+        this.mesh.userData.sectionCutter = this
         this.mesh.position.y = 4
         this.mesh.frustumCulled = false
         this.mesh.renderOrder = orders.sectionLine
 
         scene.add(this.mesh)
+        raycastObjects.push(this.mesh)
         console.log("NEWSectionCutter")
         const a = this.getMatrix(0)
         this.addInstance(new THREE.Vector3(0, 0, 3))
@@ -67,12 +72,34 @@ export class NEWSectionCutter {
 
     addInstance(origin: THREE.Vector3) {
         const index = this.mesh.count
+        if (index >= this.mesh._instanceCapacity) return
         this.mesh.setMatrixAt(
             index,
             new THREE.Matrix4().makeTranslation(origin.x, origin.y, origin.z)
         )
         this.mesh.count += 1
+        this.instances.push(new SectionCutterInstance(this, index))
         this.mesh.instanceMatrix.needsUpdate = true
+    }
+
+    deleteInstance(index: number) {
+        const lastIndex = this.mesh.count - 1
+        if (index < 0 || index > lastIndex) return
+        const removed = this.instances[index]
+        if (index !== lastIndex) {
+            this.mesh.setMatrixAt(index, this.getMatrix(lastIndex))
+            if (this.mesh.instanceColor) {
+                this.mesh.setColorAt(
+                    index,
+                    this.mesh.getColorAt(lastIndex, new THREE.Color())
+                )
+            }
+            this.instances[index] = this.instances[lastIndex]
+            this.instances[index].index = index
+        }
+        this.instances.pop()
+        this.mesh.count--
+        removed.index = -1
     }
 
     markUpdate() {}

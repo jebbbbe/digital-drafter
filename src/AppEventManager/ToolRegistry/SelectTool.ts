@@ -2,7 +2,9 @@ import { Tool, type NormalizedPointerEvent } from "./Tool"
 import * as THREE from "three"
 import type { NodeLocation } from "@types"
 import { deSelectAll } from "../../App/controls/interaction"
-import { SegmentAttachment, TransformNode } from "../../App/interactive"
+import { NEWSectionCutter } from "../../App/interactive/sl"
+import { SectionCutterInstance } from "../../App/interactive/SectionCutterInstance"
+import { SectionCutter, TransformNode } from "../../App/interactive"
 
 const startHit = new THREE.Vector3()
 const _zeroVec3 = new THREE.Vector3()
@@ -57,16 +59,18 @@ export class SelectTool extends Tool {
         const hit = raycastHelper.castFromEventToPlane(e, startHit)
         if (!hit) return
 
-        let selectedObject: TransformNode | SegmentAttachment
-        if (first.object === sectionCutter.mesh) {
-            // hit section cutter
-            const { index, faceIndex, object }: any = first
-            const segmentIndex =
-                index ?? (faceIndex !== undefined ? faceIndex * 2 : undefined)
-            if (segmentIndex === undefined) return
-
-            selectedObject = object.userData.attachments[segmentIndex]
-            if (!selectedObject) return
+        let selectedObject:
+            | TransformNode
+            | SectionCutter
+            | SectionCutterInstance
+        const instanceCutter = first.object.userData.sectionCutter
+        if (instanceCutter instanceof NEWSectionCutter) {
+            if (first.instanceId === undefined) return
+            const instance = instanceCutter.instances[first.instanceId]
+            if (!instance) return
+            selectedObject = instance
+        } else if (first.object === sectionCutter.mesh) {
+            selectedObject = sectionCutter
         } else {
             // find node from raycast
             const id = first.object.userData.id
@@ -96,6 +100,11 @@ export class SelectTool extends Tool {
             added = selection.add(selectedObject)
         }
 
+        if (selection.size === 0) {
+            deSelectAll()
+            return
+        }
+
         if (added) {
             controllers.attachTransformProxy()
         }
@@ -105,13 +114,15 @@ export class SelectTool extends Tool {
 
         if (removed) {
             return
-        } else if (selection.size > 1) {
+        } else if (
+            selection.size > 1 ||
+            selectedObject instanceof SectionCutter ||
+            selectedObject instanceof SectionCutterInstance
+        ) {
             console.log(hit)
             this.eventManager.setTool("moveSelection", hit)
         } else if (selectedObject instanceof TransformNode) {
             this.eventManager.setTool("moveNode", selectedObject, hit)
-        } else if (selectedObject instanceof SegmentAttachment) {
-            this.eventManager.setTool("moveSegment", selectedObject, hit)
         }
     }
 

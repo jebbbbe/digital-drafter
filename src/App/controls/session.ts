@@ -1,5 +1,5 @@
 import * as THREE from "three"
-import { drafter, controllers, scene } from "../AppContext"
+import { drafter, controllers, scene, raycastHelper } from "../AppContext"
 import { createNewCutNode } from "./section"
 import { intersectFromNodes } from "./intersect"
 import { boolean } from "../utils/csg"
@@ -15,7 +15,7 @@ export function setUpDrafter() {
     // add default starting scene.
     // can replace later with  session specific loading logic.
     // we do not have a ssave/load scheme
-    let t = new NEWSectionCutter(scene)
+    let t = new NEWSectionCutter(scene, raycastHelper.targets)
     const geometryItems = Object.values(geometryLibrary) as [
         THREE.BufferGeometry,
         ...THREE.BufferGeometry[],

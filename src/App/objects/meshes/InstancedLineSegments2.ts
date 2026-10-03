@@ -19,6 +19,9 @@ import type { LineMaterial } from "three/addons/lines/LineMaterial.js"
 import type { InstancedLineMaterial } from "../materials"
 
 const _identity = new Matrix4()
+const _raycastLine = new LineSegments2()
+const _raycastMatrix = new Matrix4()
+const _raycastHits: THREE.Intersection[] = []
 
 function createDataTexture(
     array: TypedArray,
@@ -322,6 +325,29 @@ class InstancedLineSegments2 extends LineSegments2 {
                 )
             )
         }
+    }
+
+    override raycast(
+        raycaster: THREE.Raycaster,
+        intersects: THREE.Intersection[]
+    ) {
+        _raycastLine.geometry = this.geometry
+        _raycastLine.material = this.material
+        for (let index = 0; index < this.count; index++) {
+            this.getMatrixAt(index, _raycastMatrix)
+            _raycastLine.matrixWorld.multiplyMatrices(
+                this.matrixWorld,
+                _raycastMatrix
+            )
+            _raycastHits.length = 0
+            _raycastLine.raycast(raycaster, _raycastHits)
+            for (const hit of _raycastHits) {
+                hit.object = this
+                hit.instanceId = index
+                intersects.push(hit)
+            }
+        }
+        _raycastHits.length = 0
     }
 
     computeLineDistances() {
