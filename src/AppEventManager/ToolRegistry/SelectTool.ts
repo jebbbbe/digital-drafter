@@ -108,10 +108,8 @@ export class SelectTool extends Tool {
         } else if (selection.size > 1) {
             console.log(hit)
             this.eventManager.setTool("moveSelection", hit)
-        } else if (selectedObject instanceof TransformNode) {
-            this.eventManager.setTool("moveNode", selectedObject, hit)
-        } else if (selectedObject instanceof SegmentAttachment) {
-            this.eventManager.setTool("moveSegment", selectedObject, hit)
+        } else {
+            this.eventManager.setTool("move", selectedObject, hit)
         }
     }
 

@@ -1,224 +1,97 @@
 import * as THREE from "three"
-import type { AppContext } from "../../App/AppContext"
+import type { InteractiveObject } from "@types"
 import { deSelectAll } from "../../App/controls/interaction"
-import { moveNodeToPosition } from "../../App/controls/move"
-import type { SegmentAttachment, TransformNode } from "@types"
-import type { AppEventManager } from "../AppEventManager"
 import { Tool, type NormalizedPointerEvent } from "./Tool"
-import { moveDeltaSelectedNodes } from "../../App/controls/interaction"
 import { constrainDirection } from "./constrain"
 
-export class MoveNodeTool extends Tool {
-    private node?: TransformNode
-    private readonly prevHit = new THREE.Vector3()
-    private readonly candidatePosition = new THREE.Vector3()
-    private readonly delta = new THREE.Vector3()
-    private readonly lineDirection = new THREE.Vector3()
-    private parentPosition?: THREE.Vector3
-
-    override enter(node: TransformNode, startHit: THREE.Vector3): void {
-        this.node = node
-        this.prevHit.copy(startHit)
-        this.lineDirection.set(0, 0, 0)
-
-        const hasParentConstraint = this.node.parent !== this.node
-        this.parentPosition = hasParentConstraint
-            ? this.node.parent.position.clone()
-            : undefined
-        if (hasParentConstraint) {
-            this.lineDirection.subVectors(
-                this.node.position,
-                this.node.parent.position
-            )
-        }
-
-        this.ctx.controllers.pauseControls()
-    }
-
-    override onPointerMove(event: NormalizedPointerEvent) {
-        if (!this.node) return
-
-        const hit = this.ctx.raycastHelper.castFromEventToPlane(event.event)
-        if (!hit) return
-
-        this.delta.subVectors(hit, this.prevHit)
-        if (this.delta.lengthSq() === 0) return
-
-        this.candidatePosition.copy(this.node.position).add(this.delta)
-
-        const parentPosition = this.parentPosition
-        const constrainMove = event.event.shiftKey && parentPosition
-
-        if (constrainMove) {
-            constrainDirection(
-                this.candidatePosition,
-                this.lineDirection,
-                parentPosition
-            )
-        }
-
-        this.prevHit.copy(hit)
-
-        moveNodeToPosition(this.node, this.candidatePosition)
-
-        this.ctx.selection.averagePosition.copy(this.node.position)
-        this.linkGizmo()
-        this.linkPanel()
-    }
+class MoveBaseTool extends Tool {
+    protected readonly prevHit = new THREE.Vector3()
+    protected readonly delta = new THREE.Vector3()
 
     override onPointerUp() {
-        this.cancel()
         this.eventManager.setTool("select")
     }
 
     override onPointerCancel() {
-        this.cancel()
         this.eventManager.setTool("select")
     }
 
     override onKeyDown(event: KeyboardEvent): boolean {
         if (event.key !== "Escape") return false
-
         deSelectAll()
-        this.cancel()
         this.eventManager.setTool("select")
         return true
     }
 
-    override cancel(): void {
+    override cancel() {
         this.ctx.controllers.resumeControls()
-        this.node = undefined
-        this.parentPosition = undefined
     }
 }
 
-export class MoveSegmentTool extends Tool {
-    private line?: SegmentAttachment
-    private readonly prevHit = new THREE.Vector3()
-    private readonly delta = new THREE.Vector3()
-    private readonly segmentLineDirection = new THREE.Vector3()
-    private readonly segmentMidPoint = new THREE.Vector3()
-    private readonly sectionCutter: AppContext["sectionCutter"]
-    private sectionChild?: TransformNode
-    private sectionParent?: TransformNode
+export class MoveTool extends MoveBaseTool {
+    private object?: InteractiveObject
+    private readonly direction = new THREE.Vector3()
+    private readonly origin = new THREE.Vector3()
+    private readonly position = new THREE.Vector3()
 
-    constructor(ctx: AppContext) {
-        super(ctx)
-        this.sectionCutter = this.ctx.sectionCutter
-    }
-
-    override enter(line: SegmentAttachment, startHit: THREE.Vector3): void {
-        this.line = line
+    override enter(object: InteractiveObject, startHit: THREE.Vector3) {
+        this.object = object
         this.prevHit.copy(startHit)
-        this.sectionChild = undefined
-        this.sectionParent = undefined
-        this.segmentLineDirection.set(0, 0, 0)
-
-        this.sectionChild = this.sectionCutter.nodeMap.get(this.line.index)
-        if (this.sectionChild === undefined) {
-            return
-        }
-
-        this.sectionParent = this.sectionChild.parent
-        if (this.sectionParent === undefined) {
-            return
-        }
-
-        this.segmentLineDirection.subVectors(
-            this.sectionChild.position,
-            this.sectionParent.position
-        )
+        this.origin.copy(object.getCenter())
+        this.direction.copy(object.getConstraintDirection())
         this.ctx.controllers.pauseControls()
     }
 
     override onPointerMove(event: NormalizedPointerEvent) {
-        if (!this.line) return
-
+        const object = this.object
+        if (!object) return
         const hit = this.ctx.raycastHelper.castFromEventToPlane(event.event)
         if (!hit) return
-
         this.delta.subVectors(hit, this.prevHit)
         if (this.delta.lengthSq() === 0) return
-
-        constrainDirection(this.delta, this.segmentLineDirection)
-        if (this.delta.lengthSq() === 0) return
-
-        this.sectionCutter.moveSegmentVector(
-            this.delta,
-            this.delta,
-            this.line.index
-        )
-
-        const [a, b] = this.sectionCutter.getSegmentAsVector(this.line.index)
-        this.ctx.drafter.updatePatchedNode(this.sectionChild!)
-        this.segmentMidPoint.addVectors(a, b).multiplyScalar(0.5)
         this.prevHit.copy(hit)
 
-        this.ctx.selection.averagePosition.add(this.delta)
+        this.position.copy(object.getCenter()).add(this.delta)
+        if (
+            object.defaultConstraint === "direction" ||
+            (event.event.shiftKey && this.direction.lengthSq() > 0)
+        ) {
+            constrainDirection(this.position, this.direction, this.origin)
+        }
+        object.setPosition(this.position)
+        this.ctx.selection.averagePosition.copy(object.getCenter())
         this.linkGizmo()
         this.linkPanel()
     }
 
-    override onPointerUp() {
-        this.cancel()
-        this.eventManager.setTool("select")
-    }
-
-    override onPointerCancel() {
-        this.cancel()
-        this.eventManager.setTool("select")
-    }
-
-    override onKeyDown(event: KeyboardEvent): boolean {
-        if (event.key !== "Escape") return false
-
-        deSelectAll()
-
-        this.cancel()
-        this.eventManager.setTool("select")
-        return true
-    }
-
-    override cancel(): void {
-        this.ctx.controllers.resumeControls()
-        this.line = undefined
+    override cancel() {
+        super.cancel()
+        this.object = undefined
     }
 }
 
-export class MoveSelectionTool extends Tool {
-    private delta = new THREE.Vector3()
-    private prevHit = new THREE.Vector3()
-
+export class MoveSelectionTool extends MoveBaseTool {
     override enter(startHit: THREE.Vector3) {
+        if (this.ctx.selection.size <= 1) return
         this.prevHit.copy(startHit)
         this.ctx.controllers.pauseControls()
     }
 
-    override onPointerMove(e: NormalizedPointerEvent) {
-        const hit = this.ctx.raycastHelper.castFromEventToPlane(e.event)
+    override onPointerMove(event: NormalizedPointerEvent) {
+        const { selection, drafter } = this.ctx
+        if (selection.size <= 1) return
+        const hit = this.ctx.raycastHelper.castFromEventToPlane(event.event)
         if (!hit) return
         this.delta.subVectors(hit, this.prevHit)
         if (this.delta.lengthSq() === 0) return
 
-        moveDeltaSelectedNodes(this.delta)
+        for (const object of selection.set) {
+            object.moveFromSelection(this.delta)
+        }
+        drafter.updatePatchedNodeArray(selection.filter("TransformNode"))
         this.prevHit.copy(hit)
-        this.ctx.selection.averagePosition.add(this.delta)
-
+        selection.averagePosition.add(this.delta)
         this.linkGizmo()
         this.linkPanel()
-    }
-
-    override onPointerUp() {
-        this.cancel()
-        this.eventManager.setTool("select")
-    }
-
-    override onPointerCancel() {
-        this.cancel()
-        this.eventManager.setTool("select")
-    }
-
-    override cancel(): void {
-        this.ctx.controllers.resumeControls()
     }
 }

@@ -20,8 +20,7 @@ export async function linkThreeApp(
     eventManager.register("select", new Tools.SelectTool(ctx))
     eventManager.register("selectCount", new Tools.CountSelectTool(ctx))
     eventManager.register("moveAttached", new Tools.AttachedMoveTool(ctx))
-    eventManager.register("moveNode", new Tools.MoveNodeTool(ctx))
-    eventManager.register("moveSegment", new Tools.MoveSegmentTool(ctx))
+    eventManager.register("move", new Tools.MoveTool(ctx))
     eventManager.register("moveSelection", new Tools.MoveSelectionTool(ctx))
     eventManager.setContext(ctx, "select")
 

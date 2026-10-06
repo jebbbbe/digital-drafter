@@ -1,5 +1,6 @@
 import * as THREE from "three"
 import type { GizmoSettings, PanelSettings } from "@types"
+import type { Constraints } from "../../AppEventManager/ToolRegistry/constrain"
 
 export abstract class Attachment {
     selected = false
@@ -10,7 +11,19 @@ export abstract class Attachment {
 }
 
 export abstract class InteractiveObject extends Attachment {
-    abstract move(startHit: THREE.Vector3): unknown
+    defaultConstraint: Constraints = "none"
+
+    abstract move(delta: THREE.Vector3): void
+
+    abstract setPosition(position: THREE.Vector3): void
+
+    moveFromSelection(delta: THREE.Vector3): void {
+        this.move(delta)
+    }
+
+    getConstraintDirection(): THREE.Vector3 {
+        return new THREE.Vector3()
+    }
 
     abstract getCenter(): THREE.Vector3
 

@@ -2,6 +2,8 @@ import * as THREE from "three"
 
 const _zero = new THREE.Vector3()
 
+export type Constraints = "none" | "direction" | "distance"
+
 export function constrainDirection(
     target: THREE.Vector3,
     direction: THREE.Vector3,

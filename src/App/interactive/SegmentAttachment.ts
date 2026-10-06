@@ -8,6 +8,10 @@ import type {
     TransformNode,
 } from "@types"
 import { updatePanel } from "../../components/Leva/LevaStore"
+import {
+    constrainDirection,
+    type Constraints,
+} from "../../AppEventManager/ToolRegistry/constrain"
 
 const _segmentMidPoint = new THREE.Vector3()
 const _segmentDirection = new THREE.Vector3()
@@ -18,6 +22,7 @@ const _delta = new THREE.Vector3()
 const _segmentLineDirection = new THREE.Vector3()
 
 export class SegmentAttachment extends InteractiveObject {
+    override defaultConstraint: Constraints = "direction"
     sectionCutter: SectionCutter
     index: number
     constructor(sectionCutter: SectionCutter, index: number) {
@@ -28,8 +33,29 @@ export class SegmentAttachment extends InteractiveObject {
         this.sectionCutter.attachments[index] = this
     }
 
-    override move(_startHit: THREE.Vector3) {
-        return undefined
+    override move(delta: THREE.Vector3) {
+        const child = this.sectionCutter.nodeMap.get(this.index)
+        if (!child) return
+        this.sectionCutter.moveSegmentVector(delta, delta, this.index)
+        drafter.updatePatchedNode(child)
+    }
+
+    override setPosition(position: THREE.Vector3) {
+        this.move(_delta.subVectors(position, this.getCenter()))
+    }
+
+    override moveFromSelection(delta: THREE.Vector3) {
+        const child = this.sectionCutter.nodeMap.get(this.index)
+        // Selected section parents already translate their attached segments.
+        if (child?.parent.selected && child.parent.sectionParent) return
+        this.move(delta)
+    }
+
+    override getConstraintDirection() {
+        const child = this.sectionCutter.nodeMap.get(this.index)
+        return child
+            ? new THREE.Vector3().subVectors(child.position, child.parent.position)
+            : new THREE.Vector3()
     }
 
     override getCenter() {
@@ -83,34 +109,12 @@ export class SegmentAttachment extends InteractiveObject {
     }
 
     override gizmoListener(nextPosition = controllers.getGizmoPosition()) {
-        const index = this.index
-        const sectionChild = this.sectionCutter.nodeMap.get(index)
-        if (sectionChild === undefined) return false
-
-        const sectionParent = sectionChild.parent
-        if (sectionParent === undefined) return false
-
-        _segmentLineDirection.subVectors(
-            sectionChild.position,
-            sectionParent.position
-        )
-        const lineLengthSq = _segmentLineDirection.lengthSq()
-        if (lineLengthSq === 0) return false
-
-        const [a, b] = this.sectionCutter.getSegmentAsVector(index)
-        _segmentMidPoint.addVectors(a, b).multiplyScalar(0.5)
-        _delta.subVectors(nextPosition, _segmentMidPoint)
-
-        const deltaAlongLine = _delta.dot(_segmentLineDirection) / lineLengthSq
-        _delta.copy(_segmentLineDirection).multiplyScalar(deltaAlongLine)
+        _segmentLineDirection.copy(this.getConstraintDirection())
+        _delta.subVectors(nextPosition, this.getCenter())
+        constrainDirection(_delta, _segmentLineDirection)
         if (_delta.lengthSq() === 0) return false
-
-        this.sectionCutter.moveSegmentVector(_delta, _delta, index)
-
-        const [nextA, nextB] = this.sectionCutter.getSegmentAsVector(index)
-        drafter.updatePatchedNode(sectionChild)
-        _segmentMidPoint.addVectors(nextA, nextB).multiplyScalar(0.5)
-        controllers.updateGizmoPosition(_segmentMidPoint)
+        this.move(_delta)
+        controllers.updateGizmoPosition(this.getCenter())
 
         return true
     }

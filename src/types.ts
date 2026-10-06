@@ -72,8 +72,7 @@ export type ToolId =
     | "select"
     | "selectCount"
     | "moveAttached"
-    | "moveNode"
-    | "moveSegment"
+    | "move"
     | "moveSelection"
 
 export type {

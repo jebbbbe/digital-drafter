@@ -11,7 +11,7 @@ import type {
 } from "@types"
 import { getLevaArgs } from "../controls/nodes"
 import { updatePanel } from "../../components/Leva/LevaStore"
-import { moveNodeToPosition } from "../controls/move"
+import { moveNodeDelta, moveNodeToPosition } from "../controls/move"
 import { getSlotIndex } from "../objects/textures/GlobalTreeTexture"
 
 const _quaternion = new THREE.Quaternion()
@@ -72,8 +72,20 @@ export class TransformNode
         }
     }
 
-    override move(_startHit: THREE.Vector3) {
-        return undefined
+    override move(delta: THREE.Vector3) {
+        moveNodeDelta(this, delta)
+    }
+
+    override setPosition(position: THREE.Vector3) {
+        moveNodeToPosition(this, position)
+    }
+
+    override moveFromSelection(delta: THREE.Vector3) {
+        moveNodeDelta(this, delta, false)
+    }
+
+    override getConstraintDirection() {
+        return new THREE.Vector3().subVectors(this.position, this.parent.position)
     }
 
     override getCenter() {
@@ -98,7 +110,7 @@ export class TransformNode
     }
 
     override gizmoListener(position = controllers.getGizmoPosition()) {
-        moveNodeToPosition(this, position)
+        this.setPosition(position)
     }
 
     override delete() {
