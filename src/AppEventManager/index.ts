@@ -1,13 +1,17 @@
 import { ThreeApp } from "../App/main"
 import { themeOptions } from "../App/constants"
 import { geometryTitles } from "../App/objects/geometries/library"
-import { controls } from "../App/controls/controls"
+import * as controls from "../App/controls/controls"
 import * as ctx from "../App/AppContext"
 import * as Tools from "./ToolRegistry"
 import { settings } from "../App/settings"
 
-export async function linkThreeApp(container: HTMLElement) {
-    // set up app
+export async function linkThreeApp(
+    container: HTMLElement,
+    callbacks: Record<string, never>
+) {
+	
+	// set up app
     const threeApp = new ThreeApp(container)
 
     // link tools to event manager
@@ -52,6 +56,7 @@ export async function linkThreeApp(container: HTMLElement) {
             geometryTitles,
             panelTool,
         },
+        app: threeApp,
         dispose: () => {
             threeApp.dispose()
         },

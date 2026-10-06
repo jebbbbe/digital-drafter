@@ -39,18 +39,18 @@ function Controls({ bridge }: any) {
             })
         ) as T
     }
-    const wControls = wrapControls(controls)
-    const panelUpdates = {
-        onMoveStart: (...args: any[]) => {
-            panelTool.onMoveStart(args[0])
-        },
-        onMove: (...args: any[]) => {
-            panelTool.onMove(args[0])
-        },
-    }
-    const wPanelTool = wrapControls(panelUpdates)
-
     const schema = useMemo(() => {
+        const wControls = wrapControls(controls)
+        const panelUpdates = {
+            onMoveStart: (...args: any[]) => {
+                panelTool.onMoveStart(args[0])
+            },
+            onMove: (...args: any[]) => {
+                panelTool.onMove(args[0])
+            },
+        }
+        const wPanelTool = wrapControls(panelUpdates)
+
         const Export = folder(
             {
                 saveCubeAsGlb: button(controls.saveCubeAsGlb),
@@ -475,9 +475,9 @@ function Controls({ bridge }: any) {
             Settings,
             ...(Debug ? { Debug } : {}),
         }
-    }, [])
+    }, [bridge])
 
-    useControls(schema)
+    useControls(() => schema, [schema])
 
     return (
         <div id="panel">

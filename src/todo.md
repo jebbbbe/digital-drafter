@@ -19,23 +19,31 @@
 - [ ] contrained move object?
 - [ ] enable/ disable snap..?
 
+### future
+
+- [ ] cli for commands
+- [ ] MCP
+- [ ] more complex commands
+
 ### v0.5.0
 
 - [ ] features
-    - [x] move readme to src
-    - [ ] copy rhinos move + tab constrain. need display geom...
-        - [ ] project name, desciption and domain
-        - [ ] project writeup
-        - [ ] starting scenes/ load scene option
-        - [ ] button icons
-        - [ ] circular arc
-        - [ ] model import
-        - [ ] session data
-        - [ ] rotate & select without cancel
-        - [ ] kbm
-            - [ ] control a , select all
-            - [ ] control c + v, copy paste selection
-            - [ ] control z + y, redo, undo
+    - [ ] Icon toolbar
+        - [x] move readme to src
+    - [ ] save/load
+        - [ ] copy rhinos move + tab constrain. need display geom...
+            - [ ] project name, desciption and domain
+            - [ ] project writeup
+            - [ ] starting scenes/ load scene option
+            - [ ] button icons
+            - [ ] circular arc
+            - [ ] model import
+            - [ ] session data
+            - [ ] rotate & select without cancel
+            - [ ] kbm
+                - [ ] control a , select all
+                - [ ] control c + v, copy paste selection
+                - [ ] control z + y, redo, undo
 - [ ] materials
     - [x] remove gl_lines, why would we use them?
     - [ ] IL -> NodeIL
@@ -55,6 +63,9 @@
         - [x] attachment abstract class
         - [x] selectObject v attachment as similar objects
         - [x] better event patterns for abstract classes.
+    - [ ] controls/interaciton
+    - [ ] only one MoveTool
+    - [ ] s
 - [ ] issues
     - [ ] delete section grandchildren should detach
     - [ ] delte section grandchildren leaves gizmo in view
