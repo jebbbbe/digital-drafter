@@ -3,7 +3,7 @@ import { button, buttonGroup, folder, Leva, useControls } from "leva"
 
 const isDev = import.meta.env.DEV
 
-function Controls({ bridge }: any) {
+function LevaControls({ bridge }: any) {
     const { controls, settings, themeOptions, geometryTitles, panelTool } =
         bridge
 
@@ -517,4 +517,4 @@ function Controls({ bridge }: any) {
     )
 }
 
-export default Controls
+export default LevaControls

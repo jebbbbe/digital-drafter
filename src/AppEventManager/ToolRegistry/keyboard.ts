@@ -1,4 +1,4 @@
-import * as controls from "../../App/controls/controls"
+import * as controls from "../../App/controls"
 import { selection } from "../../App/AppContext"
 
 const spaceHoldMax = 20

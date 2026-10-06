@@ -1,7 +1,7 @@
 import { ThreeApp } from "../App/main"
 import { themeOptions } from "../App/constants"
 import { geometryTitles } from "../App/objects/geometries/library"
-import * as controls from "../App/controls/controls"
+import * as controls from "../App/controls"
 import * as ctx from "../App/AppContext"
 import * as Tools from "./ToolRegistry"
 import { settings } from "../App/settings"

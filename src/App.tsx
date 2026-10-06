@@ -1,6 +1,6 @@
 import { StrictMode } from "react"
 import { useEffect, useRef, useState } from "react"
-import Controls from "./components/Controls"
+import LevaControls from "./components/leva/LevaControls"
 import { linkThreeApp } from "./AppEventManager"
 import { appStub, levaStub } from "./components/leva/levaStub"
 
@@ -33,7 +33,7 @@ function App() {
     return (
         <div id="screen">
             <StrictMode>
-                <Controls bridge={app?.bridge ?? levaStub} />
+                <LevaControls bridge={app?.bridge ?? levaStub} />
             </StrictMode>
             <div id="app" ref={threeSceneMountRef} />
         </div>

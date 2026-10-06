@@ -1,5 +1,5 @@
 import { themeOptions } from "../../App/constants"
-import * as controls from "../../App/controls/controls"
+import * as controls from "../../App/controls"
 import { geometryTitles } from "../../App/objects/geometries/library"
 import { settings } from "../../App/settings"
 
