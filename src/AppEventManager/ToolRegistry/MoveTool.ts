@@ -78,17 +78,14 @@ export class MoveSelectionTool extends MoveBaseTool {
     }
 
     override onPointerMove(event: NormalizedPointerEvent) {
-        const { selection, drafter } = this.ctx
+        const { selection } = this.ctx
         if (selection.size <= 1) return
         const hit = this.ctx.raycastHelper.castFromEventToPlane(event.event)
         if (!hit) return
         this.delta.subVectors(hit, this.prevHit)
         if (this.delta.lengthSq() === 0) return
 
-        for (const object of selection.set) {
-            object.moveFromSelection(this.delta)
-        }
-        drafter.updatePatchedNodeArray(selection.filter("TransformNode"))
+        this.moveSelection(this.delta)
         this.prevHit.copy(hit)
         selection.averagePosition.add(this.delta)
         this.linkGizmo()

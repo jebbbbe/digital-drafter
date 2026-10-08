@@ -1,5 +1,6 @@
 import { Tool, type NormalizedPointerEvent } from "./Tool"
 import { deSelectAll } from "../../App/controls/interaction"
+import { getInteractiveObject, TransformNode } from "../../App/interactive"
 
 type SelectNodesEnterArgs = [
     done?: (success: boolean) => void,
@@ -27,7 +28,7 @@ export class CountSelectTool extends Tool {
 
     override onPointerUp(_normalized: NormalizedPointerEvent) {
         const e = _normalized.event
-        const { drafter, raycastHelper, selection } = this.ctx
+        const { raycastHelper, selection } = this.ctx
 
         if (e.pointerType === "touch" && !e.isPrimary) return
 
@@ -36,15 +37,8 @@ export class CountSelectTool extends Tool {
             return
         }
 
-        const first = intersects[0]
-        const id = first.object.userData.id
-        const index = first.instanceId
-        if (id === undefined || index === undefined) {
-            return
-        }
-
-        const node = drafter.findNode({ id, index })
-        if (!node) return
+        const node = getInteractiveObject(intersects[0], this.ctx)
+        if (!(node instanceof TransformNode)) return
 
         let removed = false
         let added = false

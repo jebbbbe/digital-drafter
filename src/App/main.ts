@@ -4,6 +4,8 @@ import { AspectLayout } from "./utils/AspectLayout"
 import { loadGlb } from "./utils/loader"
 import { Drafter } from "./draft/Drafter"
 import { SectionCutter } from "./interactive/SectionCutter"
+import { InteractiveMesh } from "./interactive/InteractiveMesh"
+import { InteractiveInstancedMesh } from "./interactive/InteractiveInstancedMesh"
 import { StatsPanel } from "./test/StatsPanel"
 import {
     RaycastHelper,
@@ -67,6 +69,31 @@ export class ThreeApp {
         const raycastObjects: Raycastable = []
         const drafter = new Drafter(scene, raycastObjects)
         const sectionCutter = new SectionCutter(scene, raycastObjects)
+
+        ;(() => {
+			//generic interactive objeccts
+            const cube = new THREE.Mesh(
+                new THREE.BoxGeometry(1, 1, 1),
+                new THREE.MeshBasicMaterial({ color: 0x5588dd })
+            )
+            cube.position.set(3, 0.5, 0)
+            new InteractiveMesh(cube, scene, raycastObjects)
+
+            const cones = new THREE.InstancedMesh(
+                new THREE.ConeGeometry(0.35, 1, 24),
+                new THREE.MeshBasicMaterial(),
+                5
+            )
+            cones.instanceMatrix.setUsage(THREE.DynamicDrawUsage)
+            const instanceMatrix = new THREE.Matrix4()
+            const colors = [0xe76f51, 0x2a9d8f, 0x9b5de5, 0xf4a261, 0x00b4d8]
+            for (let i = 0; i < cones.count; i++) {
+                instanceMatrix.makeTranslation(i - 2, 0.5, -1.5)
+                cones.setMatrixAt(i, instanceMatrix)
+                cones.setColorAt(i, new THREE.Color(colors[i]))
+                new InteractiveInstancedMesh(cones, i, scene, raycastObjects)
+            }
+        })()
 
         // raycaster
         const raycastHelper = new RaycastHelper(

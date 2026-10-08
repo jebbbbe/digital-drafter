@@ -58,6 +58,15 @@ export abstract class Tool {
         return true
     }
 
+    protected moveSelection(delta: THREE.Vector3) {
+        const { selection, drafter } = this.ctx
+        if (selection.size <= 1) return
+        for (const object of selection.set) {
+            object.moveFromSelection(delta)
+        }
+        drafter.updatePatchedNodeArray(selection.filter("TransformNode"))
+    }
+
     linkGizmo() {
         const { selection, controllers } = this.ctx
 

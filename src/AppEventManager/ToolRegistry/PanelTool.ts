@@ -1,6 +1,5 @@
 import * as THREE from "three"
 import { Tool } from "./Tool"
-import { moveDeltaSelectedNodes } from "../../App/controls/interaction"
 
 type levaPosition = {
     x: number
@@ -29,7 +28,7 @@ export class PanelTool extends Tool {
         console.log("delta")
         console.log(this.delta)
         if (this.ctx.selection.size > 1) {
-            moveDeltaSelectedNodes(this.delta)
+            this.moveSelection(this.delta)
             this.ctx.selection.averagePosition.add(this.delta)
         } else {
             const selectedObject = this.ctx.selection.first()

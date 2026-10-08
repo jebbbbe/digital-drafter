@@ -1,6 +1,5 @@
 import * as THREE from "three"
 import { Tool } from "./Tool"
-import { moveDeltaSelectedNodes } from "../../App/controls/interaction"
 
 export class TransformTool extends Tool {
     private delta = new THREE.Vector3()
@@ -14,7 +13,7 @@ export class TransformTool extends Tool {
         this.delta.subVectors(hit, this.prevHit)
 
         if (this.ctx.selection.size > 1) {
-            moveDeltaSelectedNodes(this.delta)
+            this.moveSelection(this.delta)
         } else {
             const selectedObject = this.ctx.selection.first()
             selectedObject.gizmoListener()
@@ -25,6 +24,3 @@ export class TransformTool extends Tool {
         this.linkPanel()
     }
 }
-
-
-

@@ -1,12 +1,9 @@
 import { Tool, type NormalizedPointerEvent } from "./Tool"
 import * as THREE from "three"
-import type { NodeLocation } from "@types"
 import { deSelectAll } from "../../App/controls/interaction"
-import { SegmentAttachment, TransformNode } from "../../App/interactive"
+import { getInteractiveObject } from "../../App/interactive"
 
 const startHit = new THREE.Vector3()
-const _zeroVec3 = new THREE.Vector3()
-const _zeroQuaternion = new THREE.Quaternion()
 
 export class SelectTool extends Tool {
     override enter(..._args: unknown[]): void {
@@ -22,13 +19,7 @@ export class SelectTool extends Tool {
     }
     override onPointerDown(_normalized: NormalizedPointerEvent) {
         const e = _normalized.event
-        const {
-            drafter,
-            sectionCutter,
-            raycastHelper,
-            selection,
-            controllers,
-        } = this.ctx
+        const { raycastHelper, selection, controllers } = this.ctx
 
         // right click is for orbit controls
         if (e.button === 2) {
@@ -57,27 +48,8 @@ export class SelectTool extends Tool {
         const hit = raycastHelper.castFromEventToPlane(e, startHit)
         if (!hit) return
 
-        let selectedObject: TransformNode | SegmentAttachment
-        if (first.object === sectionCutter.mesh) {
-            // hit section cutter
-            const { index, faceIndex, object }: any = first
-            const segmentIndex =
-                index ?? (faceIndex !== undefined ? faceIndex * 2 : undefined)
-            if (segmentIndex === undefined) return
-
-            selectedObject = object.userData.attachments[segmentIndex]
-            if (!selectedObject) return
-        } else {
-            // find node from raycast
-            const id = first.object.userData.id
-            const index = first.instanceId
-            const location = { id, index }
-
-            // add node to selection
-            const node = drafter.findNode(location as NodeLocation)
-            if (!node) return
-            selectedObject = node
-        }
+        const selectedObject = getInteractiveObject(first, this.ctx)
+        if (!selectedObject) return
 
         let removed = false
         let added = false

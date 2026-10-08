@@ -82,6 +82,9 @@ export type {
 export type { PanelSettings } from "./components/Leva/LevaStore"
 export type {
     InteractiveObject,
+    InteractiveTarget,
+    InteractiveMesh,
+    InteractiveInstancedMesh,
     SegmentAttachment,
     TransformNode,
 } from "./App/interactive"
